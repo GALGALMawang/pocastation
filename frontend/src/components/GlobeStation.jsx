@@ -61,73 +61,6 @@ const sectors = [
   { id: 'alarm',    title: '알림',      sub: 'NOTIFICATIONS',  side: 'right', color: [255, 90, 120]   },
 ];
 
-// 대륙별 섹터 매핑 (equirectangular UV: u=경도 0~1, v=위도 0~1)
-const SECTOR_UV = [
-  // 경매 — 아메리카
-  { id: 'auctions', uMin: 0.04, uMax: 0.30, vMin: 0.10, vMax: 0.60 }, // 북미
-  { id: 'auctions', uMin: 0.18, uMax: 0.38, vMin: 0.48, vMax: 0.86 }, // 남미
-  // 등록 — 유럽 + 아프리카
-  { id: 'register', uMin: 0.36, uMax: 0.57, vMin: 0.10, vMax: 0.44 }, // 유럽
-  { id: 'register', uMin: 0.37, uMax: 0.58, vMin: 0.38, vMax: 0.82 }, // 아프리카
-  // 랭킹 — 아시아
-  { id: 'ranking',  uMin: 0.55, uMax: 0.95, vMin: 0.08, vMax: 0.58 }, // 아시아
-  // 마이페이지 — 오세아니아
-  { id: 'mypage',   uMin: 0.76, uMax: 0.98, vMin: 0.52, vMax: 0.82 }, // 오세아니아
-  // 알림 — 남극
-  { id: 'alarm',    uMin: 0.00, uMax: 1.00, vMin: 0.88, vMax: 1.00 }, // 남극
-];
-
-function getSectorColor(u, v) {
-  // 더 구체적인 영역이 앞에 오도록 역순 확인 (오세아니아가 아시아보다 우선)
-  const order = ['mypage', 'alarm', 'auctions', 'register', 'ranking'];
-  for (const id of order) {
-    const matches = SECTOR_UV.filter(z => z.id === id);
-    for (const z of matches) {
-      if (u >= z.uMin && u <= z.uMax && v >= z.vMin && v <= z.vMax) {
-        return sectors.find(s => s.id === id).color;
-      }
-    }
-  }
-  return null;
-}
-
-function generateSectorTexture() {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const W = img.width, H = img.height;
-      const offscreen = document.createElement('canvas');
-      offscreen.width = W; offscreen.height = H;
-      const ctx = offscreen.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-
-      const imageData = ctx.getImageData(0, 0, W, H);
-      const d = imageData.data;
-
-      for (let i = 0; i < W * H; i++) {
-        const brightness = (d[i*4] + d[i*4+1] + d[i*4+2]) / 3;
-        if (brightness > 40) {
-          const u = (i % W) / W;
-          const v = Math.floor(i / W) / H;
-          const color = getSectorColor(u, v);
-          if (color) {
-            d[i*4]   = color[0];
-            d[i*4+1] = color[1];
-            d[i*4+2] = color[2];
-          }
-        } else {
-          d[i*4] = d[i*4+1] = d[i*4+2] = 0;
-        }
-      }
-
-      ctx.putImageData(imageData, 0, 0);
-      resolve(offscreen);
-    };
-    img.onerror = () => resolve(null);
-    img.src = 'https://ksenia-k.com/img/earth-map-colored.png';
-  });
-}
 
 // Death Star under-construction texture (equirectangular 2048x1024)
 // White = built surface (dots), Black = void / unbuilt zones
@@ -330,16 +263,17 @@ export default function GlobeStation({ onSectorSelect }) {
       rafId = requestAnimationFrame(render);
     };
 
-    generateSectorTexture().then(canvas => {
-      const mapTex = canvas
-        ? new THREE.CanvasTexture(canvas)
-        : new THREE.TextureLoader().load('https://ksenia-k.com/img/earth-map-colored.png');
-      createGlobe(mapTex);
-      createPointer();
-      createPopupTimelines();
-      updateSize();
-      render();
-    });
+    new THREE.TextureLoader().load(
+      'https://ksenia-k.com/img/earth-map-colored.png',
+      (mapTex) => {
+        mapTex.repeat.set(1, 1);
+        createGlobe(mapTex);
+        createPointer();
+        createPopupTimelines();
+        updateSize();
+        render();
+      }
+    );
   }, []);
 
   return (
