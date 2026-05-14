@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BellRing, PackageCheck, Crosshair, ChevronDown, User, Wallet, History, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -11,6 +11,8 @@ import { AUCTIONS_MOCK } from '../lib/mockData';
 
 export default function Home() {
   const [phase, setPhase] = useState('intro'); // 'intro', 'onboarding', 'station'
+  const [heroVisible, setHeroVisible] = useState(true);   // hero 페이드 제어
+  const [hudVisible, setHudVisible] = useState(false);    // HUD 등장 딜레이 제어
   const [step, setStep] = useState(1);
   const [activeTab, setActiveTab] = useState('auctions'); // 'auctions', 'register', 'mypage', 'wallet', etc.
   const [auctions, setAuctions] = useState([]);
@@ -19,23 +21,33 @@ export default function Home() {
     setAuctions(AUCTIONS_MOCK);
   }, []);
 
+  const startWarp = useCallback(() => {
+    if (phase !== 'intro') return;
+    // hero 페이드아웃 시작
+    setHeroVisible(false);
+    // 0.4s 뒤 워프 phase 전환 (hero가 흐려지는 동안)
+    setTimeout(() => setPhase('onboarding'), 400);
+    // 1.6s 뒤 HUD 등장 (워프 가속 완료 후)
+    setTimeout(() => setHudVisible(true), 1600);
+  }, [phase]);
+
   useEffect(() => {
     const handleWheel = (e) => {
-      if (phase === 'intro' && e.deltaY > 0) setPhase('onboarding');
+      if (phase === 'intro' && e.deltaY > 0) startWarp();
     };
     if (phase === 'intro' || phase === 'onboarding') {
       document.body.style.overflow = 'hidden';
       window.addEventListener('wheel', handleWheel);
     } else {
-      document.body.style.overflow = 'hidden'; 
+      document.body.style.overflow = 'hidden';
     }
     return () => window.removeEventListener('wheel', handleWheel);
-  }, [phase]);
+  }, [phase, startWarp]);
 
   const handleNextStep = (skip = false) => {
-    if (skip) { setPhase('station'); return; }
+    if (skip) { setPhase('station'); setHudVisible(false); return; }
     if (step < 4) setStep(step + 1);
-    else setPhase('station');
+    else { setPhase('station'); setHudVisible(false); }
   };
 
   const handleSectorChange = (sectorId) => {
@@ -48,7 +60,12 @@ export default function Home() {
       <WarpBackground phase={phase} />
       
       {phase === 'onboarding' && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 200,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          opacity: hudVisible ? 1 : 0,
+          transition: 'opacity 0.6s ease',
+        }}>
           <SpaceshipHUD key={step} step={step} onNext={handleNextStep} />
         </div>
       )}
@@ -68,18 +85,25 @@ export default function Home() {
         </div>
       </header>
 
-      {phase === 'intro' && (
-        <section className={`hero hero-transition`} style={{ background: 'transparent' }}>
+      {(phase === 'intro' || (phase === 'onboarding' && !hudVisible)) && (
+        <section style={{
+          background: 'transparent',
+          opacity: heroVisible ? 1 : 0,
+          transform: heroVisible ? 'scale(1)' : 'scale(1.06)',
+          transition: 'opacity 0.8s ease, transform 0.8s ease',
+          position: 'fixed', inset: 0, zIndex: 100,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          pointerEvents: phase === 'intro' ? 'auto' : 'none',
+        }}>
           <div className="pg" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className="hero-in">
               <h1 style={{ color: '#fff' }}>우리는 진정한 가치와<br/><span className="hl">팬덤을 연결합니다</span></h1>
               <p className="hero-desc" style={{ color: '#aaa' }}>
                 가장 거대하고 안전한 K-POP 포토카드 유니버스로 진입하세요.
               </p>
-              
               <div className="hero-cta" style={{ pointerEvents: 'auto', marginTop: '60px' }}>
-                <button 
-                  onClick={() => setPhase('onboarding')} 
+                <button
+                  onClick={startWarp}
                   style={{ background: 'transparent', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', cursor: 'pointer', outline: 'none', margin: '0 auto' }}
                   className="warp-trigger"
                 >
