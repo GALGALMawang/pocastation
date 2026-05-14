@@ -65,7 +65,7 @@ const sectors = [
 // Death Star under-construction texture (equirectangular 2048x1024)
 // White = built surface (dots), Black = void / unbuilt zones
 
-export default function GlobeStation({ onSectorSelect, compact = false }) {
+export default function GlobeStation({ onSectorSelect, compact = false, noMenu = false }) {
   const containerRef = useRef(null);
   const canvas3DRef = useRef(null);
   const canvas2DRef = useRef(null);
@@ -213,7 +213,7 @@ export default function GlobeStation({ onSectorSelect, compact = false }) {
       </div>
 
       {/* Left menu */}
-      {!compact && ['left', 'right'].map(side => (
+      {!compact && !noMenu && ['left', 'right'].map(side => (
         <div key={side} style={{
           position: 'absolute',
           [side]: '24px',

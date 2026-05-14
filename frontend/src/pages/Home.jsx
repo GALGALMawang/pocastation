@@ -49,7 +49,7 @@ export default function Home() {
       setPhase('station');
       setHudVisible(false);
       setPanelIn(false);
-      setTimeout(() => setPanelIn(true), 1100); // 1초간 행성 노출 후 패널 올라옴
+      setTimeout(() => setPanelIn(true), 2400); // 행성 노출 후 패널 올라옴
       return;
     }
     setStep(s => s + 1);
@@ -158,8 +158,8 @@ export default function Home() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           pointerEvents: 'none',
         }}>
-          <div style={{ width: 'min(60vh, 60vw)', height: 'min(60vh, 60vw)' }}>
-            <GlobeStation onSectorSelect={() => {}} />
+          <div style={{ width: 'min(78vh, 78vw)', height: 'min(78vh, 78vw)' }}>
+            <GlobeStation onSectorSelect={() => {}} noMenu />
           </div>
         </div>
       )}
