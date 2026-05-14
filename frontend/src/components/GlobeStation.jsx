@@ -61,46 +61,72 @@ const sectors = [
   { id: 'alarm',    title: '알림',      sub: 'NOTIFICATIONS',  side: 'right', color: [255, 90, 120]   },
 ];
 
-// 섹터별 UV 범위 (equirectangular: u=경도 0~1, v=위도 0~1 top→bottom)
+// 대륙별 섹터 매핑 (equirectangular UV: u=경도 0~1, v=위도 0~1)
 const SECTOR_UV = [
-  { id: 'auctions', uMin: 0.00, uMax: 0.40, vMin: 0.10, vMax: 0.55 },
-  { id: 'register', uMin: 0.40, uMax: 0.75, vMin: 0.10, vMax: 0.50 },
-  { id: 'ranking',  uMin: 0.75, uMax: 1.00, vMin: 0.10, vMax: 0.55 },
-  { id: 'mypage',   uMin: 0.10, uMax: 0.60, vMin: 0.55, vMax: 0.92 },
-  { id: 'alarm',    uMin: 0.60, uMax: 1.00, vMin: 0.55, vMax: 0.92 },
+  // 경매 — 아메리카
+  { id: 'auctions', uMin: 0.04, uMax: 0.30, vMin: 0.10, vMax: 0.60 }, // 북미
+  { id: 'auctions', uMin: 0.18, uMax: 0.38, vMin: 0.48, vMax: 0.86 }, // 남미
+  // 등록 — 유럽 + 아프리카
+  { id: 'register', uMin: 0.36, uMax: 0.57, vMin: 0.10, vMax: 0.44 }, // 유럽
+  { id: 'register', uMin: 0.37, uMax: 0.58, vMin: 0.38, vMax: 0.82 }, // 아프리카
+  // 랭킹 — 아시아
+  { id: 'ranking',  uMin: 0.55, uMax: 0.95, vMin: 0.08, vMax: 0.58 }, // 아시아
+  // 마이페이지 — 오세아니아
+  { id: 'mypage',   uMin: 0.76, uMax: 0.98, vMin: 0.52, vMax: 0.82 }, // 오세아니아
+  // 알림 — 남극
+  { id: 'alarm',    uMin: 0.00, uMax: 1.00, vMin: 0.88, vMax: 1.00 }, // 남극
 ];
 
+function getSectorColor(u, v) {
+  // 더 구체적인 영역이 앞에 오도록 역순 확인 (오세아니아가 아시아보다 우선)
+  const order = ['mypage', 'alarm', 'auctions', 'register', 'ranking'];
+  for (const id of order) {
+    const matches = SECTOR_UV.filter(z => z.id === id);
+    for (const z of matches) {
+      if (u >= z.uMin && u <= z.uMax && v >= z.vMin && v <= z.vMax) {
+        return sectors.find(s => s.id === id).color;
+      }
+    }
+  }
+  return null;
+}
+
 function generateSectorTexture() {
-  const W = 2048, H = 1024;
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const W = img.width, H = img.height;
+      const offscreen = document.createElement('canvas');
+      offscreen.width = W; offscreen.height = H;
+      const ctx = offscreen.getContext('2d');
+      ctx.drawImage(img, 0, 0);
 
-  // 검정 배경
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, W, H);
+      const imageData = ctx.getImageData(0, 0, W, H);
+      const d = imageData.data;
 
-  // 각 섹터 색상으로 UV 영역 채우기
-  SECTOR_UV.forEach(uv => {
-    const sec = sectors.find(s => s.id === uv.id);
-    const [r, g, b] = sec.color;
-    ctx.fillStyle = `rgb(${r},${g},${b})`;
-    ctx.fillRect(uv.uMin * W, uv.vMin * H, (uv.uMax - uv.uMin) * W, (uv.vMax - uv.vMin) * H);
+      for (let i = 0; i < W * H; i++) {
+        const brightness = (d[i*4] + d[i*4+1] + d[i*4+2]) / 3;
+        if (brightness > 40) {
+          const u = (i % W) / W;
+          const v = Math.floor(i / W) / H;
+          const color = getSectorColor(u, v);
+          if (color) {
+            d[i*4]   = color[0];
+            d[i*4+1] = color[1];
+            d[i*4+2] = color[2];
+          }
+        } else {
+          d[i*4] = d[i*4+1] = d[i*4+2] = 0;
+        }
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+      resolve(offscreen);
+    };
+    img.onerror = () => resolve(null);
+    img.src = 'https://ksenia-k.com/img/earth-map-colored.png';
   });
-
-  // 섹터 사이 얇은 검정 경계선
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0.40 * W - 3, 0, 6, H);
-  ctx.fillRect(0.75 * W - 3, 0, 6, H * 0.55);
-  ctx.fillRect(0.60 * W - 3, 0.55 * H, 6, H);
-  ctx.fillRect(0, 0.55 * H - 3, W, 6);
-
-  // 극지방 (북/남) — 어둡게
-  ctx.fillStyle = '#111';
-  ctx.fillRect(0, 0, W, 0.10 * H);
-  ctx.fillRect(0, 0.92 * H, W, H);
-
-  return canvas;
 }
 
 // Death Star under-construction texture (equirectangular 2048x1024)
@@ -304,12 +330,16 @@ export default function GlobeStation({ onSectorSelect }) {
       rafId = requestAnimationFrame(render);
     };
 
-    const mapTex = new THREE.CanvasTexture(generateSectorTexture());
-    createGlobe(mapTex);
-    createPointer();
-    createPopupTimelines();
-    updateSize();
-    render();
+    generateSectorTexture().then(canvas => {
+      const mapTex = canvas
+        ? new THREE.CanvasTexture(canvas)
+        : new THREE.TextureLoader().load('https://ksenia-k.com/img/earth-map-colored.png');
+      createGlobe(mapTex);
+      createPointer();
+      createPopupTimelines();
+      updateSize();
+      render();
+    });
   }, []);
 
   return (
