@@ -194,7 +194,7 @@ export default function Home() {
             width: 260,
             flexShrink: 0,
             borderRight: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(255,255,255,0.82)',
+            background: '#ffffff',
             display: 'flex',
             flexDirection: 'column',
             padding: '20px 0',

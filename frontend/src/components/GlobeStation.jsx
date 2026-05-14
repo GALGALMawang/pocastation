@@ -100,20 +100,23 @@ export default function GlobeStation({ onSectorSelect, compact = false, noMenu =
     s.mouse = new THREE.Vector2(-1, -1);
     s.clock = new THREE.Clock();
 
-    // OrbitControls
-    s.controls = new OrbitControls(s.camera, canvas3D);
-    s.controls.enablePan = false;
-    s.controls.enableZoom = false;
-    s.controls.enableDamping = true;
-    s.controls.minPolarAngle = 0.4 * Math.PI;
-    s.controls.maxPolarAngle = 0.4 * Math.PI;
-    // syncRef 있으면 globe mesh 직접 회전 동기화 → autoRotate 끔
-    s.controls.autoRotate = !syncRef;
-    s.controls.autoRotateSpeed = 0.4;
+    // OrbitControls — compact slave는 스킵 (mesh 직접 동기화)
+    if (!compact) {
+      s.controls = new OrbitControls(s.camera, canvas3D);
+      s.controls.enablePan = false;
+      s.controls.enableZoom = false;
+      s.controls.enableDamping = true;
+      s.controls.minPolarAngle = 0.4 * Math.PI;
+      s.controls.maxPolarAngle = 0.4 * Math.PI;
+      s.controls.autoRotate = !syncRef;
+      s.controls.autoRotateSpeed = 0.4;
+    }
 
     let timestamp;
-    s.controls.addEventListener('start', () => { timestamp = Date.now(); });
-    s.controls.addEventListener('end', () => { dragged = (Date.now() - timestamp) > 600; });
+    if (s.controls) {
+      s.controls.addEventListener('start', () => { timestamp = Date.now(); });
+      s.controls.addEventListener('end', () => { dragged = (Date.now() - timestamp) > 600; });
+    }
 
     // Globe
     const createGlobe = (mapTex) => {
@@ -189,7 +192,7 @@ export default function GlobeStation({ onSectorSelect, compact = false, noMenu =
       s.mapMaterial.uniforms.u_time_since_click.value = s.clock.getElapsedTime();
       checkIntersects();
       updateOverlay();
-      s.controls.update();
+      if (s.controls) s.controls.update();
 
       // Shared rotation sync
       if (syncRef) {
