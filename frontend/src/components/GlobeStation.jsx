@@ -54,28 +54,11 @@ const FRAGMENT_SHADER = `
 `;
 
 const sectors = [
-  {
-    id: 'auctions', title: 'AUCTION_HUB', color: '0, 240, 255',
-    nodes: [
-      { id: 'bts', label: 'BTS_TRACK' },
-      { id: 'aespa', label: 'AESPA_ZONE' },
-      { id: 'ive', label: 'IVE_ORBIT' }
-    ]
-  },
-  {
-    id: 'register', title: 'CARGO_BAY', color: '255, 215, 0',
-    nodes: [
-      { id: 'new', label: 'NEW_CARGO' },
-      { id: 'log', label: 'DATA_LOG' }
-    ]
-  },
-  {
-    id: 'mypage', title: 'USER_STATION', color: '180, 100, 255',
-    nodes: [
-      { id: 'bio', label: 'BIO_DATA' },
-      { id: 'wallet', label: 'WALLET_V' }
-    ]
-  }
+  { id: 'auctions', title: '경매',    sub: 'LIVE AUCTION',    side: 'left'  },
+  { id: 'register', title: '등록',    sub: 'SELL PHOTOCARD',  side: 'left'  },
+  { id: 'ranking',  title: '랭킹',    sub: 'HOT RANKING',     side: 'left'  },
+  { id: 'mypage',   title: '마이페이지', sub: 'MY STATION',   side: 'right' },
+  { id: 'alarm',    title: '알림',    sub: 'NOTIFICATIONS',   side: 'right' },
 ];
 
 // Death Star under-construction texture (equirectangular 2048x1024)
@@ -328,48 +311,45 @@ export default function GlobeStation({ onSectorSelect }) {
         </div>
       </div>
 
-      {/* Side menu */}
-      <div style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: '10px', zIndex: 10 }}>
-        {sectors.map(s => (
-          <div
-            key={s.id}
-            onMouseEnter={() => setActiveMenu(s.id)}
-            onMouseLeave={() => { setActiveMenu(null); setActiveNode(null); }}
-            onClick={() => onSectorSelect(s.id)}
-            style={{
-              cursor: 'pointer',
-              background: activeMenu === s.id ? `rgba(${s.color}, 0.15)` : 'rgba(255,255,255,0.02)',
-              borderLeft: `3px solid rgba(${s.color}, ${activeMenu === s.id ? 1 : 0.3})`,
-              padding: '10px 16px',
-              transition: 'all 0.25s',
-              borderRadius: '0 6px 6px 0',
-              backdropFilter: activeMenu === s.id ? 'blur(8px)' : 'none',
-              boxShadow: activeMenu === s.id ? `0 0 20px rgba(${s.color}, 0.15)` : 'none',
-            }}
-          >
-            <div style={{ color: '#fff', fontSize: '10px', fontWeight: '900', letterSpacing: '2px', opacity: activeMenu === s.id ? 1 : 0.55 }}>{s.title}</div>
-            {activeMenu === s.id && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '7px' }}>
-                {s.nodes.map(node => (
-                  <span
-                    key={node.id}
-                    onMouseEnter={() => setActiveNode(node.id)}
-                    style={{
-                      fontSize: '8px',
-                      color: activeNode === node.id ? '#fff' : `rgba(${s.color}, 1)`,
-                      background: activeNode === node.id ? `rgba(${s.color}, 0.5)` : 'transparent',
-                      border: `1px solid rgba(${s.color}, 0.4)`,
-                      padding: '2px 7px', borderRadius: '3px',
-                    }}
-                  >
-                    {node.label}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {/* Left menu */}
+      {['left', 'right'].map(side => (
+        <div key={side} style={{
+          position: 'absolute',
+          [side]: '24px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          zIndex: 10,
+        }}>
+          {sectors.filter(s => s.side === side).map(s => (
+            <div
+              key={s.id}
+              onMouseEnter={() => setActiveMenu(s.id)}
+              onMouseLeave={() => setActiveMenu(null)}
+              onClick={() => onSectorSelect(s.id)}
+              style={{
+                cursor: 'pointer',
+                background: activeMenu === s.id ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.85)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                borderRadius: '12px',
+                padding: '12px 20px',
+                minWidth: '130px',
+                transition: 'all 0.2s',
+                boxShadow: activeMenu === s.id
+                  ? '0 8px 32px rgba(0,0,0,0.18)'
+                  : '0 2px 12px rgba(0,0,0,0.1)',
+                transform: activeMenu === s.id ? 'scale(1.04)' : 'scale(1)',
+              }}
+            >
+              <div style={{ fontSize: '15px', fontWeight: '800', color: '#111', letterSpacing: '-0.3px' }}>{s.title}</div>
+              <div style={{ fontSize: '9px', fontWeight: '600', color: '#999', letterSpacing: '1.5px', marginTop: '2px' }}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

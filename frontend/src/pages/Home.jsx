@@ -70,16 +70,20 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="hdr" style={{ 
-        position: 'fixed', top: 0, width: '100%', zIndex: 300, 
-        background: 'rgba(2, 2, 5, 0.7)', borderBottom: '1px solid rgba(255,255,255,0.05)',
-        backdropFilter: 'blur(10px)', opacity: (phase === 'station' || phase === 'onboarding') ? 1 : 0, transition: 'opacity 0.5s',
+      <header style={{
+        position: 'fixed', top: 0, width: '100%', zIndex: 300,
+        background: 'rgba(255, 255, 255, 0.92)',
+        borderBottom: '1px solid rgba(0,0,0,0.08)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        opacity: (phase === 'station' || phase === 'onboarding') ? 1 : 0,
+        transition: 'opacity 0.5s',
         pointerEvents: phase === 'intro' ? 'none' : 'auto'
       }}>
-        <div className="pg hdr-in" style={{ display: 'flex', alignItems: 'center', height: '70px' }}>
-          <Link to="/" className="logo"><div className="logo-nm">POCA<span>STATION</span></div></Link>
-          <nav className="gnv" style={{ marginLeft: 'auto' }}>
-            <Link to="/admin" style={{ color: 'var(--ac)', fontSize: '12px', fontWeight: '800' }}>[ 관제 센터 ]</Link>
+        <div className="pg hdr-in" style={{ display: 'flex', alignItems: 'center', height: '60px' }}>
+          <Link to="/" className="logo"><div className="logo-nm" style={{ color: '#111' }}>POCA<span>STATION</span></div></Link>
+          <nav style={{ marginLeft: 'auto' }}>
+            <Link to="/admin" style={{ color: 'var(--ac)', fontSize: '12px', fontWeight: '800' }}>관제 센터</Link>
           </nav>
         </div>
       </header>
