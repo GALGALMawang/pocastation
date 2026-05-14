@@ -5,9 +5,11 @@ const WarpBackground = ({ phase }) => {
   const progressRef = useRef(0);
   const starsRef = useRef([]);
   const shootingStarsRef = useRef([]);
-  const warpStartRef = useRef(null); // timestamp when onboarding began
+  const warpStartRef = useRef(null);
+  const phaseRef = useRef(phase);
 
   useEffect(() => {
+    phaseRef.current = phase;
     if (phase === 'onboarding') {
       warpStartRef.current = performance.now();
     }
@@ -61,7 +63,8 @@ const WarpBackground = ({ phase }) => {
       let targetSpeed = 0.5;
       let shakeX = 0, shakeY = 0;
 
-      if (phase === 'onboarding' && warpStartRef.current !== null) {
+      const p = phaseRef.current;
+      if (p === 'onboarding' && warpStartRef.current !== null) {
         const elapsed = (time - warpStartRef.current) / 1000;
 
         if (elapsed < 0.6) {
@@ -78,12 +81,12 @@ const WarpBackground = ({ phase }) => {
         } else {
           targetSpeed = 28;
         }
-      } else if (phase === 'station') {
+      } else if (p === 'station') {
         targetSpeed = 0.05;
       }
 
       // Lerp toward target speed
-      const lerpRate = phase === 'onboarding' ? 0.08 : 0.02;
+      const lerpRate = p === 'onboarding' ? 0.08 : 0.02;
       progressRef.current += (targetSpeed - progressRef.current) * lerpRate;
       const speed = progressRef.current;
 
@@ -137,7 +140,7 @@ const WarpBackground = ({ phase }) => {
       ctx.restore();
 
       // Shooting Stars (station only)
-      if (phase === 'station') {
+      if (p === 'station') {
         if (Math.random() < 0.005) createShootingStar();
         shootingStarsRef.current.forEach((ss, i) => {
           ss.x += ss.speed;
@@ -167,7 +170,7 @@ const WarpBackground = ({ phase }) => {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [phase]);
+  }, []);
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: -1, background: '#020205' }}>
