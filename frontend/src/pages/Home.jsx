@@ -28,6 +28,9 @@ export default function Home() {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [panelIn, setPanelIn] = useState(false);
   const globeSyncRef = useRef({ y: 0 });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sellForm, setSellForm] = useState({ group: '', member: '', album: '', category: '포토카드', grade: 'A', price: '', duration: '24', desc: '' });
+  const [dragOver, setDragOver] = useState(false);
 
   const startWarp = useCallback(() => {
     if (phase !== 'intro') return;
@@ -252,36 +255,49 @@ export default function Home() {
 
             {/* Content Topbar */}
             <div style={{
-              padding: '12px 28px',
+              padding: '10px 20px',
               borderBottom: '1px solid rgba(0,0,0,0.06)',
-              display: 'flex', alignItems: 'center', gap: 16,
+              display: 'flex', alignItems: 'center', gap: 12,
               flexShrink: 0,
             }}>
-              <div>
-                <span style={{ fontSize: 15, fontWeight: 900, color: '#111' }}>
-                  {menuItems.find(m => m.id === activeTab)?.label}
-                </span>
-                <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'rgba(0,0,0,0.25)', letterSpacing: 1.5, marginLeft: 10 }}>
-                  {menuItems.find(m => m.id === activeTab)?.sub}
-                </span>
+              <span style={{ fontSize: 14, fontWeight: 900, color: '#111', flexShrink: 0 }}>
+                {menuItems.find(m => m.id === activeTab)?.label}
+              </span>
+
+              {/* 검색바 */}
+              <div style={{
+                flex: 1, maxWidth: 360, display: 'flex', alignItems: 'center', gap: 8,
+                background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)',
+                borderRadius: 10, padding: '0 12px', height: 34,
+              }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="2.5" strokeLinecap="round">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="그룹, 멤버, 앨범 검색..."
+                  style={{
+                    flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                    fontSize: 12, color: '#111',
+                  }}
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.3)', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+                )}
               </div>
+
               {activeTab === 'auctions' && (
-                <>
-                  <div style={{ height: 14, width: 1, background: 'rgba(0,0,0,0.1)' }} />
-                  <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)' }}>{auctions.length}개 진행 중</span>
-                  <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
-                    {['전체', 'S급', 'A급', '마감임박'].map(f => (
-                      <button key={f} style={{
-                        padding: '3px 10px', borderRadius: 6,
-                        border: '1px solid rgba(0,0,0,0.1)',
-                        background: 'transparent',
-                        color: 'rgba(0,0,0,0.4)',
-                        fontSize: 11, cursor: 'pointer',
-                        transition: 'all 0.15s',
-                      }}>{f}</button>
-                    ))}
-                  </div>
-                </>
+                <div style={{ display: 'flex', gap: 5, marginLeft: 'auto' }}>
+                  {['전체', 'S급', 'A급', '마감임박'].map(f => (
+                    <button key={f} style={{
+                      padding: '3px 10px', borderRadius: 6,
+                      border: '1px solid rgba(0,0,0,0.1)',
+                      background: 'transparent', color: 'rgba(0,0,0,0.4)',
+                      fontSize: 11, cursor: 'pointer',
+                    }}>{f}</button>
+                  ))}
+                </div>
               )}
             </div>
 
@@ -367,7 +383,103 @@ export default function Home() {
                 </div>
               )}
 
-              {activeTab !== 'auctions' && (
+              {activeTab === 'register' && (
+                <div style={{ maxWidth: 640, margin: '0 auto' }}>
+                  <div style={{ marginBottom: 24 }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 900, color: '#111', margin: '0 0 4px' }}>포토카드 경매 등록</h2>
+                    <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', margin: 0 }}>정보를 입력하면 관리자 승인 후 경매가 시작됩니다.</p>
+                  </div>
+
+                  {/* 이미지 업로드 */}
+                  <div
+                    onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={e => { e.preventDefault(); setDragOver(false); }}
+                    style={{
+                      border: `2px dashed ${dragOver ? '#111' : 'rgba(0,0,0,0.12)'}`,
+                      borderRadius: 14, padding: '36px 20px',
+                      textAlign: 'center', cursor: 'pointer', marginBottom: 20,
+                      background: dragOver ? 'rgba(0,0,0,0.03)' : 'transparent',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>📷</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 4 }}>이미지를 드래그하거나 클릭해서 업로드</div>
+                    <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)' }}>JPG, PNG · 최대 10MB</div>
+                  </div>
+
+                  {/* 폼 필드 */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                    {[
+                      { label: '그룹명', key: 'group', placeholder: 'BTS, aespa...' },
+                      { label: '멤버', key: 'member', placeholder: '정국, 카리나...' },
+                      { label: '앨범', key: 'album', placeholder: 'Yet To Come...' },
+                    ].map(f => (
+                      <div key={f.key} style={{ gridColumn: f.key === 'album' ? '1 / -1' : 'auto' }}>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', display: 'block', marginBottom: 5 }}>{f.label}</label>
+                        <input
+                          value={sellForm[f.key]}
+                          onChange={e => setSellForm(p => ({ ...p, [f.key]: e.target.value }))}
+                          placeholder={f.placeholder}
+                          style={{
+                            width: '100%', padding: '9px 12px', borderRadius: 8,
+                            border: '1px solid rgba(0,0,0,0.1)', outline: 'none',
+                            fontSize: 13, background: '#fff', color: '#111',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', display: 'block', marginBottom: 5 }}>카테고리</label>
+                      <select value={sellForm.category} onChange={e => setSellForm(p => ({ ...p, category: e.target.value }))}
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 13, background: '#fff', color: '#111', outline: 'none' }}>
+                        {['포토카드', '슬로건', '키링', '브로마이드', '기타'].map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', display: 'block', marginBottom: 5 }}>등급</label>
+                      <select value={sellForm.grade} onChange={e => setSellForm(p => ({ ...p, grade: e.target.value }))}
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 13, background: '#fff', color: '#111', outline: 'none' }}>
+                        {['S', 'A', 'B', 'C'].map(g => <option key={g}>{g}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', display: 'block', marginBottom: 5 }}>경매 시간</label>
+                      <select value={sellForm.duration} onChange={e => setSellForm(p => ({ ...p, duration: e.target.value }))}
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 13, background: '#fff', color: '#111', outline: 'none' }}>
+                        {[['12', '12시간'], ['24', '24시간'], ['48', '48시간'], ['72', '72시간']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', display: 'block', marginBottom: 5 }}>시작가 (₩)</label>
+                    <input
+                      type="number" value={sellForm.price}
+                      onChange={e => setSellForm(p => ({ ...p, price: e.target.value }))}
+                      placeholder="10000"
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', outline: 'none', fontSize: 13, background: '#fff', color: '#111', boxSizing: 'border-box' }}
+                    />
+                  </div>
+
+                  <button style={{
+                    width: '100%', padding: '13px', borderRadius: 10, border: 'none',
+                    background: '#111', color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer',
+                    transition: 'opacity 0.2s',
+                  }}
+                    onMouseOver={e => e.currentTarget.style.opacity = '0.85'}
+                    onMouseOut={e => e.currentTarget.style.opacity = '1'}
+                  >
+                    경매 등록 신청
+                  </button>
+                </div>
+              )}
+
+              {activeTab !== 'auctions' && activeTab !== 'register' && (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', flexDirection: 'column', gap: 12 }}>
                   <div style={{ fontSize: 11, fontFamily: 'monospace', color: 'rgba(0,0,0,0.2)', letterSpacing: 3 }}>
                     {menuItems.find(m => m.id === activeTab)?.sub} — COMING SOON
