@@ -41,9 +41,11 @@ const SpaceshipHUD = ({ step, onNext }) => {
   return (
     <div style={{ position: 'absolute', inset: '5%', pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
       <div style={{
-        background: 'rgba(5, 10, 15, 0.95)',
-        borderTop: '1px solid rgba(0, 229, 255, 0.2)',
-        borderBottom: '1px solid rgba(0, 229, 255, 0.2)',
+        background: 'rgba(255, 255, 255, 0.05)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '20px',
         padding: '56px 64px',
         width: '100%',
         maxWidth: '860px',
@@ -52,13 +54,9 @@ const SpaceshipHUD = ({ step, onNext }) => {
         gap: '36px',
         pointerEvents: 'auto',
         color: '#E0FFFF',
-        boxShadow: '0 24px 64px rgba(0, 0, 0, 0.9)',
+        boxShadow: '0 8px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
         position: 'relative'
       }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '20px', height: '20px', borderTop: '2px solid rgba(0,229,255,0.4)', borderLeft: '2px solid rgba(0,229,255,0.4)' }}></div>
-        <div style={{ position: 'absolute', top: 0, right: 0, width: '20px', height: '20px', borderTop: '2px solid rgba(0,229,255,0.4)', borderRight: '2px solid rgba(0,229,255,0.4)' }}></div>
-        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '20px', height: '20px', borderBottom: '2px solid rgba(0,229,255,0.4)', borderLeft: '2px solid rgba(0,229,255,0.4)' }}></div>
-        <div style={{ position: 'absolute', bottom: 0, right: 0, width: '20px', height: '20px', borderBottom: '2px solid rgba(0,229,255,0.4)', borderRight: '2px solid rgba(0,229,255,0.4)' }}></div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div>{current.icon}</div>
