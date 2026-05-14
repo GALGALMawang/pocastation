@@ -27,6 +27,7 @@ export default function Home() {
   const [auctions] = useState(AUCTIONS_EXTENDED);
   const [hoveredCard, setHoveredCard] = useState(null);
   const [panelIn, setPanelIn] = useState(false);
+  const [globeOut, setGlobeOut] = useState(false);
 
   const startWarp = useCallback(() => {
     if (phase !== 'intro') return;
@@ -49,7 +50,9 @@ export default function Home() {
       setPhase('station');
       setHudVisible(false);
       setPanelIn(false);
-      setTimeout(() => setPanelIn(true), 2400); // 행성 노출 후 패널 올라옴
+      setGlobeOut(false);
+      setTimeout(() => setGlobeOut(true), 1800);  // 행성 페이드아웃 시작
+      setTimeout(() => setPanelIn(true), 2400);   // 패널 올라옴
       return;
     }
     setStep(s => s + 1);
@@ -157,6 +160,8 @@ export default function Home() {
           position: 'fixed', inset: 0, zIndex: 10,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           pointerEvents: 'none',
+          opacity: globeOut ? 0 : 1,
+          transition: 'opacity 0.6s ease',
         }}>
           <div style={{ width: 'min(78vh, 78vw)', height: 'min(78vh, 78vw)' }}>
             <GlobeStation onSectorSelect={() => {}} noMenu />
@@ -168,15 +173,11 @@ export default function Home() {
       {phase === 'station' && (
         <main style={{
           position: 'fixed',
-          inset: `calc(56px + clamp(8px, 1.5vmin, 16px)) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px)`,
+          inset: `56px 0 0 0`,
           display: 'flex',
-          borderRadius: 'clamp(14px, 1.5vmin, 20px)',
-          overflow: 'hidden',
           zIndex: 10,
-          boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
-          transform: panelIn ? 'translateY(0)' : 'translateY(110%)',
-          opacity: panelIn ? 1 : 0,
-          transition: 'transform 1.6s cubic-bezier(0.16,1,0.3,1), opacity 0.8s ease',
+          transform: panelIn ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 1.6s cubic-bezier(0.16,1,0.3,1)',
         }}>
 
           {/* Left Sidebar: Globe Nav */}
