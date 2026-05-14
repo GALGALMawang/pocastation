@@ -51,8 +51,8 @@ export default function Home() {
       setHudVisible(false);
       setPanelIn(false);
       setGlobeOut(false);
-      setTimeout(() => setGlobeOut(true), 1800);  // 행성 페이드아웃 시작
-      setTimeout(() => setPanelIn(true), 2400);   // 패널 올라옴
+      setTimeout(() => setPanelIn(true), 2400);    // 패널 올라옴
+      setTimeout(() => setGlobeOut(true), 2400);  // 패널과 동시에 행성 페이드아웃
       return;
     }
     setStep(s => s + 1);
@@ -155,7 +155,7 @@ export default function Home() {
       )}
 
       {/* Globe Preview — 패널 오르기 전 행성만 보이는 순간 */}
-      {phase === 'station' && !panelIn && (
+      {phase === 'station' && !globeOut && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 10,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
