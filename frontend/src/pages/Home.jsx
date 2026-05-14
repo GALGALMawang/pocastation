@@ -74,8 +74,8 @@ export default function Home() {
       {/* Header */}
       <header style={{
         position: 'fixed', top: 0, width: '100%', zIndex: 300,
-        background: phase === 'station' ? 'rgba(4,4,10,0.85)' : 'rgba(255,255,255,0.92)',
-        borderBottom: phase === 'station' ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.08)',
+        background: phase === 'station' ? 'rgba(10,6,28,0.88)' : 'rgba(255,255,255,0.92)',
+        borderBottom: phase === 'station' ? '1px solid rgba(120,80,255,0.15)' : '1px solid rgba(0,0,0,0.08)',
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
         opacity: (phase === 'station' || phase === 'onboarding') ? 1 : 0,
         transition: 'opacity 0.5s, background 0.6s',
@@ -150,15 +150,17 @@ export default function Home() {
 
           {/* Left Sidebar: Globe Nav */}
           <aside style={{
-            width: 280,
+            width: 260,
             flexShrink: 0,
-            borderRight: '1px solid rgba(255,255,255,0.06)',
-            background: 'rgba(4,4,10,0.5)',
-            backdropFilter: 'blur(20px)',
+            borderRight: '1px solid rgba(120,80,255,0.12)',
+            background: 'rgba(10,6,24,0.7)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
             display: 'flex',
             flexDirection: 'column',
             padding: '20px 0',
             overflowY: 'auto',
+            boxShadow: 'inset -1px 0 0 rgba(120,80,255,0.08)',
           }}>
             {/* Mini Globe */}
             <div style={{ width: '100%', height: 200, flexShrink: 0, position: 'relative' }}>
@@ -166,40 +168,45 @@ export default function Home() {
             </div>
 
             {/* Nav items */}
-            <nav style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <nav style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 2 }}>
               {menuItems.map(m => (
                 <button key={m.id} onClick={() => setActiveTab(m.id)} style={{
                   display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '10px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                  background: activeTab === m.id ? 'rgba(0,229,255,0.08)' : 'transparent',
+                  padding: '10px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                  background: activeTab === m.id
+                    ? 'linear-gradient(90deg, rgba(120,80,255,0.18), rgba(0,229,255,0.08))'
+                    : 'transparent',
                   textAlign: 'left', transition: 'all 0.2s',
+                  boxShadow: activeTab === m.id ? 'inset 0 0 0 1px rgba(120,80,255,0.25)' : 'none',
                 }}>
                   <div style={{
-                    width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                    background: activeTab === m.id ? '#00E5FF' : 'rgba(255,255,255,0.15)',
-                    boxShadow: activeTab === m.id ? '0 0 8px #00E5FF' : 'none',
+                    width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+                    background: activeTab === m.id
+                      ? 'linear-gradient(135deg, #a78bff, #00E5FF)'
+                      : 'rgba(255,255,255,0.12)',
+                    boxShadow: activeTab === m.id ? '0 0 10px rgba(167,139,255,0.8)' : 'none',
                   }} />
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: activeTab === m.id ? '#00E5FF' : 'rgba(255,255,255,0.6)' }}>{m.label}</div>
-                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)', letterSpacing: 1, fontFamily: 'monospace', marginTop: 1 }}>{m.sub}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: activeTab === m.id ? '#c4b5fd' : 'rgba(255,255,255,0.5)' }}>{m.label}</div>
+                    <div style={{ fontSize: 9, color: activeTab === m.id ? 'rgba(167,139,255,0.5)' : 'rgba(255,255,255,0.18)', letterSpacing: 1, fontFamily: 'monospace', marginTop: 1 }}>{m.sub}</div>
                   </div>
                   {m.id === 'auctions' && (
-                    <div style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 800, color: '#ff5050', background: 'rgba(255,80,80,0.1)', padding: '2px 6px', borderRadius: 4 }}>LIVE</div>
+                    <div style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 800, color: '#ff7070', background: 'rgba(255,80,80,0.12)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(255,80,80,0.2)' }}>LIVE</div>
                   )}
                 </button>
               ))}
             </nav>
 
-            {/* Ticker vertical */}
-            <div style={{ marginTop: 'auto', padding: '16px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.2)', letterSpacing: 2, fontFamily: 'monospace', marginBottom: 10 }}>RECENT BIDS</div>
+            {/* Recent bids */}
+            <div style={{ marginTop: 'auto', padding: '14px 16px', borderTop: '1px solid rgba(120,80,255,0.1)' }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(167,139,255,0.4)', letterSpacing: 2, fontFamily: 'monospace', marginBottom: 10 }}>RECENT BIDS</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {auctions.slice(0, 4).map(a => (
                   <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#00E5FF', flexShrink: 0, opacity: 0.6 }} />
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(167,139,255,0.7)', flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.group_name} {a.member}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>₩{a.price.toLocaleString()}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.group_name} {a.member}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>₩{a.price.toLocaleString()}</div>
                     </div>
                   </div>
                 ))}
@@ -212,27 +219,35 @@ export default function Home() {
 
             {/* Content Topbar */}
             <div style={{
-              padding: '14px 28px',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              padding: '12px 28px',
+              borderBottom: '1px solid rgba(120,80,255,0.1)',
               display: 'flex', alignItems: 'center', gap: 16,
-              background: 'rgba(4,4,10,0.3)',
+              background: 'rgba(8,5,20,0.5)',
+              backdropFilter: 'blur(12px)',
               flexShrink: 0,
             }}>
               <div>
-                <span style={{ fontSize: 16, fontWeight: 900, color: '#fff' }}>
+                <span style={{ fontSize: 15, fontWeight: 900, color: '#e2d9ff' }}>
                   {menuItems.find(m => m.id === activeTab)?.label}
                 </span>
-                <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'rgba(255,255,255,0.25)', letterSpacing: 1.5, marginLeft: 10 }}>
+                <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'rgba(167,139,255,0.35)', letterSpacing: 1.5, marginLeft: 10 }}>
                   {menuItems.find(m => m.id === activeTab)?.sub}
                 </span>
               </div>
               {activeTab === 'auctions' && (
                 <>
-                  <div style={{ height: 16, width: 1, background: 'rgba(255,255,255,0.1)' }} />
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{auctions.length}개 진행 중</span>
+                  <div style={{ height: 14, width: 1, background: 'rgba(120,80,255,0.2)' }} />
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{auctions.length}개 진행 중</span>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
                     {['전체', 'S급', 'A급', '마감임박'].map(f => (
-                      <button key={f} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: 11, cursor: 'pointer' }}>{f}</button>
+                      <button key={f} style={{
+                        padding: '3px 10px', borderRadius: 6,
+                        border: '1px solid rgba(120,80,255,0.2)',
+                        background: 'transparent',
+                        color: 'rgba(167,139,255,0.5)',
+                        fontSize: 11, cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}>{f}</button>
                     ))}
                   </div>
                 </>
@@ -240,7 +255,7 @@ export default function Home() {
             </div>
 
             {/* Scrollable Content */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '22px 24px' }}>
               {activeTab === 'auctions' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 14 }}>
                   {auctions.map(item => (
@@ -249,13 +264,18 @@ export default function Home() {
                       onMouseEnter={() => setHoveredCard(item.id)}
                       onMouseLeave={() => setHoveredCard(null)}
                       style={{
-                        background: hoveredCard === item.id ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)',
-                        border: hoveredCard === item.id ? '1px solid rgba(0,229,255,0.25)' : '1px solid rgba(255,255,255,0.07)',
+                        background: hoveredCard === item.id
+                          ? 'linear-gradient(135deg, rgba(80,40,160,0.25), rgba(0,100,140,0.15))'
+                          : 'rgba(255,255,255,0.03)',
+                        border: hoveredCard === item.id
+                          ? '1px solid rgba(167,139,255,0.35)'
+                          : '1px solid rgba(255,255,255,0.07)',
                         borderRadius: 14,
                         overflow: 'hidden',
                         cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        transform: hoveredCard === item.id ? 'translateY(-3px)' : 'translateY(0)',
+                        transition: 'all 0.25s',
+                        transform: hoveredCard === item.id ? 'translateY(-4px)' : 'translateY(0)',
+                        boxShadow: hoveredCard === item.id ? '0 12px 32px rgba(80,40,160,0.25)' : 'none',
                       }}
                     >
                       {/* Image */}
@@ -293,19 +313,22 @@ export default function Home() {
                       </div>
 
                       {/* Info */}
-                      <div style={{ padding: '12px 14px' }}>
-                        <div style={{ fontSize: 9, color: '#00E5FF', fontWeight: 800, letterSpacing: 1.5, fontFamily: 'monospace' }}>{item.group_name}</div>
-                        <div style={{ fontSize: 14, fontWeight: 900, margin: '3px 0 10px', color: '#fff' }}>{item.member}</div>
+                      <div style={{ padding: '12px 14px', background: hoveredCard === item.id ? 'rgba(30,10,60,0.4)' : 'transparent' }}>
+                        <div style={{ fontSize: 9, color: hoveredCard === item.id ? '#c4b5fd' : 'rgba(167,139,255,0.6)', fontWeight: 800, letterSpacing: 1.5, fontFamily: 'monospace' }}>{item.group_name}</div>
+                        <div style={{ fontSize: 14, fontWeight: 900, margin: '3px 0 10px', color: '#f0ebff' }}>{item.member}</div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
                             <div style={{ fontSize: 13, fontWeight: 900, color: '#fff' }}>₩{item.price.toLocaleString()}</div>
-                            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 1 }}>{item.bid_count}회 입찰</div>
+                            <div style={{ fontSize: 9, color: 'rgba(167,139,255,0.4)', marginTop: 1 }}>{item.bid_count}회 입찰</div>
                           </div>
                           <button style={{
                             padding: '5px 12px', borderRadius: 6,
-                            background: hoveredCard === item.id ? '#00E5FF' : 'rgba(0,229,255,0.12)',
-                            color: hoveredCard === item.id ? '#000' : '#00E5FF',
-                            border: '1px solid rgba(0,229,255,0.3)', fontSize: 10, fontWeight: 900, cursor: 'pointer',
+                            background: hoveredCard === item.id
+                              ? 'linear-gradient(135deg, #a78bff, #00E5FF)'
+                              : 'rgba(120,80,255,0.15)',
+                            color: hoveredCard === item.id ? '#000' : '#c4b5fd',
+                            border: '1px solid rgba(120,80,255,0.3)',
+                            fontSize: 10, fontWeight: 900, cursor: 'pointer',
                             transition: 'all 0.2s',
                           }}>BID</button>
                         </div>
