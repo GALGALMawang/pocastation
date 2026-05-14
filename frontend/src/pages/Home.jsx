@@ -195,9 +195,7 @@ export default function Home() {
             width: 260,
             flexShrink: 0,
             borderRight: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(255,255,255,0.78)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
+            background: 'rgba(255,255,255,0.82)',
             display: 'flex',
             flexDirection: 'column',
             padding: '20px 0',
@@ -255,7 +253,7 @@ export default function Home() {
           </aside>
 
           {/* Main Content */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.78)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.82)' }}>
 
             {/* Content Topbar */}
             <div style={{
