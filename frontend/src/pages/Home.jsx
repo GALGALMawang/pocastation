@@ -168,9 +168,9 @@ export default function Home() {
       {phase === 'station' && (
         <main style={{
           position: 'fixed',
-          inset: `56px 10px 10px 10px`,
+          inset: `calc(56px + clamp(8px, 1.5vmin, 16px)) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px)`,
           display: 'flex',
-          borderRadius: 18,
+          borderRadius: 'clamp(14px, 1.5vmin, 20px)',
           overflow: 'hidden',
           zIndex: 10,
           boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
