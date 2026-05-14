@@ -96,7 +96,7 @@ export default function Home() {
         }}>
           <div className="pg" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className="hero-in">
-              <h1 style={{ color: '#fff' }}>우리는 진정한 가치와<br/><span className="hl">팬덤을 연결합니다</span></h1>
+              <h1>우리는 진정한 가치와<br/><span className="hl">팬덤을 연결합니다</span></h1>
               <p className="hero-desc" style={{ color: '#aaa' }}>
                 가장 거대하고 안전한 K-POP 포토카드 유니버스로 진입하세요.
               </p>
