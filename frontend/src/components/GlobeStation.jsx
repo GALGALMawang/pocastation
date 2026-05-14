@@ -80,57 +80,6 @@ const sectors = [
 
 // Death Star under-construction texture (equirectangular 2048x1024)
 // White = built surface (dots), Black = void / unbuilt zones
-function generateFictionalMap() {
-  const W = 2048, H = 1024;
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
-
-  // Base: full white — every dot is on the surface
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, W, H);
-
-  // --- Panel grid (trench lines cut through everything) ---
-  const G = 80, gap = 5;
-  ctx.fillStyle = '#000';
-  for (let x = 0; x < W; x += G) ctx.fillRect(x, 0, gap, H);
-  for (let y = 0; y < H; y += G) ctx.fillRect(0, y, W, gap);
-
-  // --- Deep equatorial trench ---
-  ctx.fillRect(0, H * 0.50, W, 20);
-
-  // --- Under-construction gaps: large black zones cut into surface ---
-  // These represent sections not yet built — dots disappear here
-  const voids = [
-    [W*0.30, H*0.18, W*0.08, H*0.32],  // gap between alpha & beta
-    [W*0.66, H*0.18, W*0.06, H*0.32],  // gap between gamma & delta
-    [W*0.32, H*0.52, W*0.13, H*0.13],  // southern construction gap
-    [W*0.61, H*0.52, W*0.14, H*0.13],  // southern construction gap
-    [W*0.00, H*0.80, W*0.10, H*0.20],  // far south void
-    [W*0.35, H*0.80, W*0.10, H*0.20],
-    [W*0.62, H*0.80, W*0.13, H*0.20],
-  ];
-  voids.forEach(([x, y, w, h]) => ctx.fillRect(x, y, w, h));
-
-  // --- Superlaser dish ---
-  const dishX = W * 0.55, dishY = H * 0.38, dishR = 130;
-  ctx.beginPath();
-  ctx.arc(dishX, dishY, dishR, 0, Math.PI * 2);
-  ctx.fillStyle = '#000';
-  ctx.fill();
-  // Partial ring (under construction — only 3/4 complete)
-  ctx.beginPath();
-  ctx.arc(dishX, dishY, dishR * 0.68, 0.3, Math.PI * 1.8);
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 12;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(dishX, dishY, dishR * 0.18, 0, Math.PI * 2);
-  ctx.fillStyle = '#fff';
-  ctx.fill();
-
-  return canvas;
-}
 
 export default function GlobeStation({ onSectorSelect }) {
   const containerRef = useRef(null);
@@ -181,32 +130,9 @@ export default function GlobeStation({ onSectorSelect }) {
     s.controls.addEventListener('start', () => { timestamp = Date.now(); });
     s.controls.addEventListener('end', () => { dragged = (Date.now() - timestamp) > 600; });
 
-    // Regular latitude/longitude grid geometry — uniform dot spacing
-    const createGridSphereGeometry = (latSteps, lonSteps) => {
-      const positions = [], uvs = [];
-      for (let lat = 0; lat <= latSteps; lat++) {
-        const phi = (lat / latSteps) * Math.PI;
-        const v = lat / latSteps;
-        for (let lon = 0; lon < lonSteps; lon++) {
-          const theta = (lon / lonSteps) * Math.PI * 2;
-          const u = lon / lonSteps;
-          positions.push(
-            Math.sin(phi) * Math.cos(theta),
-            Math.cos(phi),
-            Math.sin(phi) * Math.sin(theta)
-          );
-          uvs.push(u, 1 - v);
-        }
-      }
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-      return geo;
-    };
-
     // Globe
     const createGlobe = (mapTex) => {
-      const geo = createGridSphereGeometry(36, 72);
+      const geo = new THREE.IcosahedronGeometry(1, 22);
       s.mapMaterial = new THREE.ShaderMaterial({
         vertexShader: VERTEX_SHADER,
         fragmentShader: FRAGMENT_SHADER,
@@ -350,7 +276,7 @@ export default function GlobeStation({ onSectorSelect }) {
       containerEl.style.height = side + 'px';
       s.renderer.setSize(side, side);
       canvas2D.width = canvas2D.height = side;
-      if (s.mapMaterial) s.mapMaterial.uniforms.u_dot_size.value = 0.07 * side;
+      if (s.mapMaterial) s.mapMaterial.uniforms.u_dot_size.value = 0.04 * side;
     };
 
     const render = () => {
@@ -362,22 +288,17 @@ export default function GlobeStation({ onSectorSelect }) {
       rafId = requestAnimationFrame(render);
     };
 
-    const mapTex = new THREE.CanvasTexture(generateFictionalMap());
-    createGlobe(mapTex);
-    createPointer();
-    createPopupTimelines();
-    updateSize();
-    render();
-
-    window.addEventListener('resize', updateSize);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', updateSize);
-      containerEl.removeEventListener('mousemove', onMouseMove);
-      containerEl.removeEventListener('click', onClick);
-      s.renderer?.dispose();
-    };
+    new THREE.TextureLoader().load(
+      'https://ksenia-k.com/img/earth-map-colored.png',
+      (mapTex) => {
+        mapTex.repeat.set(1, 1);
+        createGlobe(mapTex);
+        createPointer();
+        createPopupTimelines();
+        updateSize();
+        render();
+      }
+    );
   }, []);
 
   return (
