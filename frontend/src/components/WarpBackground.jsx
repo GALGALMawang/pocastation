@@ -60,33 +60,23 @@ const WarpBackground = ({ phase }) => {
 
       let targetSpeed = 0.5;
       let shakeX = 0, shakeY = 0;
-      let trailAlpha = 0.9;
 
       if (phase === 'onboarding' && warpStartRef.current !== null) {
-        const elapsed = (time - warpStartRef.current) / 1000; // seconds
+        const elapsed = (time - warpStartRef.current) / 1000;
 
         if (elapsed < 0.6) {
-          // Phase 1: 진동 — 낮은 속도에서 떨림
-          const vibFreq = 40;
           const vibAmp = 4 + elapsed * 10;
-          shakeX = Math.sin(time * vibFreq * 0.01) * vibAmp;
-          shakeY = Math.cos(time * vibFreq * 0.013) * vibAmp * 0.6;
+          shakeX = Math.sin(time * 0.4) * vibAmp;
+          shakeY = Math.cos(time * 0.5) * vibAmp * 0.6;
           targetSpeed = 0.5 + elapsed * 3 + Math.abs(Math.sin(time * 0.05)) * 2;
-          trailAlpha = 0.85;
-
         } else if (elapsed < 1.2) {
-          // Phase 2: 차징 — 급격히 가속, 진동 증폭
-          const t = (elapsed - 0.6) / 0.6; // 0→1
+          const t = (elapsed - 0.6) / 0.6;
           const vibAmp = 8 * (1 - t);
           shakeX = Math.sin(time * 0.3) * vibAmp;
           shakeY = Math.cos(time * 0.37) * vibAmp * 0.5;
-          targetSpeed = 2 + t * t * 25; // 급격한 가속 곡선
-          trailAlpha = 0.4 - t * 0.2;
-
+          targetSpeed = 2 + t * t * 25;
         } else {
-          // Phase 3: 풀 워프 — 안정된 최고속
           targetSpeed = 28;
-          trailAlpha = 0.15;
         }
       } else if (phase === 'station') {
         targetSpeed = 0.05;
@@ -96,6 +86,9 @@ const WarpBackground = ({ phase }) => {
       const lerpRate = phase === 'onboarding' ? 0.08 : 0.02;
       progressRef.current += (targetSpeed - progressRef.current) * lerpRate;
       const speed = progressRef.current;
+
+      // trailAlpha: speed가 오를수록 잔상 길어짐 — 끊김 없이 연속
+      const trailAlpha = Math.max(0.12, 0.92 - speed * 0.03);
 
       // Screen shake via canvas transform
       ctx.save();
@@ -177,10 +170,7 @@ const WarpBackground = ({ phase }) => {
   }, [phase]);
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: -1, background: '#020205',
-      backgroundImage: 'url("https://www.transparenttextures.com/patterns/stardust.png")',
-    }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: -1, background: '#020205' }}>
       <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
     </div>
   );
