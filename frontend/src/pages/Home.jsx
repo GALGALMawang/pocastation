@@ -85,7 +85,7 @@ export default function Home() {
       </header>
 
       {(phase === 'intro' || (phase === 'onboarding' && !hudVisible)) && (
-        <section style={{
+        <section className="hero" style={{
           background: 'transparent',
           opacity: heroVisible ? 1 : 0,
           transform: heroVisible ? 'scale(1)' : 'scale(1.06)',
