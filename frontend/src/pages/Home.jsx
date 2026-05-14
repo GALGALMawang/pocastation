@@ -67,23 +67,25 @@ export default function Home() {
     <div style={{ background: 'transparent', height: '100vh', width: '100vw', color: '#fff', overflow: 'hidden', position: 'relative' }}>
       <WarpBackground phase={phase} />
 
-      {/* Onboarding HUD — 스테이션 패널과 동일한 위치/크기 */}
+      {/* Onboarding HUD — 중앙 floating 패널 */}
       {phase === 'onboarding' && (
         <div style={{
-          position: 'fixed',
-          inset: `calc(56px + clamp(8px, 1.5vmin, 16px)) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px)`,
-          zIndex: 200,
-          borderRadius: 'clamp(14px, 1.5vmin, 20px)',
-          overflow: 'hidden',
-          background: 'rgba(255,255,255,0.86)',
-          backdropFilter: 'blur(28px)',
-          WebkitBackdropFilter: 'blur(28px)',
-          boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
-          opacity: hudVisible ? 1 : 0,
-          transition: 'opacity 0.6s ease',
+          position: 'fixed', inset: 0, zIndex: 200,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '5%',
+          opacity: hudVisible ? 1 : 0, transition: 'opacity 0.6s ease',
         }}>
-          <SpaceshipHUD key={step} step={step} onNext={handleNextStep} />
+          <div style={{
+            width: '100%', maxWidth: 860,
+            background: 'rgba(255,255,255,0.88)',
+            backdropFilter: 'blur(28px)',
+            WebkitBackdropFilter: 'blur(28px)',
+            borderRadius: 20,
+            boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
+            overflow: 'hidden',
+          }}>
+            <SpaceshipHUD key={step} step={step} onNext={handleNextStep} />
+          </div>
         </div>
       )}
 
@@ -177,9 +179,9 @@ export default function Home() {
       {phase === 'station' && (
         <main style={{
           position: 'fixed',
-          inset: `calc(56px + clamp(8px, 1.5vmin, 16px)) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px)`,
+          inset: `calc(56px + clamp(10px, 2vmin, 20px)) clamp(10px, 2vmin, 20px) clamp(10px, 2vmin, 20px) clamp(10px, 2vmin, 20px)`,
           display: 'flex',
-          borderRadius: 'clamp(14px, 1.5vmin, 20px)',
+          borderRadius: 'clamp(14px, 2vmin, 20px)',
           overflow: 'hidden',
           zIndex: 10,
           boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
@@ -253,7 +255,7 @@ export default function Home() {
           </aside>
 
           {/* Main Content */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.86)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.78)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
 
             {/* Content Topbar */}
             <div style={{
