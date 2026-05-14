@@ -167,10 +167,16 @@ export default function Home() {
       {/* Station Layout — Dashboard */}
       {phase === 'station' && (
         <main style={{
-          height: '100vh', paddingTop: 56, display: 'flex', position: 'relative', zIndex: 10,
-          transform: panelIn ? 'translateY(0)' : 'translateY(100%)',
+          position: 'fixed',
+          inset: `56px 10px 10px 10px`,
+          display: 'flex',
+          borderRadius: 18,
+          overflow: 'hidden',
+          zIndex: 10,
+          boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
+          transform: panelIn ? 'translateY(0)' : 'translateY(110%)',
           opacity: panelIn ? 1 : 0,
-          transition: 'transform 0.85s cubic-bezier(0.22,1,0.36,1), opacity 0.6s ease',
+          transition: 'transform 1.6s cubic-bezier(0.16,1,0.3,1), opacity 0.8s ease',
         }}>
 
           {/* Left Sidebar: Globe Nav */}
@@ -233,7 +239,7 @@ export default function Home() {
           </aside>
 
           {/* Main Content */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.86)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}>
 
             {/* Content Topbar */}
             <div style={{
