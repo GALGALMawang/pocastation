@@ -94,18 +94,17 @@ export default function Home() {
       {/* Header */}
       <header style={{
         position: 'fixed', top: 0, width: '100%', zIndex: 300,
-        background: 'rgba(255,255,255,0.88)',
+        background: '#ffffff',
         borderBottom: '1px solid rgba(0,0,0,0.07)',
-        backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
         opacity: (phase === 'station' || phase === 'onboarding') ? 1 : 0,
-        transition: 'opacity 0.5s, background 0.6s',
+        transition: 'opacity 0.5s',
         pointerEvents: phase === 'intro' ? 'none' : 'auto',
       }}>
-        <div style={{ maxWidth: '100%', padding: '0 2rem', display: 'flex', alignItems: 'center', height: 56, gap: 32 }}>
+        <div style={{ maxWidth: '100%', padding: '0 2rem', display: 'flex', alignItems: 'center', height: 56, gap: 20 }}>
           <Link to="/"><div style={{ fontFamily: 'monospace', fontSize: 15, fontWeight: 900, letterSpacing: 2, color: '#111', flexShrink: 0 }}>POCA<span style={{ color: '#7c3aed' }}>STATION</span></div></Link>
 
           {phase === 'station' && (
-            <nav style={{ display: 'flex', gap: 2, marginLeft: 24 }}>
+            <nav style={{ display: 'flex', gap: 2 }}>
               {menuItems.map(m => (
                 <button key={m.id} onClick={() => setActiveTab(m.id)} style={{
                   padding: '5px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13,
@@ -117,6 +116,28 @@ export default function Home() {
                 </button>
               ))}
             </nav>
+          )}
+
+          {/* 검색바 */}
+          {phase === 'station' && (
+            <div style={{
+              flex: 1, maxWidth: 340, display: 'flex', alignItems: 'center', gap: 8,
+              background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)',
+              borderRadius: 10, padding: '0 12px', height: 34,
+            }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="2.5" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="그룹, 멤버, 앨범 검색..."
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 12, color: '#111' }}
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.3)', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+              )}
+            </div>
           )}
 
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -263,29 +284,6 @@ export default function Home() {
               <span style={{ fontSize: 14, fontWeight: 900, color: '#111', flexShrink: 0 }}>
                 {menuItems.find(m => m.id === activeTab)?.label}
               </span>
-
-              {/* 검색바 */}
-              <div style={{
-                flex: 1, maxWidth: 360, display: 'flex', alignItems: 'center', gap: 8,
-                background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)',
-                borderRadius: 10, padding: '0 12px', height: 34,
-              }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="2.5" strokeLinecap="round">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                </svg>
-                <input
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="그룹, 멤버, 앨범 검색..."
-                  style={{
-                    flex: 1, border: 'none', outline: 'none', background: 'transparent',
-                    fontSize: 12, color: '#111',
-                  }}
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.3)', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
-                )}
-              </div>
 
               {activeTab === 'auctions' && (
                 <div style={{ display: 'flex', gap: 5, marginLeft: 'auto' }}>
