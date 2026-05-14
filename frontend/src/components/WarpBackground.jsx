@@ -5,6 +5,13 @@ const WarpBackground = ({ phase }) => {
   const progressRef = useRef(0);
   const starsRef = useRef([]);
   const shootingStarsRef = useRef([]);
+  const warpStartRef = useRef(null); // timestamp when onboarding began
+
+  useEffect(() => {
+    if (phase === 'onboarding') {
+      warpStartRef.current = performance.now();
+    }
+  }, [phase]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,9 +29,8 @@ const WarpBackground = ({ phase }) => {
     };
 
     const initStars = () => {
-      const numStars = 600;
       const stars = [];
-      for (let i = 0; i < numStars; i++) {
+      for (let i = 0; i < 700; i++) {
         stars.push({
           x: Math.random() * w - w / 2,
           y: Math.random() * h - h / 2,
@@ -38,36 +44,66 @@ const WarpBackground = ({ phase }) => {
     };
 
     const createShootingStar = () => {
-      if (phase !== 'station') return; // Only in station phase
       shootingStarsRef.current.push({
         x: Math.random() * w,
         y: Math.random() * h * 0.5,
         len: Math.random() * 80 + 50,
         speed: Math.random() * 15 + 10,
         opacity: 1,
-        angle: Math.random() * 0.2 + 0.1 // Slight downward angle
+        angle: Math.random() * 0.2 + 0.1
       });
     };
 
     const draw = (time) => {
-      const dt = time - lastTime;
+      const dt = Math.min(time - lastTime, 50);
       lastTime = time;
 
-      // Target warp speed logic
-      let targetRatio = 0.5; 
-      if (phase === 'onboarding') targetRatio = 22; 
-      else if (phase === 'station') targetRatio = 0.05; // ALMOST STOPPED
+      let targetSpeed = 0.5;
+      let shakeX = 0, shakeY = 0;
+      let trailAlpha = 0.9;
 
-      if (progressRef.current < targetRatio) {
-        progressRef.current += (targetRatio - progressRef.current) * 0.03;
-      } else {
-        progressRef.current -= (progressRef.current - targetRatio) * 0.015;
+      if (phase === 'onboarding' && warpStartRef.current !== null) {
+        const elapsed = (time - warpStartRef.current) / 1000; // seconds
+
+        if (elapsed < 0.6) {
+          // Phase 1: 진동 — 낮은 속도에서 떨림
+          const vibFreq = 40;
+          const vibAmp = 4 + elapsed * 10;
+          shakeX = Math.sin(time * vibFreq * 0.01) * vibAmp;
+          shakeY = Math.cos(time * vibFreq * 0.013) * vibAmp * 0.6;
+          targetSpeed = 0.5 + elapsed * 3 + Math.abs(Math.sin(time * 0.05)) * 2;
+          trailAlpha = 0.85;
+
+        } else if (elapsed < 1.2) {
+          // Phase 2: 차징 — 급격히 가속, 진동 증폭
+          const t = (elapsed - 0.6) / 0.6; // 0→1
+          const vibAmp = 8 * (1 - t);
+          shakeX = Math.sin(time * 0.3) * vibAmp;
+          shakeY = Math.cos(time * 0.37) * vibAmp * 0.5;
+          targetSpeed = 2 + t * t * 25; // 급격한 가속 곡선
+          trailAlpha = 0.4 - t * 0.2;
+
+        } else {
+          // Phase 3: 풀 워프 — 안정된 최고속
+          targetSpeed = 28;
+          trailAlpha = 0.15;
+        }
+      } else if (phase === 'station') {
+        targetSpeed = 0.05;
       }
 
+      // Lerp toward target speed
+      const lerpRate = phase === 'onboarding' ? 0.08 : 0.02;
+      progressRef.current += (targetSpeed - progressRef.current) * lerpRate;
       const speed = progressRef.current;
 
-      // Draw background
-      ctx.fillStyle = `rgba(2, 2, 5, ${phase === 'onboarding' ? 0.2 : 0.9})`;
+      // Screen shake via canvas transform
+      ctx.save();
+      ctx.translate(w / 2 + shakeX, h / 2 + shakeY);
+      ctx.translate(-w / 2, -h / 2);
+
+      // Background trail
+      ctx.fillStyle = `rgba(2, 2, 5, ${trailAlpha})`;
       ctx.fillRect(0, 0, w, h);
 
       const cx = w / 2;
@@ -89,14 +125,13 @@ const WarpBackground = ({ phase }) => {
         const y = (s.y / s.z) * h + cy;
         const px = (s.x / s.prevZ) * w + cx;
         const py = (s.y / s.prevZ) * h + cy;
-
         const alpha = 1 - s.z / w;
-        
+
         ctx.beginPath();
-        if (phase === 'onboarding' && speed > 5) {
+        if (speed > 4) {
           ctx.moveTo(px, py);
           ctx.lineTo(x, y);
-          ctx.strokeStyle = `rgba(${s.color}, ${alpha * 0.8})`;
+          ctx.strokeStyle = `rgba(${s.color}, ${alpha * 0.85})`;
           ctx.lineWidth = s.size * (1 - s.z / w) * 2;
           ctx.stroke();
         } else {
@@ -106,24 +141,19 @@ const WarpBackground = ({ phase }) => {
         }
       });
 
-      // Shooting Stars
-      if (phase === 'station') {
-        if (Math.random() < 0.005) createShootingStar(); // Randomly spawn
+      ctx.restore();
 
-        shootingStarsRef.current.forEach((ss, index) => {
+      // Shooting Stars (station only)
+      if (phase === 'station') {
+        if (Math.random() < 0.005) createShootingStar();
+        shootingStarsRef.current.forEach((ss, i) => {
           ss.x += ss.speed;
           ss.y += ss.speed * ss.angle;
           ss.opacity -= 0.01;
-
-          if (ss.opacity <= 0) {
-            shootingStarsRef.current.splice(index, 1);
-            return;
-          }
-
+          if (ss.opacity <= 0) { shootingStarsRef.current.splice(i, 1); return; }
           const grad = ctx.createLinearGradient(ss.x, ss.y, ss.x - ss.len, ss.y - ss.len * ss.angle);
-          grad.addColorStop(0, `rgba(255, 255, 255, ${ss.opacity})`);
-          grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
+          grad.addColorStop(0, `rgba(255,255,255,${ss.opacity})`);
+          grad.addColorStop(1, 'rgba(255,255,255,0)');
           ctx.beginPath();
           ctx.moveTo(ss.x, ss.y);
           ctx.lineTo(ss.x - ss.len, ss.y - ss.len * ss.angle);
