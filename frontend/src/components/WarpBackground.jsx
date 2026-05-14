@@ -82,7 +82,7 @@ const WarpBackground = ({ phase }) => {
           targetSpeed = 28;
         }
       } else if (p === 'station') {
-        targetSpeed = 0.4;
+        targetSpeed = 0.05;
       }
 
       // Lerp toward target speed
@@ -105,13 +105,13 @@ const WarpBackground = ({ phase }) => {
       // Nebula glow (station only) — subtle radial color blobs
       if (p === 'station') {
         const nb = [
-          { x: w * 0.15, y: h * 0.25, r: w * 0.45, c: '100,50,220' },
-          { x: w * 0.82, y: h * 0.6,  r: w * 0.38, c: '0,140,180' },
-          { x: w * 0.5,  y: h * 0.9,  r: w * 0.32, c: '80,20,140' },
+          { x: w * 0.15, y: h * 0.25, r: w * 0.35, c: '80,40,160' },
+          { x: w * 0.82, y: h * 0.65, r: w * 0.28, c: '0,100,140' },
+          { x: w * 0.5,  y: h * 0.85, r: w * 0.22, c: '60,20,100' },
         ];
         nb.forEach(({ x, y, r, c }) => {
           const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-          g.addColorStop(0, `rgba(${c}, 0.18)`);
+          g.addColorStop(0, `rgba(${c}, 0.07)`);
           g.addColorStop(1, `rgba(${c}, 0)`);
           ctx.fillStyle = g;
           ctx.fillRect(0, 0, w, h);
