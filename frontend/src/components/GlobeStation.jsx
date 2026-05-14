@@ -208,8 +208,8 @@ export default function GlobeStation({ onSectorSelect, compact = false, noMenu =
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', position: 'relative' }}>
       {/* Globe */}
       <div ref={containerRef} style={{ position: 'relative', flexShrink: 0 }}>
-        <canvas ref={canvas3DRef} id="globe-3d" style={{ display: 'block', position: 'absolute' }} />
-        <canvas ref={canvas2DRef} id="globe-2d-overlay" style={{ display: 'none' }} />
+        <canvas ref={canvas3DRef} style={{ display: 'block', position: 'absolute' }} />
+        <canvas ref={canvas2DRef} style={{ display: 'none' }} />
       </div>
 
       {/* Left menu */}

@@ -201,13 +201,9 @@ export default function Home() {
             padding: '20px 0',
             overflowY: 'auto',
           }}>
-            {/* Station ID */}
-            <div style={{ padding: '20px 18px 12px', flexShrink: 0 }}>
-              <div style={{ fontSize: 10, fontFamily: 'monospace', color: 'rgba(0,0,0,0.25)', letterSpacing: 2, marginBottom: 6 }}>POCASTATION</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#e03030', boxShadow: '0 0 6px rgba(220,50,50,0.5)', flexShrink: 0 }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#c02020' }}>LIVE {auctions.filter(a => a.status === 'live').length}건 진행 중</span>
-              </div>
+            {/* Mini Globe */}
+            <div style={{ width: '100%', height: 200, flexShrink: 0, position: 'relative' }}>
+              <GlobeStation onSectorSelect={(id) => setActiveTab(id)} compact />
             </div>
             <div style={{ margin: '0 14px 8px', height: 1, background: 'rgba(0,0,0,0.06)' }} />
 
