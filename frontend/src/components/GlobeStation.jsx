@@ -54,12 +54,54 @@ const FRAGMENT_SHADER = `
 `;
 
 const sectors = [
-  { id: 'auctions', title: '경매',    sub: 'LIVE AUCTION',    side: 'left'  },
-  { id: 'register', title: '등록',    sub: 'SELL PHOTOCARD',  side: 'left'  },
-  { id: 'ranking',  title: '랭킹',    sub: 'HOT RANKING',     side: 'left'  },
-  { id: 'mypage',   title: '마이페이지', sub: 'MY STATION',   side: 'right' },
-  { id: 'alarm',    title: '알림',    sub: 'NOTIFICATIONS',   side: 'right' },
+  { id: 'auctions', title: '경매',      sub: 'LIVE AUCTION',   side: 'left',  color: [0, 220, 255]    },
+  { id: 'register', title: '등록',      sub: 'SELL PHOTOCARD', side: 'left',  color: [255, 200, 0]    },
+  { id: 'ranking',  title: '랭킹',      sub: 'HOT RANKING',    side: 'left',  color: [0, 230, 130]    },
+  { id: 'mypage',   title: '마이페이지', sub: 'MY STATION',    side: 'right', color: [180, 100, 255]  },
+  { id: 'alarm',    title: '알림',      sub: 'NOTIFICATIONS',  side: 'right', color: [255, 90, 120]   },
 ];
+
+// 섹터별 UV 범위 (equirectangular: u=경도 0~1, v=위도 0~1 top→bottom)
+const SECTOR_UV = [
+  { id: 'auctions', uMin: 0.00, uMax: 0.40, vMin: 0.10, vMax: 0.55 },
+  { id: 'register', uMin: 0.40, uMax: 0.75, vMin: 0.10, vMax: 0.50 },
+  { id: 'ranking',  uMin: 0.75, uMax: 1.00, vMin: 0.10, vMax: 0.55 },
+  { id: 'mypage',   uMin: 0.10, uMax: 0.60, vMin: 0.55, vMax: 0.92 },
+  { id: 'alarm',    uMin: 0.60, uMax: 1.00, vMin: 0.55, vMax: 0.92 },
+];
+
+function generateSectorTexture() {
+  const W = 2048, H = 1024;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // 검정 배경
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // 각 섹터 색상으로 UV 영역 채우기
+  SECTOR_UV.forEach(uv => {
+    const sec = sectors.find(s => s.id === uv.id);
+    const [r, g, b] = sec.color;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(uv.uMin * W, uv.vMin * H, (uv.uMax - uv.uMin) * W, (uv.vMax - uv.vMin) * H);
+  });
+
+  // 섹터 사이 얇은 검정 경계선
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0.40 * W - 3, 0, 6, H);
+  ctx.fillRect(0.75 * W - 3, 0, 6, H * 0.55);
+  ctx.fillRect(0.60 * W - 3, 0.55 * H, 6, H);
+  ctx.fillRect(0, 0.55 * H - 3, W, 6);
+
+  // 극지방 (북/남) — 어둡게
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, W, 0.10 * H);
+  ctx.fillRect(0, 0.92 * H, W, H);
+
+  return canvas;
+}
 
 // Death Star under-construction texture (equirectangular 2048x1024)
 // White = built surface (dots), Black = void / unbuilt zones
@@ -158,24 +200,15 @@ export default function GlobeStation({ onSectorSelect }) {
         .to(popupEl, { duration: 0.3, opacity: 0, scale: 0.9, transformOrigin: 'center bottom' }, 0);
     };
 
-    // Zones defined by equirectangular UV ranges matching the plate layout
-    // u: 0~1 (lon -180→+180), v: 0~1 (lat +90→-90)
-    // Zones cover the entire surface — every visible dot belongs to one
-    const ZONES = [
-      { id: 'SECTOR_ALPHA',   label: 'SECTOR α',  uMin: 0.00, uMax: 1.00, vMin: 0.00, vMax: 0.50 }, // north of equator
-      { id: 'SECTOR_BETA',    label: 'SECTOR β',  uMin: 0.00, uMax: 0.30, vMin: 0.50, vMax: 1.00 }, // SW
-      { id: 'SECTOR_GAMMA',   label: 'SECTOR γ',  uMin: 0.30, uMax: 0.62, vMin: 0.50, vMax: 1.00 }, // SC
-      { id: 'SECTOR_DELTA',   label: 'SECTOR δ',  uMin: 0.62, uMax: 1.00, vMin: 0.50, vMax: 1.00 }, // SE
-    ];
-
     const getZone = () => {
       const pos = s.pointer.position;
       const lat = 90 - Math.acos(Math.max(-1, Math.min(1, pos.y))) * 180 / Math.PI;
       const lng = (270 + Math.atan2(pos.x, pos.z) * 180 / Math.PI) % 360 - 180;
       const u = (lng + 180) / 360;
       const v = (90 - lat) / 180;
-      const match = ZONES.find(z => u >= z.uMin && u <= z.uMax && v >= z.vMin && v <= z.vMax);
-      return match ? match.label : 'VOID';
+      const match = SECTOR_UV.find(z => u >= z.uMin && u <= z.uMax && v >= z.vMin && v <= z.vMax);
+      if (!match) return '—';
+      return sectors.find(s => s.id === match.id)?.title ?? '—';
     };
 
     const drawPopupConnector = (sx, sy, mx, my, ex, ey) => {
@@ -271,17 +304,12 @@ export default function GlobeStation({ onSectorSelect }) {
       rafId = requestAnimationFrame(render);
     };
 
-    new THREE.TextureLoader().load(
-      'https://ksenia-k.com/img/earth-map-colored.png',
-      (mapTex) => {
-        mapTex.repeat.set(1, 1);
-        createGlobe(mapTex);
-        createPointer();
-        createPopupTimelines();
-        updateSize();
-        render();
-      }
-    );
+    const mapTex = new THREE.CanvasTexture(generateSectorTexture());
+    createGlobe(mapTex);
+    createPointer();
+    createPopupTimelines();
+    updateSize();
+    render();
   }, []);
 
   return (
