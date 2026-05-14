@@ -49,7 +49,7 @@ export default function Home() {
       setPhase('station');
       setHudVisible(false);
       setPanelIn(false);
-      setTimeout(() => setPanelIn(true), 2400);
+      setTimeout(() => setPanelIn(true), 2400); // 행성 노출 후 패널 올라옴
       return;
     }
     setStep(s => s + 1);
@@ -81,7 +81,7 @@ export default function Home() {
       {/* Header */}
       <header style={{
         position: 'fixed', top: 0, width: '100%', zIndex: 300,
-        background: 'rgba(255,255,255,0.92)',
+        background: 'rgba(255,255,255,0.88)',
         borderBottom: '1px solid rgba(0,0,0,0.07)',
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
         opacity: (phase === 'station' || phase === 'onboarding') ? 1 : 0,
@@ -151,10 +151,10 @@ export default function Home() {
         </section>
       )}
 
-      {/* Globe Preview — 패널 오르기 전 행성만 보이는 순간 */}
-      {phase === 'station' && !panelIn && (
+      {/* Globe — 패널 뒤에서 계속 살아있음 */}
+      {phase === 'station' && (
         <div style={{
-          position: 'fixed', inset: 0, zIndex: 9,
+          position: 'fixed', inset: 0, zIndex: 5,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           pointerEvents: 'none',
         }}>
@@ -168,11 +168,15 @@ export default function Home() {
       {phase === 'station' && (
         <main style={{
           position: 'fixed',
-          inset: `56px 0 0 0`,
+          inset: `calc(56px + clamp(8px, 1.5vmin, 16px)) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px)`,
           display: 'flex',
-          zIndex: 20,
-          transform: panelIn ? 'translateY(0)' : 'translateY(100%)',
-          transition: 'transform 1.6s cubic-bezier(0.16,1,0.3,1)',
+          borderRadius: 'clamp(14px, 1.5vmin, 20px)',
+          overflow: 'hidden',
+          zIndex: 10,
+          boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
+          transform: panelIn ? 'translateY(0)' : 'translateY(110%)',
+          opacity: panelIn ? 1 : 0,
+          transition: 'transform 1.6s cubic-bezier(0.16,1,0.3,1), opacity 0.8s ease',
         }}>
 
           {/* Left Sidebar: Globe Nav */}
@@ -180,7 +184,7 @@ export default function Home() {
             width: 260,
             flexShrink: 0,
             borderRight: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(255,255,255,0.92)',
+            background: 'rgba(255,255,255,0.82)',
             backdropFilter: 'blur(28px)',
             WebkitBackdropFilter: 'blur(28px)',
             display: 'flex',
@@ -235,7 +239,7 @@ export default function Home() {
           </aside>
 
           {/* Main Content */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.86)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}>
 
             {/* Content Topbar */}
             <div style={{
