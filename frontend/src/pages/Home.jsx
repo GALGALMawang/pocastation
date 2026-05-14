@@ -67,12 +67,21 @@ export default function Home() {
     <div style={{ background: 'transparent', height: '100vh', width: '100vw', color: '#fff', overflow: 'hidden', position: 'relative' }}>
       <WarpBackground phase={phase} />
 
-      {/* Onboarding HUD */}
+      {/* Onboarding HUD — 스테이션 패널과 동일한 위치/크기 */}
       {phase === 'onboarding' && (
         <div style={{
-          position: 'fixed', inset: 0, zIndex: 200,
+          position: 'fixed',
+          inset: `calc(56px + clamp(8px, 1.5vmin, 16px)) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px) clamp(8px, 1.5vmin, 16px)`,
+          zIndex: 200,
+          borderRadius: 'clamp(14px, 1.5vmin, 20px)',
+          overflow: 'hidden',
+          background: 'rgba(255,255,255,0.86)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
+          opacity: hudVisible ? 1 : 0,
+          transition: 'opacity 0.6s ease',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          opacity: hudVisible ? 1 : 0, transition: 'opacity 0.6s ease',
         }}>
           <SpaceshipHUD key={step} step={step} onNext={handleNextStep} />
         </div>
