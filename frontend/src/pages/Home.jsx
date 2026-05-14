@@ -32,7 +32,8 @@ export default function Home() {
     return () => window.removeEventListener('wheel', handleWheel);
   }, [phase]);
 
-  const handleNextStep = () => {
+  const handleNextStep = (skip = false) => {
+    if (skip) { setPhase('station'); return; }
     if (step < 4) setStep(step + 1);
     else setPhase('station');
   };

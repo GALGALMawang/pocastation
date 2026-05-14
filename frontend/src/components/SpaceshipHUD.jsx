@@ -39,52 +39,69 @@ const SpaceshipHUD = ({ step, onNext }) => {
   }, [step]);
 
   return (
-    <div style={{ position: 'absolute', inset: '10%', pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: '5vh' }}>
+    <div style={{ position: 'absolute', inset: '5%', pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
       <div style={{
         background: 'rgba(5, 10, 15, 0.95)',
         borderTop: '1px solid rgba(0, 229, 255, 0.2)',
         borderBottom: '1px solid rgba(0, 229, 255, 0.2)',
-        padding: '36px 40px',
+        padding: '56px 64px',
         width: '100%',
-        maxWidth: '720px',
-        margin: '0 auto',
+        maxWidth: '860px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '24px',
+        gap: '36px',
         pointerEvents: 'auto',
         color: '#E0FFFF',
         boxShadow: '0 24px 64px rgba(0, 0, 0, 0.9)',
         position: 'relative'
       }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '15px', height: '15px', borderTop: '2px solid rgba(0,229,255,0.4)', borderLeft: '2px solid rgba(0,229,255,0.4)' }}></div>
-        <div style={{ position: 'absolute', top: 0, right: 0, width: '15px', height: '15px', borderTop: '2px solid rgba(0,229,255,0.4)', borderRight: '2px solid rgba(0,229,255,0.4)' }}></div>
-        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '15px', height: '15px', borderBottom: '2px solid rgba(0,229,255,0.4)', borderLeft: '2px solid rgba(0,229,255,0.4)' }}></div>
-        <div style={{ position: 'absolute', bottom: 0, right: 0, width: '15px', height: '15px', borderBottom: '2px solid rgba(0,229,255,0.4)', borderRight: '2px solid rgba(0,229,255,0.4)' }}></div>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '20px', height: '20px', borderTop: '2px solid rgba(0,229,255,0.4)', borderLeft: '2px solid rgba(0,229,255,0.4)' }}></div>
+        <div style={{ position: 'absolute', top: 0, right: 0, width: '20px', height: '20px', borderTop: '2px solid rgba(0,229,255,0.4)', borderRight: '2px solid rgba(0,229,255,0.4)' }}></div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '20px', height: '20px', borderBottom: '2px solid rgba(0,229,255,0.4)', borderLeft: '2px solid rgba(0,229,255,0.4)' }}></div>
+        <div style={{ position: 'absolute', bottom: 0, right: 0, width: '20px', height: '20px', borderBottom: '2px solid rgba(0,229,255,0.4)', borderRight: '2px solid rgba(0,229,255,0.4)' }}></div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div>{current.icon}</div>
           <div>
-            <div style={{ fontSize: '11px', letterSpacing: '3px', opacity: 0.6, fontFamily: 'monospace', color: '#00E5FF' }}>[ {current.num} ]</div>
-            <h3 style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'monospace', margin: '4px 0 0 0', letterSpacing: '1px', color: '#00E5FF' }}>
+            <div style={{ fontSize: '12px', letterSpacing: '3px', opacity: 0.6, fontFamily: 'monospace', color: '#00E5FF' }}>[ {current.num} ]</div>
+            <h3 style={{ fontSize: '28px', fontWeight: '800', fontFamily: 'monospace', margin: '6px 0 0 0', letterSpacing: '1px', color: '#00E5FF' }}>
               {current.title}
             </h3>
           </div>
         </div>
 
-        <div style={{ fontSize: '15px', lineHeight: '1.8', color: '#B0E0E6', fontFamily: 'monospace', minHeight: '60px', whiteSpace: 'pre-line' }}>
+        <div style={{ fontSize: '17px', lineHeight: '2', color: '#B0E0E6', fontFamily: 'monospace', minHeight: '80px', whiteSpace: 'pre-line' }}>
           <TypewriterText text={current.desc} delay={15} onComplete={() => setIsReady(true)} />
           <span className="blink-text" style={{ opacity: isReady ? 1 : 0, color: '#00E5FF', marginLeft: '4px' }}>_</span>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
-          <button 
-            onClick={onNext}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+          <button
+            onClick={() => onNext(true)}
             style={{
-              padding: '10px 24px',
+              padding: '10px 20px',
+              background: 'transparent',
+              color: 'rgba(255,255,255,0.3)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              fontSize: '12px',
+              fontFamily: 'monospace',
+              letterSpacing: '1.5px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+            onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+          >
+            [ SKIP ]
+          </button>
+          <button
+            onClick={() => onNext(false)}
+            style={{
+              padding: '12px 32px',
               background: 'rgba(0, 229, 255, 0.1)',
               color: '#00E5FF',
               border: '1px solid rgba(0, 229, 255, 0.4)',
-              fontSize: '13px',
+              fontSize: '14px',
               fontWeight: '700',
               fontFamily: 'monospace',
               letterSpacing: '1.5px',
