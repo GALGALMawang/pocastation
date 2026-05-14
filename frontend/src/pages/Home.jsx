@@ -78,9 +78,10 @@ export default function Home() {
         }}>
           <div style={{
             width: '100%', maxWidth: 860,
-            background: 'rgba(255,255,255,0.82)',
+            background: '#05050f',
             borderRadius: 20,
-            boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
+            border: '1px solid rgba(0,229,255,0.25)',
+            boxShadow: '0 0 0 1px rgba(0,229,255,0.05), 0 8px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0,229,255,0.06)',
           }}>
             <SpaceshipHUD key={step} step={step} onNext={handleNextStep} />
           </div>
