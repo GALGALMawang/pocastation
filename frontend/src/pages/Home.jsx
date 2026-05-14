@@ -49,7 +49,7 @@ export default function Home() {
       setPhase('station');
       setHudVisible(false);
       setPanelIn(false);
-      setTimeout(() => setPanelIn(true), 80);
+      setTimeout(() => setPanelIn(true), 1100); // 1초간 행성 노출 후 패널 올라옴
       return;
     }
     setStep(s => s + 1);
@@ -149,6 +149,19 @@ export default function Home() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* Globe Preview — 패널 오르기 전 행성만 보이는 순간 */}
+      {phase === 'station' && !panelIn && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 10,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          pointerEvents: 'none',
+        }}>
+          <div style={{ width: 'min(60vh, 60vw)', height: 'min(60vh, 60vw)' }}>
+            <GlobeStation onSectorSelect={() => {}} />
+          </div>
+        </div>
       )}
 
       {/* Station Layout — Dashboard */}
