@@ -138,7 +138,6 @@ export default function GlobeStation({ onSectorSelect }) {
       s.scene.add(s.globeMesh);
     };
 
-    // Pointer
     const createPointer = () => {
       const geo = new THREE.SphereGeometry(0.04, 16, 16);
       const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
@@ -146,80 +145,11 @@ export default function GlobeStation({ onSectorSelect }) {
       s.scene.add(s.pointer);
     };
 
-    // Popup timelines
-    const createPopupTimelines = () => {
-      s.popupOpenTl = gsap.timeline({ paused: true })
-        .to(s.pointer.material, { duration: 0.2, opacity: 1 }, 0)
-        .fromTo(canvas2D, { opacity: 0 }, { duration: 0.3, opacity: 1 }, 0.15)
-        .fromTo(popupEl, { opacity: 0, scale: 0.9, transformOrigin: 'center bottom' }, { duration: 0.1, opacity: 1, scale: 1 }, 0.25);
-
-      s.popupCloseTl = gsap.timeline({ paused: true })
-        .to(s.pointer.material, { duration: 0.3, opacity: 0.2 }, 0)
-        .to(canvas2D, { duration: 0.3, opacity: 0 }, 0)
-        .to(popupEl, { duration: 0.3, opacity: 0, scale: 0.9, transformOrigin: 'center bottom' }, 0);
-    };
-
-    const getZone = () => {
-      const pos = s.pointer.position;
-      const lat = 90 - Math.acos(Math.max(-1, Math.min(1, pos.y))) * 180 / Math.PI;
-      const lng = (270 + Math.atan2(pos.x, pos.z) * 180 / Math.PI) % 360 - 180;
-      const u = (lng + 180) / 360;
-      const v = (90 - lat) / 180;
-      const match = SECTOR_UV.find(z => u >= z.uMin && u <= z.uMax && v >= z.vMin && v <= z.vMax);
-      if (!match) return '—';
-      return sectors.find(s => s.id === match.id)?.title ?? '—';
-    };
-
-    const drawPopupConnector = (sx, sy, mx, my, ex, ey) => {
-      overlayCtx.strokeStyle = 'rgba(0, 240, 255, 0.8)';
-      overlayCtx.lineWidth = 1.5;
-      overlayCtx.lineCap = 'round';
-      overlayCtx.clearRect(0, 0, containerEl.offsetWidth, containerEl.offsetHeight);
-      overlayCtx.beginPath();
-      overlayCtx.moveTo(sx, sy);
-      overlayCtx.quadraticCurveTo(mx, my, ex, ey);
-      overlayCtx.stroke();
-    };
-
-    const showPopup = (lifted) => {
-      if (lifted) {
-        const lifted_pos = s.pointer.position.clone().multiplyScalar(1.3);
-        gsap.from(s.pointer.position, { duration: 0.25, x: lifted_pos.x, y: lifted_pos.y, z: lifted_pos.z, ease: 'power3.out' });
-      }
-      s.popupCloseTl.pause(0);
-      s.popupOpenTl.play(0);
-    };
-
-    const updateOverlay = () => {
-      if (!s.pointer) return;
-      const activePos = s.pointer.position.clone();
-      activePos.applyMatrix4(s.globe.matrixWorld);
-      const projected = activePos.clone().project(s.camera);
-      coordinates2D[0] = (projected.x + 1) * containerEl.offsetWidth * 0.5;
-      coordinates2D[1] = (1 - projected.y) * containerEl.offsetHeight * 0.5;
-
-      const matInv = s.controls.object.matrixWorldInverse;
-      activePos.applyMatrix4(matInv);
-
-      if (activePos.z > -1) {
-        if (!popupVisible) { popupVisible = true; showPopup(false); }
-        let px = coordinates2D[0] - projected.x * containerEl.offsetWidth * 0.3;
-        let py = coordinates2D[1];
-        const upDown = projected.y > 0.6;
-        py += upDown ? 20 : -20;
-        gsap.set(popupEl, { x: px, y: py, xPercent: -35, yPercent: upDown ? 0 : -100 });
-        drawPopupConnector(coordinates2D[0], coordinates2D[1], px + projected.x * 100, py + (upDown ? -0.5 : 0.1) * coordinates2D[1], px, py);
-      } else {
-        if (popupVisible) { s.popupOpenTl.pause(0); s.popupCloseTl.play(0); }
-        popupVisible = false;
-      }
-    };
+    const updateOverlay = () => {};
 
     const checkIntersects = () => {
       s.rayCaster.setFromCamera(s.mouse, s.camera);
-      const hits = s.rayCaster.intersectObject(s.globeMesh);
-      canvas3D.style.cursor = hits.length ? 'pointer' : 'auto';
-      return hits;
+      return s.rayCaster.intersectObject(s.globeMesh);
     };
 
     const updateMousePos = (ex, ey) => {
@@ -231,13 +161,10 @@ export default function GlobeStation({ onSectorSelect }) {
     const onClick = (e) => {
       if (dragged) return;
       updateMousePos(e.clientX, e.clientY);
+      // ripple effect only — no pointer dot, no popup
       const hits = checkIntersects();
       if (hits.length) {
-        const n = hits[0].face.normal;
-        s.pointer.position.set(n.x, n.y, n.z);
-        s.mapMaterial.uniforms.u_pointer.value = n;
-        popupEl.textContent = getZone();
-        showPopup(true);
+        s.mapMaterial.uniforms.u_pointer.value = hits[0].face.normal;
         s.clock.start();
       }
     };
@@ -269,7 +196,6 @@ export default function GlobeStation({ onSectorSelect }) {
         mapTex.repeat.set(1, 1);
         createGlobe(mapTex);
         createPointer();
-        createPopupTimelines();
         updateSize();
         render();
       }
@@ -281,26 +207,7 @@ export default function GlobeStation({ onSectorSelect }) {
       {/* Globe */}
       <div ref={containerRef} style={{ position: 'relative', flexShrink: 0 }}>
         <canvas ref={canvas3DRef} id="globe-3d" style={{ display: 'block', position: 'absolute' }} />
-        <canvas ref={canvas2DRef} id="globe-2d-overlay" style={{ display: 'block', position: 'absolute', pointerEvents: 'none' }} />
-        <div style={{ display: 'block', position: 'absolute', pointerEvents: 'none' }}>
-          <div
-            ref={popupRef}
-            style={{
-              position: 'absolute', top: 0, left: 0,
-              background: 'rgba(2, 2, 5, 0.85)',
-              border: '1px solid rgba(0, 240, 255, 0.4)',
-              color: '#00F0FF',
-              fontFamily: 'monospace',
-              padding: '5px 12px',
-              fontSize: '12px',
-              fontWeight: '700',
-              letterSpacing: '1px',
-              borderRadius: '4px',
-              opacity: 0,
-              backdropFilter: 'blur(8px)',
-            }}
-          />
-        </div>
+        <canvas ref={canvas2DRef} id="globe-2d-overlay" style={{ display: 'none' }} />
       </div>
 
       {/* Left menu */}
