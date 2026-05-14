@@ -26,6 +26,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('auctions');
   const [auctions] = useState(AUCTIONS_EXTENDED);
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [panelIn, setPanelIn] = useState(false);
 
   const startWarp = useCallback(() => {
     if (phase !== 'intro') return;
@@ -44,7 +45,13 @@ export default function Home() {
   }, [phase, startWarp]);
 
   const handleNextStep = (skip = false) => {
-    if (skip || step >= 4) { setPhase('station'); setHudVisible(false); return; }
+    if (skip || step >= 4) {
+      setPhase('station');
+      setHudVisible(false);
+      setPanelIn(false);
+      setTimeout(() => setPanelIn(true), 80);
+      return;
+    }
     setStep(s => s + 1);
   };
 
@@ -74,23 +81,23 @@ export default function Home() {
       {/* Header */}
       <header style={{
         position: 'fixed', top: 0, width: '100%', zIndex: 300,
-        background: phase === 'station' ? 'rgba(10,6,28,0.88)' : 'rgba(255,255,255,0.92)',
-        borderBottom: phase === 'station' ? '1px solid rgba(120,80,255,0.15)' : '1px solid rgba(0,0,0,0.08)',
+        background: 'rgba(255,255,255,0.88)',
+        borderBottom: '1px solid rgba(0,0,0,0.07)',
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
         opacity: (phase === 'station' || phase === 'onboarding') ? 1 : 0,
         transition: 'opacity 0.5s, background 0.6s',
         pointerEvents: phase === 'intro' ? 'none' : 'auto',
       }}>
         <div style={{ maxWidth: '100%', padding: '0 2rem', display: 'flex', alignItems: 'center', height: 56, gap: 32 }}>
-          <Link to="/"><div style={{ fontFamily: 'monospace', fontSize: 15, fontWeight: 900, letterSpacing: 2, color: phase === 'station' ? '#fff' : '#111', flexShrink: 0 }}>POCA<span style={{ color: '#00E5FF' }}>STATION</span></div></Link>
+          <Link to="/"><div style={{ fontFamily: 'monospace', fontSize: 15, fontWeight: 900, letterSpacing: 2, color: '#111', flexShrink: 0 }}>POCA<span style={{ color: '#7c3aed' }}>STATION</span></div></Link>
 
           {phase === 'station' && (
             <nav style={{ display: 'flex', gap: 2, marginLeft: 24 }}>
               {menuItems.map(m => (
                 <button key={m.id} onClick={() => setActiveTab(m.id)} style={{
                   padding: '5px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13,
-                  background: activeTab === m.id ? 'rgba(0,229,255,0.12)' : 'transparent',
-                  color: activeTab === m.id ? '#00E5FF' : 'rgba(255,255,255,0.45)',
+                  background: activeTab === m.id ? 'rgba(0,0,0,0.06)' : 'transparent',
+                  color: activeTab === m.id ? '#111' : 'rgba(0,0,0,0.4)',
                   transition: 'all 0.2s',
                 }}>
                   {m.label}
@@ -102,15 +109,15 @@ export default function Home() {
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
             {phase === 'station' && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 8, padding: '3px 10px', borderRadius: 20, background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.2)' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff5050', display: 'inline-block', boxShadow: '0 0 5px #ff5050' }} />
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#ff9090', letterSpacing: 0.5 }}>LIVE {auctions.filter(a => a.status === 'live').length}건</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 8, padding: '3px 10px', borderRadius: 20, background: 'rgba(255,60,60,0.06)', border: '1px solid rgba(255,60,60,0.15)' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#e03030', display: 'inline-block', boxShadow: '0 0 5px rgba(220,50,50,0.5)' }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#c02020', letterSpacing: 0.5 }}>LIVE {auctions.filter(a => a.status === 'live').length}건</span>
                 </div>
-                <button style={{ padding: '6px 16px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>로그인</button>
-                <button style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: '#00E5FF', color: '#000', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>+ 판매 등록</button>
+                <button style={{ padding: '6px 16px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', color: 'rgba(0,0,0,0.6)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>로그인</button>
+                <button style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>+ 판매 등록</button>
               </>
             )}
-            <Link to="/admin" style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: 700 }}>관제 센터</Link>
+            <Link to="/admin" style={{ color: 'rgba(0,0,0,0.3)', fontSize: 11, fontWeight: 700 }}>관제 센터</Link>
           </div>
         </div>
       </header>
@@ -146,21 +153,25 @@ export default function Home() {
 
       {/* Station Layout — Dashboard */}
       {phase === 'station' && (
-        <main style={{ height: '100vh', paddingTop: 56, display: 'flex', position: 'relative', zIndex: 10 }}>
+        <main style={{
+          height: '100vh', paddingTop: 56, display: 'flex', position: 'relative', zIndex: 10,
+          transform: panelIn ? 'translateY(0)' : 'translateY(100%)',
+          opacity: panelIn ? 1 : 0,
+          transition: 'transform 0.85s cubic-bezier(0.22,1,0.36,1), opacity 0.6s ease',
+        }}>
 
           {/* Left Sidebar: Globe Nav */}
           <aside style={{
             width: 260,
             flexShrink: 0,
-            borderRight: '1px solid rgba(120,80,255,0.12)',
-            background: 'rgba(10,6,24,0.7)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
+            borderRight: '1px solid rgba(0,0,0,0.06)',
+            background: 'rgba(255,255,255,0.82)',
+            backdropFilter: 'blur(28px)',
+            WebkitBackdropFilter: 'blur(28px)',
             display: 'flex',
             flexDirection: 'column',
             padding: '20px 0',
             overflowY: 'auto',
-            boxShadow: 'inset -1px 0 0 rgba(120,80,255,0.08)',
           }}>
             {/* Mini Globe */}
             <div style={{ width: '100%', height: 200, flexShrink: 0, position: 'relative' }}>
@@ -173,40 +184,34 @@ export default function Home() {
                 <button key={m.id} onClick={() => setActiveTab(m.id)} style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '10px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                  background: activeTab === m.id
-                    ? 'linear-gradient(90deg, rgba(120,80,255,0.18), rgba(0,229,255,0.08))'
-                    : 'transparent',
+                  background: activeTab === m.id ? 'rgba(0,0,0,0.06)' : 'transparent',
                   textAlign: 'left', transition: 'all 0.2s',
-                  boxShadow: activeTab === m.id ? 'inset 0 0 0 1px rgba(120,80,255,0.25)' : 'none',
                 }}>
                   <div style={{
                     width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
-                    background: activeTab === m.id
-                      ? 'linear-gradient(135deg, #a78bff, #00E5FF)'
-                      : 'rgba(255,255,255,0.12)',
-                    boxShadow: activeTab === m.id ? '0 0 10px rgba(167,139,255,0.8)' : 'none',
+                    background: activeTab === m.id ? '#111' : 'rgba(0,0,0,0.15)',
                   }} />
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: activeTab === m.id ? '#c4b5fd' : 'rgba(255,255,255,0.5)' }}>{m.label}</div>
-                    <div style={{ fontSize: 9, color: activeTab === m.id ? 'rgba(167,139,255,0.5)' : 'rgba(255,255,255,0.18)', letterSpacing: 1, fontFamily: 'monospace', marginTop: 1 }}>{m.sub}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: activeTab === m.id ? '#111' : 'rgba(0,0,0,0.4)' }}>{m.label}</div>
+                    <div style={{ fontSize: 9, color: 'rgba(0,0,0,0.25)', letterSpacing: 1, fontFamily: 'monospace', marginTop: 1 }}>{m.sub}</div>
                   </div>
                   {m.id === 'auctions' && (
-                    <div style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 800, color: '#ff7070', background: 'rgba(255,80,80,0.12)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(255,80,80,0.2)' }}>LIVE</div>
+                    <div style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 800, color: '#e03030', background: 'rgba(255,60,60,0.08)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(255,60,60,0.15)' }}>LIVE</div>
                   )}
                 </button>
               ))}
             </nav>
 
             {/* Recent bids */}
-            <div style={{ marginTop: 'auto', padding: '14px 16px', borderTop: '1px solid rgba(120,80,255,0.1)' }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(167,139,255,0.4)', letterSpacing: 2, fontFamily: 'monospace', marginBottom: 10 }}>RECENT BIDS</div>
+            <div style={{ marginTop: 'auto', padding: '14px 16px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.3)', letterSpacing: 2, fontFamily: 'monospace', marginBottom: 10 }}>RECENT BIDS</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {auctions.slice(0, 4).map(a => (
                   <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(167,139,255,0.7)', flexShrink: 0 }} />
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(0,0,0,0.2)', flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.group_name} {a.member}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>₩{a.price.toLocaleString()}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.group_name} {a.member}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.3)' }}>₩{a.price.toLocaleString()}</div>
                     </div>
                   </div>
                 ))}
@@ -215,36 +220,34 @@ export default function Home() {
           </aside>
 
           {/* Main Content */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}>
 
             {/* Content Topbar */}
             <div style={{
               padding: '12px 28px',
-              borderBottom: '1px solid rgba(120,80,255,0.1)',
+              borderBottom: '1px solid rgba(0,0,0,0.06)',
               display: 'flex', alignItems: 'center', gap: 16,
-              background: 'rgba(8,5,20,0.5)',
-              backdropFilter: 'blur(12px)',
               flexShrink: 0,
             }}>
               <div>
-                <span style={{ fontSize: 15, fontWeight: 900, color: '#e2d9ff' }}>
+                <span style={{ fontSize: 15, fontWeight: 900, color: '#111' }}>
                   {menuItems.find(m => m.id === activeTab)?.label}
                 </span>
-                <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'rgba(167,139,255,0.35)', letterSpacing: 1.5, marginLeft: 10 }}>
+                <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'rgba(0,0,0,0.25)', letterSpacing: 1.5, marginLeft: 10 }}>
                   {menuItems.find(m => m.id === activeTab)?.sub}
                 </span>
               </div>
               {activeTab === 'auctions' && (
                 <>
-                  <div style={{ height: 14, width: 1, background: 'rgba(120,80,255,0.2)' }} />
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{auctions.length}개 진행 중</span>
+                  <div style={{ height: 14, width: 1, background: 'rgba(0,0,0,0.1)' }} />
+                  <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)' }}>{auctions.length}개 진행 중</span>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
                     {['전체', 'S급', 'A급', '마감임박'].map(f => (
                       <button key={f} style={{
                         padding: '3px 10px', borderRadius: 6,
-                        border: '1px solid rgba(120,80,255,0.2)',
+                        border: '1px solid rgba(0,0,0,0.1)',
                         background: 'transparent',
-                        color: 'rgba(167,139,255,0.5)',
+                        color: 'rgba(0,0,0,0.4)',
                         fontSize: 11, cursor: 'pointer',
                         transition: 'all 0.15s',
                       }}>{f}</button>
@@ -264,18 +267,18 @@ export default function Home() {
                       onMouseEnter={() => setHoveredCard(item.id)}
                       onMouseLeave={() => setHoveredCard(null)}
                       style={{
-                        background: hoveredCard === item.id
-                          ? 'linear-gradient(135deg, rgba(80,40,160,0.25), rgba(0,100,140,0.15))'
-                          : 'rgba(255,255,255,0.03)',
+                        background: '#fff',
                         border: hoveredCard === item.id
-                          ? '1px solid rgba(167,139,255,0.35)'
-                          : '1px solid rgba(255,255,255,0.07)',
+                          ? '1px solid rgba(0,0,0,0.15)'
+                          : '1px solid rgba(0,0,0,0.07)',
                         borderRadius: 14,
                         overflow: 'hidden',
                         cursor: 'pointer',
                         transition: 'all 0.25s',
                         transform: hoveredCard === item.id ? 'translateY(-4px)' : 'translateY(0)',
-                        boxShadow: hoveredCard === item.id ? '0 12px 32px rgba(80,40,160,0.25)' : 'none',
+                        boxShadow: hoveredCard === item.id
+                          ? '0 12px 32px rgba(0,0,0,0.12)'
+                          : '0 2px 8px rgba(0,0,0,0.05)',
                       }}
                     >
                       {/* Image */}
@@ -313,21 +316,19 @@ export default function Home() {
                       </div>
 
                       {/* Info */}
-                      <div style={{ padding: '12px 14px', background: hoveredCard === item.id ? 'rgba(30,10,60,0.4)' : 'transparent' }}>
-                        <div style={{ fontSize: 9, color: hoveredCard === item.id ? '#c4b5fd' : 'rgba(167,139,255,0.6)', fontWeight: 800, letterSpacing: 1.5, fontFamily: 'monospace' }}>{item.group_name}</div>
-                        <div style={{ fontSize: 14, fontWeight: 900, margin: '3px 0 10px', color: '#f0ebff' }}>{item.member}</div>
+                      <div style={{ padding: '12px 14px' }}>
+                        <div style={{ fontSize: 9, color: '#7c3aed', fontWeight: 800, letterSpacing: 1.5, fontFamily: 'monospace' }}>{item.group_name}</div>
+                        <div style={{ fontSize: 14, fontWeight: 900, margin: '3px 0 10px', color: '#111' }}>{item.member}</div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 900, color: '#fff' }}>₩{item.price.toLocaleString()}</div>
-                            <div style={{ fontSize: 9, color: 'rgba(167,139,255,0.4)', marginTop: 1 }}>{item.bid_count}회 입찰</div>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: '#111' }}>₩{item.price.toLocaleString()}</div>
+                            <div style={{ fontSize: 9, color: 'rgba(0,0,0,0.3)', marginTop: 1 }}>{item.bid_count}회 입찰</div>
                           </div>
                           <button style={{
                             padding: '5px 12px', borderRadius: 6,
-                            background: hoveredCard === item.id
-                              ? 'linear-gradient(135deg, #a78bff, #00E5FF)'
-                              : 'rgba(120,80,255,0.15)',
-                            color: hoveredCard === item.id ? '#000' : '#c4b5fd',
-                            border: '1px solid rgba(120,80,255,0.3)',
+                            background: hoveredCard === item.id ? '#111' : 'transparent',
+                            color: hoveredCard === item.id ? '#fff' : '#111',
+                            border: '1px solid rgba(0,0,0,0.15)',
                             fontSize: 10, fontWeight: 900, cursor: 'pointer',
                             transition: 'all 0.2s',
                           }}>BID</button>
@@ -340,7 +341,7 @@ export default function Home() {
 
               {activeTab !== 'auctions' && (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', flexDirection: 'column', gap: 12 }}>
-                  <div style={{ fontSize: 11, fontFamily: 'monospace', color: 'rgba(255,255,255,0.15)', letterSpacing: 3 }}>
+                  <div style={{ fontSize: 11, fontFamily: 'monospace', color: 'rgba(0,0,0,0.2)', letterSpacing: 3 }}>
                     {menuItems.find(m => m.id === activeTab)?.sub} — COMING SOON
                   </div>
                 </div>
