@@ -81,8 +81,8 @@ export default function Home() {
       {/* Header */}
       <header style={{
         position: 'fixed', top: 0, width: '100%', zIndex: 300,
-        background: 'rgba(255,255,255,0.88)',
-        borderBottom: '1px solid rgba(0,0,0,0.07)',
+        background: 'rgba(255,255,255,0.55)',
+        borderBottom: '1px solid rgba(255,255,255,0.3)',
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
         opacity: (phase === 'station' || phase === 'onboarding') ? 1 : 0,
         transition: 'opacity 0.5s, background 0.6s',
@@ -184,9 +184,9 @@ export default function Home() {
             width: 260,
             flexShrink: 0,
             borderRight: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(255,255,255,0.82)',
-            backdropFilter: 'blur(28px)',
-            WebkitBackdropFilter: 'blur(28px)',
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(32px)',
+            WebkitBackdropFilter: 'blur(32px)',
             display: 'flex',
             flexDirection: 'column',
             padding: '20px 0',
@@ -239,7 +239,7 @@ export default function Home() {
           </aside>
 
           {/* Main Content */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.86)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}>
 
             {/* Content Topbar */}
             <div style={{
@@ -286,10 +286,10 @@ export default function Home() {
                       onMouseEnter={() => setHoveredCard(item.id)}
                       onMouseLeave={() => setHoveredCard(null)}
                       style={{
-                        background: '#fff',
+                        background: hoveredCard === item.id ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.55)',
                         border: hoveredCard === item.id
-                          ? '1px solid rgba(0,0,0,0.15)'
-                          : '1px solid rgba(0,0,0,0.07)',
+                          ? '1px solid rgba(255,255,255,0.6)'
+                          : '1px solid rgba(255,255,255,0.35)',
                         borderRadius: 14,
                         overflow: 'hidden',
                         cursor: 'pointer',
