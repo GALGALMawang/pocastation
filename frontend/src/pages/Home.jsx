@@ -27,7 +27,6 @@ export default function Home() {
   const [auctions] = useState(AUCTIONS_EXTENDED);
   const [hoveredCard, setHoveredCard] = useState(null);
   const [panelIn, setPanelIn] = useState(false);
-  const [globeOut, setGlobeOut] = useState(false);
 
   const startWarp = useCallback(() => {
     if (phase !== 'intro') return;
@@ -50,9 +49,7 @@ export default function Home() {
       setPhase('station');
       setHudVisible(false);
       setPanelIn(false);
-      setGlobeOut(false);
-      setTimeout(() => setPanelIn(true), 2400);    // 패널 올라옴
-      setTimeout(() => setGlobeOut(true), 2400);  // 패널과 동시에 행성 페이드아웃
+      setTimeout(() => setPanelIn(true), 2400);
       return;
     }
     setStep(s => s + 1);
@@ -155,13 +152,11 @@ export default function Home() {
       )}
 
       {/* Globe Preview — 패널 오르기 전 행성만 보이는 순간 */}
-      {phase === 'station' && !globeOut && (
+      {phase === 'station' && !panelIn && (
         <div style={{
-          position: 'fixed', inset: 0, zIndex: 10,
+          position: 'fixed', inset: 0, zIndex: 9,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           pointerEvents: 'none',
-          opacity: globeOut ? 0 : 1,
-          transition: 'opacity 0.6s ease',
         }}>
           <div style={{ width: 'min(78vh, 78vw)', height: 'min(78vh, 78vw)' }}>
             <GlobeStation onSectorSelect={() => {}} noMenu />
@@ -175,7 +170,7 @@ export default function Home() {
           position: 'fixed',
           inset: `56px 0 0 0`,
           display: 'flex',
-          zIndex: 10,
+          zIndex: 20,
           transform: panelIn ? 'translateY(0)' : 'translateY(100%)',
           transition: 'transform 1.6s cubic-bezier(0.16,1,0.3,1)',
         }}>
