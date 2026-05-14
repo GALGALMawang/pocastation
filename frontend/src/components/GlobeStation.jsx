@@ -65,7 +65,7 @@ const sectors = [
 // Death Star under-construction texture (equirectangular 2048x1024)
 // White = built surface (dots), Black = void / unbuilt zones
 
-export default function GlobeStation({ onSectorSelect, compact = false, noMenu = false }) {
+export default function GlobeStation({ onSectorSelect, compact = false, noMenu = false, syncRef = null, master = false }) {
   const containerRef = useRef(null);
   const canvas3DRef = useRef(null);
   const canvas2DRef = useRef(null);
@@ -107,7 +107,8 @@ export default function GlobeStation({ onSectorSelect, compact = false, noMenu =
     s.controls.enableDamping = true;
     s.controls.minPolarAngle = 0.4 * Math.PI;
     s.controls.maxPolarAngle = 0.4 * Math.PI;
-    s.controls.autoRotate = true;
+    // syncRef 있으면 globe mesh 직접 회전 동기화 → autoRotate 끔
+    s.controls.autoRotate = !syncRef;
     s.controls.autoRotateSpeed = 0.4;
 
     let timestamp;
@@ -183,11 +184,24 @@ export default function GlobeStation({ onSectorSelect, compact = false, noMenu =
       if (s.mapMaterial) s.mapMaterial.uniforms.u_dot_size.value = 0.04 * side;
     };
 
+    const ROT_SPEED = 0.0015; // rad per frame
     const render = () => {
       s.mapMaterial.uniforms.u_time_since_click.value = s.clock.getElapsedTime();
       checkIntersects();
       updateOverlay();
       s.controls.update();
+
+      // Shared rotation sync
+      if (syncRef) {
+        if (master) {
+          syncRef.current.y = (syncRef.current.y + ROT_SPEED) % (Math.PI * 2);
+        }
+        if (s.globe) {
+          s.globe.rotation.y = syncRef.current.y;
+          s.globeMesh.rotation.y = syncRef.current.y;
+        }
+      }
+
       s.renderer.render(s.scene, s.camera);
       rafId = requestAnimationFrame(render);
     };

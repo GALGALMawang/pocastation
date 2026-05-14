@@ -27,6 +27,7 @@ export default function Home() {
   const [auctions] = useState(AUCTIONS_EXTENDED);
   const [hoveredCard, setHoveredCard] = useState(null);
   const [panelIn, setPanelIn] = useState(false);
+  const globeSyncRef = useRef({ y: 0 });
 
   const startWarp = useCallback(() => {
     if (phase !== 'intro') return;
@@ -170,7 +171,7 @@ export default function Home() {
           pointerEvents: 'none',
         }}>
           <div style={{ width: 'min(78vh, 78vw)', height: 'min(78vh, 78vw)' }}>
-            <GlobeStation onSectorSelect={() => {}} noMenu />
+            <GlobeStation onSectorSelect={() => {}} noMenu syncRef={globeSyncRef} master />
           </div>
         </div>
       )}
@@ -203,7 +204,7 @@ export default function Home() {
           }}>
             {/* Mini Globe */}
             <div style={{ width: '100%', height: 200, flexShrink: 0, position: 'relative' }}>
-              <GlobeStation onSectorSelect={(id) => setActiveTab(id)} compact />
+              <GlobeStation onSectorSelect={(id) => setActiveTab(id)} compact syncRef={globeSyncRef} />
             </div>
             <div style={{ margin: '0 14px 8px', height: 1, background: 'rgba(0,0,0,0.06)' }} />
 
