@@ -182,7 +182,7 @@ export default function Home() {
                 {!isMobile && <button onClick={() => setActiveTab('register')} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>+ 등록</button>}
               </>
             )}
-            {isAdmin && <Link to="/admin" style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'rgba(124,58,237,0.1)', color: '#7c3aed', fontSize: 12, fontWeight: 700 }}>관제 센터</Link>}
+            {isAdmin && !isMobile && <Link to="/admin" style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'rgba(124,58,237,0.1)', color: '#7c3aed', fontSize: 12, fontWeight: 700 }}>관제 센터</Link>}
           </div>
         </div>
       </header>

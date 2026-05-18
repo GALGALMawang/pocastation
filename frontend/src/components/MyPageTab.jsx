@@ -8,7 +8,7 @@ const STATUS_LABEL = { pending: '승인 대기', live: '진행중', ended: '종�
 const STATUS_COLOR = { pending: '#b07700', live: '#006d30', ended: 'rgba(0,0,0,0.35)', rejected: '#b02020' };
 
 export default function MyPageTab() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [myAuctions, setMyAuctions] = useState([]);
   const [myBids, setMyBids] = useState([]);
@@ -47,7 +47,12 @@ export default function MyPageTab() {
           <div style={{ fontSize: 16, fontWeight: 900, color: '#111' }}>{profile?.nickname ?? '닉네임 없음'}</div>
           <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', marginTop: 2 }}>{user.email}</div>
         </div>
-        <button onClick={signOut} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', color: 'rgba(0,0,0,0.5)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>로그아웃</button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+          {isAdmin && (
+            <a href="/admin" style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'rgba(124,58,237,0.1)', color: '#7c3aed', fontSize: 11, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>관제 센터</a>
+          )}
+          <button onClick={signOut} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', color: 'rgba(0,0,0,0.5)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>로그아웃</button>
+        </div>
       </div>
 
       {/* 통계 */}
