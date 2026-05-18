@@ -200,9 +200,11 @@ export default function Home() {
         }}>
           <div className="hero-in">
             <h1>우리는 진정한 가치와<br /><span className="hl">팬덤을 연결합니다</span></h1>
-            <p className="hero-desc" style={{ color: '#aaa', fontSize: isMobile ? '16px' : undefined }}>가장 거대하고 안전한 K-POP 포토카드 유니버스로 진입하세요.</p>
+            <p className="hero-desc" style={{ color: '#aaa', fontSize: isMobile ? '16px' : undefined }}>
+              {isMobile ? <>가장 거대하고 안전한<br />K-POP 포토카드 유니버스로 진입하세요.</> : '가장 거대하고 안전한 K-POP 포토카드 유니버스로 진입하세요.'}
+            </p>
             <div style={{ pointerEvents: 'auto', marginTop: 60 }}>
-              <button onClick={startWarp} style={{ background: 'transparent', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, cursor: 'pointer', outline: 'none', margin: '0 auto' }} className="warp-trigger">
+              <button onClick={startWarp} style={{ background: 'transparent', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, cursor: 'pointer', outline: 'none', margin: '0 auto', WebkitTapHighlightColor: 'transparent' }} className="warp-trigger">
                 <div className="blackhole-container">
                   <svg className="blackhole-spin" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 12 c -4 0 -4 -4 0 -4 c 6 0 6 8 0 8 c -8 0 -8 -12 0 -12 c 10 0 10 16 0 16 c -12 0 -12 -20 0 -20" />
