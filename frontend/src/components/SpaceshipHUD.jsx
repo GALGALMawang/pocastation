@@ -23,8 +23,9 @@ const Corner = ({ pos }) => {
 };
 
 const SpaceshipHUD = ({ step, onNext }) => {
-  const [isReady, setIsReady] = useState(false);
-  const [tick, setTick]       = useState(0);
+  const [isReady, setIsReady]   = useState(false);
+  const [tick, setTick]         = useState(0);
+  const [started, setStarted]   = useState(step > 1);
 
   const steps = [
     { num: 'STEP_01', icon: <Compass size={28} color={C} />,           title: 'SCAN_GOODS',    sub: '경매 탐색',       desc: '희귀 포토카드 데이터 스캔 중...\n필터를 설정하여 목표 좌표를 확인하십시오.' },
@@ -36,6 +37,13 @@ const SpaceshipHUD = ({ step, onNext }) => {
   const current = steps[step - 1];
 
   useEffect(() => { setIsReady(false); }, [step]);
+
+  useEffect(() => {
+    if (step === 1) {
+      const t = setTimeout(() => setStarted(true), 1700);
+      return () => clearTimeout(t);
+    }
+  }, []);
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 1200);
     return () => clearInterval(id);
@@ -117,7 +125,7 @@ const SpaceshipHUD = ({ step, onNext }) => {
         borderLeft: `2px solid rgba(0,229,255,0.25)`, paddingLeft: 16,
         marginBottom: 36,
       }}>
-        <TypewriterText text={current.desc} delay={18} onComplete={() => setIsReady(true)} />
+        {started && <TypewriterText text={current.desc} delay={18} onComplete={() => setIsReady(true)} />}
         <span className="blink-text" style={{ opacity: isReady ? 1 : 0, color: C }}>█</span>
       </div>
 
