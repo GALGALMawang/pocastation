@@ -115,7 +115,7 @@ input { font: inherit; color: inherit; }
 }
 
 .hero h1, .hero-in h1 {
-  font-family: var(--fe); font-size: clamp(44px, 6vw, 72px); font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px;
+  font-family: var(--fe); font-size: clamp(44px, 7vw, 96px); font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px;
   text-shadow: 0 10px 30px rgba(0,0,0,0.5);
   background: linear-gradient(180deg, #FFFFFF 0%, #AAAAAA 100%);
   -webkit-background-clip: text;
@@ -126,7 +126,7 @@ input { font: inherit; color: inherit; }
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.hero-desc { font-size: 22px; color: #888; margin-bottom: 40px; line-height: 1.6; font-weight: 500; }
+.hero-desc { font-size: clamp(16px, 2vw, 26px); color: #888; margin-bottom: 40px; line-height: 1.6; font-weight: 500; }
 
 /* Grid & Cards */
 .sec { padding: 40px 0 120px; }
