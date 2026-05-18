@@ -115,7 +115,7 @@ input { font: inherit; color: inherit; }
 }
 
 .hero h1, .hero-in h1 {
-  font-family: var(--fe); font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px;
+  font-family: var(--fe); font-size: clamp(44px, 7vw, 96px); font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px;
   text-shadow: 0 10px 30px rgba(0,0,0,0.5);
   background: linear-gradient(180deg, #FFFFFF 0%, #AAAAAA 100%);
   -webkit-background-clip: text;
