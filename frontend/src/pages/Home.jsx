@@ -13,12 +13,20 @@ import RankingTab from '../components/RankingTab';
 import MyPageTab from '../components/MyPageTab';
 import AlarmTab from '../components/AlarmTab';
 
+const NAV_ICONS = {
+  auctions: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+  register: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>,
+  ranking:  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+  mypage:   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  alarm:    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+};
+
 const MENU_ITEMS = [
-  { id: 'auctions', label: '경매',      sub: 'LIVE AUCTION', icon: '⚡' },
-  { id: 'register', label: '등록',      sub: 'SELL',         icon: '📷' },
-  { id: 'ranking',  label: '랭킹',      sub: 'RANKING',      icon: '🏆' },
-  { id: 'mypage',   label: '마이페이지', sub: 'MY PAGE',      icon: '👤' },
-  { id: 'alarm',    label: '알림',      sub: 'ALERTS',       icon: '🔔' },
+  { id: 'auctions', label: '경매',      sub: 'LIVE AUCTION' },
+  { id: 'register', label: '등록',      sub: 'SELL'         },
+  { id: 'ranking',  label: '랭킹',      sub: 'RANKING'      },
+  { id: 'mypage',   label: '마이페이지', sub: 'MY PAGE'      },
+  { id: 'alarm',    label: '알림',      sub: 'ALERTS'       },
 ];
 
 export default function Home() {
@@ -331,10 +339,12 @@ export default function Home() {
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: 3, border: 'none', cursor: 'pointer',
               background: 'transparent',
+              color: activeTab === m.id ? '#7c3aed' : 'rgba(0,0,0,0.3)',
               borderTop: activeTab === m.id ? '2px solid #7c3aed' : '2px solid transparent',
+              transition: 'all 0.2s',
             }}>
-              <span style={{ fontSize: 18 }}>{m.icon}</span>
-              <span style={{ fontSize: 9, fontWeight: 700, color: activeTab === m.id ? '#7c3aed' : 'rgba(0,0,0,0.35)', letterSpacing: 0.5 }}>{m.label}</span>
+              {NAV_ICONS[m.id]}
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 0.3 }}>{m.label}</span>
             </button>
           ))}
         </nav>
