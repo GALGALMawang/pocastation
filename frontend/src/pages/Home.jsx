@@ -288,21 +288,39 @@ export default function Home() {
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.92)' }}>
 
             {/* Content Topbar */}
-            <div style={{ padding: isMobile ? '10px 16px' : '10px 20px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-              <span style={{ fontSize: 14, fontWeight: 900, color: '#111', flexShrink: 0 }}>
-                {MENU_ITEMS.find(m => m.id === activeTab)?.label}
-              </span>
-              {activeTab === 'auctions' && (
-                <div style={{ display: 'flex', gap: 4, marginLeft: 'auto', flexWrap: 'wrap' }}>
-                  {['전체', 'S급', 'A급', '마감임박'].map(f => (
-                    <button key={f} onClick={() => setGradeFilter(f)} style={{ padding: '3px 9px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.1)', background: gradeFilter === f ? 'rgba(0,0,0,0.08)' : 'transparent', color: gradeFilter === f ? '#111' : 'rgba(0,0,0,0.4)', fontSize: 11, cursor: 'pointer', fontWeight: gradeFilter === f ? 700 : 400 }}>{f}</button>
-                  ))}
-                </div>
-              )}
+            <div style={{ padding: isMobile ? '10px 16px' : '10px 20px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 14, fontWeight: 900, color: '#111', flexShrink: 0 }}>
+                  {MENU_ITEMS.find(m => m.id === activeTab)?.label}
+                </span>
+                {activeTab === 'auctions' && !isMobile && (
+                  <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
+                    {['전체', 'S급', 'A급', '마감임박'].map(f => (
+                      <button key={f} onClick={() => setGradeFilter(f)} style={{ padding: '3px 9px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.1)', background: gradeFilter === f ? 'rgba(0,0,0,0.08)' : 'transparent', color: gradeFilter === f ? '#111' : 'rgba(0,0,0,0.4)', fontSize: 11, cursor: 'pointer', fontWeight: gradeFilter === f ? 700 : 400 }}>{f}</button>
+                    ))}
+                  </div>
+                )}
+                {isMobile && activeTab === 'auctions' && (
+                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,60,60,0.06)', border: '1px solid rgba(255,60,60,0.15)', padding: '2px 8px', borderRadius: 10 }}>
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#e03030' }} />
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#c02020' }}>LIVE {auctions.length}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 모바일 검색 + 필터 */}
               {isMobile && activeTab === 'auctions' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,60,60,0.06)', border: '1px solid rgba(255,60,60,0.15)', padding: '2px 8px', borderRadius: 10, flexShrink: 0 }}>
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#e03030' }} />
-                  <span style={{ fontSize: 9, fontWeight: 700, color: '#c02020' }}>LIVE {auctions.length}</span>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 8, padding: '0 10px', height: 32 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="그룹, 멤버 검색..." style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 12, color: '#111' }} />
+                    {searchQuery && <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.3)', fontSize: 14, padding: 0 }}>×</button>}
+                  </div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {['전체', 'S급', 'A급'].map(f => (
+                      <button key={f} onClick={() => setGradeFilter(f)} style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.1)', background: gradeFilter === f ? 'rgba(0,0,0,0.08)' : 'transparent', color: gradeFilter === f ? '#111' : 'rgba(0,0,0,0.4)', fontSize: 10, cursor: 'pointer', fontWeight: gradeFilter === f ? 700 : 400, whiteSpace: 'nowrap' }}>{f}</button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
