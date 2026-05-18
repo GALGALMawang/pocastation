@@ -103,7 +103,7 @@ const SpaceshipHUD = ({ step, onNext }) => {
           {current.icon}
         </div>
         <h3 style={{
-          margin: 0, fontSize: 22, fontWeight: 800, fontFamily: 'monospace',
+          margin: 0, fontSize: 28, fontWeight: 800, fontFamily: 'monospace',
           color: '#ffffff', letterSpacing: 1,
         }}>
           &gt; {current.title}
@@ -112,7 +112,7 @@ const SpaceshipHUD = ({ step, onNext }) => {
 
       {/* 설명 */}
       <div style={{
-        fontSize: 14, lineHeight: 2, color: 'rgba(220,240,255,0.8)',
+        fontSize: 16, lineHeight: 2, color: 'rgba(220,240,255,0.85)',
         fontFamily: 'monospace', minHeight: 72, whiteSpace: 'pre-line',
         borderLeft: `2px solid rgba(0,229,255,0.25)`, paddingLeft: 16,
         marginBottom: 36,
@@ -129,12 +129,12 @@ const SpaceshipHUD = ({ step, onNext }) => {
         <button
           onClick={() => onNext(true)}
           style={{
-            padding: '8px 16px', background: 'transparent', border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: 4, fontSize: 10, fontFamily: 'monospace', letterSpacing: 2,
-            color: 'rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
+            padding: '8px 16px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: 4, fontSize: 11, fontFamily: 'monospace', letterSpacing: 2,
+            color: 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
           }}
-          onMouseOver={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
-          onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.18)'}
+          onMouseOver={e => e.currentTarget.style.color = 'rgba(255,255,255,0.8)'}
+          onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
         >
           SKIP
         </button>
