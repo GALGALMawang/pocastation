@@ -188,7 +188,12 @@ export default function RegisterForm() {
           </div>
         ) : (
           <div style={{ padding: '48px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: 32, marginBottom: 10 }}>📷</div>
+            <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>사진 한 장으로 시작하기</div>
             <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)' }}>드래그 또는 클릭 · AI가 정보를 자동으로 채워드려요</div>
           </div>
