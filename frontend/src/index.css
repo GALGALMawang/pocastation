@@ -114,14 +114,14 @@ input { font: inherit; color: inherit; }
   50% { transform: translateY(-15px); }
 }
 
-.hero h1 { 
-  font-family: var(--fe); font-size: clamp(44px, 6vw, 72px); font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px; 
+.hero h1, .hero-in h1 {
+  font-family: var(--fe); font-size: clamp(44px, 6vw, 72px); font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px;
   text-shadow: 0 10px 30px rgba(0,0,0,0.5);
   background: linear-gradient(180deg, #FFFFFF 0%, #AAAAAA 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.hero h1 span.hl {
+.hero h1 span.hl, .hero-in h1 span.hl {
   background: linear-gradient(to right, #00F0FF, #8A2BE2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

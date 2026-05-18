@@ -1,36 +1,68 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+import { isEndingSoon } from '../lib/utils';
 import WarpBackground from '../components/WarpBackground';
 import SpaceshipHUD from '../components/SpaceshipHUD';
 import GlobeStation from '../components/GlobeStation';
-import { AUCTIONS_MOCK } from '../lib/mockData';
+import AuctionCard from '../components/AuctionCard';
+import RegisterForm from '../components/RegisterForm';
+import BidModal from '../components/BidModal';
+import RankingTab from '../components/RankingTab';
+import MyPageTab from '../components/MyPageTab';
+import AlarmTab from '../components/AlarmTab';
 
-// Extend mock for more cards
-const AUCTIONS_EXTENDED = [
-  ...AUCTIONS_MOCK,
-  { id: 5, group_name: 'BLACKPINK', member: '지수', album: 'BORN PINK', category: '포토카드', grade: 'S', img: 'https://images.unsplash.com/photo-1520716153060-de0cffb33e42?q=80&w=400&auto=format&fit=crop', status: 'live', price: 55000, bid_count: 18, ends_in: '02:14' },
-  { id: 6, group_name: 'SEVENTEEN', member: '승관', album: 'FML', category: '포토카드', grade: 'A', img: 'https://images.unsplash.com/photo-1526779259212-939e64788e3c?q=80&w=400&auto=format&fit=crop', status: 'live', price: 31000, bid_count: 7, ends_in: '05:42' },
-  { id: 7, group_name: 'STRAY KIDS', member: '한', album: '5-STAR', category: '슬로건', grade: 'B', img: 'https://images.unsplash.com/photo-1490750967868-88df5691cc5e?q=80&w=400&auto=format&fit=crop', status: 'ending', price: 19000, bid_count: 4, ends_in: '00:38' },
-  { id: 8, group_name: 'NCT 127', member: '태용', album: 'Fact Check', category: '포토카드', grade: 'S', img: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=400&auto=format&fit=crop', status: 'live', price: 44000, bid_count: 12, ends_in: '08:05' },
+const MENU_ITEMS = [
+  { id: 'auctions', label: '경매',      sub: 'LIVE AUCTION', icon: '⚡' },
+  { id: 'register', label: '등록',      sub: 'SELL',         icon: '📷' },
+  { id: 'ranking',  label: '랭킹',      sub: 'RANKING',      icon: '🏆' },
+  { id: 'mypage',   label: '마이페이지', sub: 'MY PAGE',      icon: '👤' },
+  { id: 'alarm',    label: '알림',      sub: 'ALERTS',       icon: '🔔' },
 ];
-AUCTIONS_EXTENDED[0].ends_in = '03:22';
-AUCTIONS_EXTENDED[1].ends_in = '00:51';
-AUCTIONS_EXTENDED[2].ends_in = '06:17';
-AUCTIONS_EXTENDED[3].ends_in = '11:44';
 
 export default function Home() {
-  const [phase, setPhase] = useState('intro');
+  const { user, profile, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const [phase, setPhase]             = useState('intro');
   const [heroVisible, setHeroVisible] = useState(true);
-  const [hudVisible, setHudVisible] = useState(false);
-  const [step, setStep] = useState(1);
-  const [activeTab, setActiveTab] = useState('auctions');
-  const [auctions] = useState(AUCTIONS_EXTENDED);
-  const [hoveredCard, setHoveredCard] = useState(null);
-  const [panelIn, setPanelIn] = useState(false);
-  const globeSyncRef = useRef({ y: 0 });
+  const [hudVisible, setHudVisible]   = useState(false);
+  const [step, setStep]               = useState(1);
+  const [activeTab, setActiveTab]     = useState('auctions');
+  const [panelIn, setPanelIn]         = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sellForm, setSellForm] = useState({ group: '', member: '', album: '', category: '포토카드', grade: 'A', price: '', duration: '24', desc: '' });
-  const [dragOver, setDragOver] = useState(false);
+  const [gradeFilter, setGradeFilter] = useState('전체');
+  const [auctions, setAuctions]       = useState([]);
+  const [auctionsLoading, setAuctionsLoading] = useState(true);
+  const [bidTarget, setBidTarget]     = useState(null);
+  const [isMobile, setIsMobile]       = useState(() => window.innerWidth < 768);
+  const globeSyncRef                  = useRef({ y: 0 });
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  // Supabase 실시간 경매 fetch
+  useEffect(() => {
+    const fetchAuctions = async () => {
+      const { data } = await supabase
+        .from('auctions')
+        .select('*')
+        .eq('status', 'live')
+        .order('created_at', { ascending: false });
+      setAuctions(data ?? []);
+      setAuctionsLoading(false);
+    };
+    fetchAuctions();
+    const channel = supabase
+      .channel('live-auctions')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'auctions' }, fetchAuctions)
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, []);
 
   const startWarp = useCallback(() => {
     if (phase !== 'intro') return;
@@ -40,12 +72,10 @@ export default function Home() {
   }, [phase]);
 
   useEffect(() => {
-    const handleWheel = (e) => {
-      if (phase === 'intro' && e.deltaY > 0) startWarp();
-    };
+    const onWheel = (e) => { if (phase === 'intro' && e.deltaY > 0) startWarp(); };
     document.body.style.overflow = 'hidden';
-    window.addEventListener('wheel', handleWheel);
-    return () => window.removeEventListener('wheel', handleWheel);
+    window.addEventListener('wheel', onWheel);
+    return () => window.removeEventListener('wheel', onWheel);
   }, [phase, startWarp]);
 
   const handleNextStep = (skip = false) => {
@@ -53,39 +83,36 @@ export default function Home() {
       setPhase('station');
       setHudVisible(false);
       setPanelIn(false);
-      setTimeout(() => setPanelIn(true), 2400); // 행성 노출 후 패널 올라옴
+      setTimeout(() => setPanelIn(true), 2400);
       return;
     }
     setStep(s => s + 1);
   };
 
-  const menuItems = [
-    { id: 'auctions', label: '경매',      sub: 'LIVE AUCTION'   },
-    { id: 'register', label: '등록',      sub: 'SELL'           },
-    { id: 'ranking',  label: '랭킹',      sub: 'RANKING'        },
-    { id: 'mypage',   label: '마이페이지', sub: 'MY PAGE'        },
-    { id: 'alarm',    label: '알림',      sub: 'ALERTS'         },
-  ];
+  useEffect(() => {
+    const id = setInterval(() => setAuctions(a => [...a]), 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  const filteredAuctions = auctions.filter(a => {
+    const matchSearch = !searchQuery || [a.group_name, a.member, a.album].some(v => v?.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchGrade = gradeFilter === '전체' || (gradeFilter === 'S급' && a.grade === 'S') || (gradeFilter === 'A급' && a.grade === 'A') || (gradeFilter === '마감임박' && isEndingSoon(a.ends_at));
+    return matchSearch && matchGrade;
+  });
 
   return (
     <div style={{ background: 'transparent', height: '100vh', width: '100vw', color: '#fff', overflow: 'hidden', position: 'relative' }}>
       <WarpBackground phase={phase} />
 
-      {/* Onboarding HUD — 다크 우주선 스타일 */}
+      {/* Onboarding HUD */}
       {phase === 'onboarding' && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 200,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '5%',
+          padding: isMobile ? '16px' : '5%',
           opacity: hudVisible ? 1 : 0, transition: 'opacity 0.6s ease',
         }}>
-          <div style={{
-            width: '100%', maxWidth: 860,
-            background: '#05050f',
-            borderRadius: 20,
-            border: '1px solid rgba(0,229,255,0.25)',
-            boxShadow: '0 0 0 1px rgba(0,229,255,0.05), 0 8px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0,229,255,0.06)',
-          }}>
+          <div style={{ width: '100%', maxWidth: 860, background: '#05050f', borderRadius: 20, border: '1px solid rgba(0,229,255,0.25)', boxShadow: '0 0 0 1px rgba(0,229,255,0.05), 0 8px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0,229,255,0.06)' }}>
             <SpaceshipHUD key={step} step={step} onNext={handleNextStep} />
           </div>
         </div>
@@ -96,405 +123,233 @@ export default function Home() {
         position: 'fixed', top: 0, width: '100%', zIndex: 300,
         background: '#ffffff',
         borderBottom: '1px solid rgba(0,0,0,0.07)',
-        opacity: (phase === 'station' || phase === 'onboarding') ? 1 : 0,
-        transition: 'opacity 0.5s',
-        pointerEvents: phase === 'intro' ? 'none' : 'auto',
       }}>
-        <div style={{ maxWidth: '100%', padding: '0 2rem', display: 'flex', alignItems: 'center', height: 56, gap: 20 }}>
-          <Link to="/"><div style={{ fontFamily: 'monospace', fontSize: 15, fontWeight: 900, letterSpacing: 2, color: '#111', flexShrink: 0 }}>POCA<span style={{ color: '#7c3aed' }}>STATION</span></div></Link>
+        <div style={{ padding: '0 1rem', display: 'flex', alignItems: 'center', height: 56, gap: isMobile ? 10 : 20 }}>
+          <Link to="/"><div className="logo-nm">POCA<span>STATION</span></div></Link>
 
-          {phase === 'station' && (
+          {phase === 'station' && !isMobile && (
             <nav style={{ display: 'flex', gap: 2 }}>
-              {menuItems.map(m => (
+              {MENU_ITEMS.map(m => (
                 <button key={m.id} onClick={() => setActiveTab(m.id)} style={{
                   padding: '5px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13,
                   background: activeTab === m.id ? 'rgba(0,0,0,0.06)' : 'transparent',
-                  color: activeTab === m.id ? '#111' : 'rgba(0,0,0,0.4)',
-                  transition: 'all 0.2s',
-                }}>
-                  {m.label}
-                </button>
+                  color: activeTab === m.id ? '#111' : 'rgba(0,0,0,0.4)', transition: 'all 0.2s',
+                }}>{m.label}</button>
               ))}
             </nav>
           )}
 
-          {/* 검색바 */}
-          {phase === 'station' && (
-            <div style={{
-              flex: 1, maxWidth: 340, display: 'flex', alignItems: 'center', gap: 8,
-              background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)',
-              borderRadius: 10, padding: '0 12px', height: 34,
-            }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="2.5" strokeLinecap="round">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="그룹, 멤버, 앨범 검색..."
-                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 12, color: '#111' }}
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.3)', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
-              )}
+          {phase === 'station' && !isMobile && (
+            <div style={{ flex: 1, maxWidth: 340, display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 10, padding: '0 12px', height: 34 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="그룹, 멤버, 앨범 검색..." style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 12, color: '#111' }} />
+              {searchQuery && <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.3)', fontSize: 14, padding: 0 }}>×</button>}
             </div>
           )}
 
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+            {phase === 'intro' && (
+              user ? (
+                <button onClick={signOut} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'rgba(124,58,237,0.1)', color: '#7c3aed', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>로그아웃</button>
+              ) : (
+                <button onClick={() => navigate('/login')} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'rgba(124,58,237,0.1)', color: '#7c3aed', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>로그인</button>
+              )
+            )}
             {phase === 'station' && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 8, padding: '3px 10px', borderRadius: 20, background: 'rgba(255,60,60,0.06)', border: '1px solid rgba(255,60,60,0.15)' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#e03030', display: 'inline-block', boxShadow: '0 0 5px rgba(220,50,50,0.5)' }} />
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#c02020', letterSpacing: 0.5 }}>LIVE {auctions.filter(a => a.status === 'live').length}건</span>
-                </div>
-                <button style={{ padding: '6px 16px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', color: 'rgba(0,0,0,0.6)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>로그인</button>
-                <button style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>+ 판매 등록</button>
+                {!isMobile && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 4, padding: '3px 10px', borderRadius: 20, background: 'rgba(255,60,60,0.06)', border: '1px solid rgba(255,60,60,0.15)' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#e03030', boxShadow: '0 0 5px rgba(220,50,50,0.5)' }} />
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#c02020', letterSpacing: 0.5 }}>LIVE {auctions.length}건</span>
+                  </div>
+                )}
+                {user ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {!isMobile && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)', fontWeight: 600 }}>{profile?.nickname ?? user.email}</span>}
+                    <button onClick={signOut} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', color: 'rgba(0,0,0,0.6)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>로그아웃</button>
+                  </div>
+                ) : (
+                  <button onClick={() => navigate('/login')} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', color: 'rgba(0,0,0,0.6)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>로그인</button>
+                )}
+                {!isMobile && <button onClick={() => setActiveTab('register')} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>+ 등록</button>}
               </>
             )}
-            <Link to="/admin" style={{ color: 'rgba(0,0,0,0.3)', fontSize: 11, fontWeight: 700 }}>관제 센터</Link>
+            {isAdmin && <Link to="/admin" style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'rgba(124,58,237,0.1)', color: '#7c3aed', fontSize: 12, fontWeight: 700 }}>관제 센터</Link>}
           </div>
         </div>
       </header>
 
       {/* Intro Hero */}
       {(phase === 'intro' || (phase === 'onboarding' && !hudVisible)) && (
-        <section className="hero" style={{
+        <section style={{
           background: 'transparent', opacity: heroVisible ? 1 : 0,
           transform: heroVisible ? 'scale(1)' : 'scale(1.06)',
           transition: 'opacity 0.8s ease, transform 0.8s ease',
           position: 'fixed', inset: 0, zIndex: 100,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           pointerEvents: phase === 'intro' ? 'auto' : 'none',
+          padding: '0 24px',
         }}>
-          <div className="pg" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="hero-in">
-              <h1>우리는 진정한 가치와<br /><span className="hl">팬덤을 연결합니다</span></h1>
-              <p className="hero-desc" style={{ color: '#aaa' }}>가장 거대하고 안전한 K-POP 포토카드 유니버스로 진입하세요.</p>
-              <div className="hero-cta" style={{ pointerEvents: 'auto', marginTop: 60 }}>
-                <button onClick={startWarp} style={{ background: 'transparent', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, cursor: 'pointer', outline: 'none', margin: '0 auto' }} className="warp-trigger">
-                  <div className="blackhole-container">
-                    <svg className="blackhole-spin" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 12 c -4 0 -4 -4 0 -4 c 6 0 6 8 0 8 c -8 0 -8 -12 0 -12 c 10 0 10 16 0 16 c -12 0 -12 -20 0 -20" />
-                    </svg>
-                  </div>
-                  <span className="blink-text" style={{ fontSize: 13, color: '#E0E0E0', letterSpacing: 4, fontWeight: 600 }}>POCASTATION 진입</span>
-                </button>
-              </div>
+          <div className="hero-in">
+            <h1>우리는 진정한 가치와<br /><span className="hl">팬덤을 연결합니다</span></h1>
+            <p className="hero-desc" style={{ color: '#aaa', fontSize: isMobile ? '16px' : undefined }}>가장 거대하고 안전한 K-POP 포토카드 유니버스로 진입하세요.</p>
+            <div style={{ pointerEvents: 'auto', marginTop: 60 }}>
+              <button onClick={startWarp} style={{ background: 'transparent', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, cursor: 'pointer', outline: 'none', margin: '0 auto' }} className="warp-trigger">
+                <div className="blackhole-container">
+                  <svg className="blackhole-spin" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 12 c -4 0 -4 -4 0 -4 c 6 0 6 8 0 8 c -8 0 -8 -12 0 -12 c 10 0 10 16 0 16 c -12 0 -12 -20 0 -20" />
+                  </svg>
+                </div>
+                <span className="blink-text" style={{ fontSize: 13, color: '#E0E0E0', letterSpacing: 4, fontWeight: 600 }}>POCASTATION 진입</span>
+              </button>
             </div>
           </div>
         </section>
       )}
 
-      {/* Globe — 패널 뒤에서 계속 살아있음 */}
-      {phase === 'station' && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 5,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          pointerEvents: 'none',
-        }}>
+      {/* Background Globe — 데스크탑만 */}
+      {phase === 'station' && !isMobile && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           <div style={{ width: 'min(78vh, 78vw)', height: 'min(78vh, 78vw)' }}>
             <GlobeStation onSectorSelect={() => {}} noMenu syncRef={globeSyncRef} master />
           </div>
         </div>
       )}
 
-      {/* Station Layout — Dashboard */}
+      {/* Station Dashboard */}
       {phase === 'station' && (
         <main style={{
           position: 'fixed',
-          inset: `calc(56px + clamp(10px, 2vmin, 20px)) clamp(10px, 2vmin, 20px) clamp(10px, 2vmin, 20px) clamp(10px, 2vmin, 20px)`,
+          top: 56,
+          left: 0, right: 0,
+          bottom: isMobile ? 60 : 0,
+          margin: isMobile ? 0 : 'clamp(10px, 2vmin, 20px)',
+          marginTop: isMobile ? 0 : 'clamp(10px, 2vmin, 20px)',
           display: 'flex',
-          borderRadius: 'clamp(14px, 2vmin, 20px)',
+          borderRadius: isMobile ? 0 : 'clamp(14px, 2vmin, 20px)',
           overflow: 'hidden',
           zIndex: 10,
-          boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
+          boxShadow: isMobile ? 'none' : '0 8px 48px rgba(0,0,0,0.18)',
           transform: panelIn ? 'translateY(0)' : 'translateY(110%)',
           opacity: panelIn ? 1 : 0,
           transition: 'transform 1.6s cubic-bezier(0.16,1,0.3,1), opacity 0.8s ease',
         }}>
 
-          {/* Left Sidebar: Globe Nav */}
-          <aside style={{
-            width: 260,
-            flexShrink: 0,
-            borderRight: '1px solid rgba(0,0,0,0.06)',
-            background: '#ffffff',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '20px 0',
-            overflowY: 'auto',
-          }}>
-            {/* Mini Globe */}
-            <div style={{ width: '100%', height: 200, flexShrink: 0, position: 'relative' }}>
-              <GlobeStation onSectorSelect={(id) => setActiveTab(id)} compact syncRef={globeSyncRef} />
-            </div>
-            <div style={{ margin: '0 14px 8px', height: 1, background: 'rgba(0,0,0,0.06)' }} />
-
-            {/* Nav items */}
-            <nav style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {menuItems.map(m => (
-                <button key={m.id} onClick={() => setActiveTab(m.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '10px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                  background: activeTab === m.id ? 'rgba(0,0,0,0.06)' : 'transparent',
-                  textAlign: 'left', transition: 'all 0.2s',
-                }}>
-                  <div style={{
-                    width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
-                    background: activeTab === m.id ? '#111' : 'rgba(0,0,0,0.15)',
-                  }} />
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: activeTab === m.id ? '#111' : 'rgba(0,0,0,0.4)' }}>{m.label}</div>
-                    <div style={{ fontSize: 9, color: 'rgba(0,0,0,0.25)', letterSpacing: 1, fontFamily: 'monospace', marginTop: 1 }}>{m.sub}</div>
-                  </div>
-                  {m.id === 'auctions' && (
-                    <div style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 800, color: '#e03030', background: 'rgba(255,60,60,0.08)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(255,60,60,0.15)' }}>LIVE</div>
-                  )}
-                </button>
-              ))}
-            </nav>
-
-            {/* Recent bids */}
-            <div style={{ marginTop: 'auto', padding: '14px 16px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.3)', letterSpacing: 2, fontFamily: 'monospace', marginBottom: 10 }}>RECENT BIDS</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {auctions.slice(0, 4).map(a => (
-                  <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(0,0,0,0.2)', flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.group_name} {a.member}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.3)' }}>₩{a.price.toLocaleString()}</div>
-                    </div>
-                  </div>
-                ))}
+          {/* Sidebar — 데스크탑만 */}
+          {!isMobile && (
+            <aside style={{ width: 260, flexShrink: 0, borderRight: '1px solid rgba(0,0,0,0.06)', background: '#ffffff', display: 'flex', flexDirection: 'column', padding: '20px 0', overflowY: 'auto' }}>
+              <div style={{ width: '100%', height: 200, flexShrink: 0 }}>
+                <GlobeStation onSectorSelect={(id) => setActiveTab(id)} compact syncRef={globeSyncRef} />
               </div>
-            </div>
-          </aside>
+              <div style={{ margin: '0 14px 8px', height: 1, background: 'rgba(0,0,0,0.06)' }} />
+              <nav style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {MENU_ITEMS.map(m => (
+                  <button key={m.id} onClick={() => setActiveTab(m.id)} style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                    background: activeTab === m.id ? 'rgba(0,0,0,0.06)' : 'transparent', textAlign: 'left', transition: 'all 0.2s',
+                  }}>
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: activeTab === m.id ? '#111' : 'rgba(0,0,0,0.15)' }} />
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: activeTab === m.id ? '#111' : 'rgba(0,0,0,0.4)' }}>{m.label}</div>
+                      <div style={{ fontSize: 9, color: 'rgba(0,0,0,0.25)', letterSpacing: 1, fontFamily: 'monospace', marginTop: 1 }}>{m.sub}</div>
+                    </div>
+                    {m.id === 'auctions' && <div style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 800, color: '#e03030', background: 'rgba(255,60,60,0.08)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(255,60,60,0.15)' }}>LIVE</div>}
+                  </button>
+                ))}
+              </nav>
+              <div style={{ marginTop: 'auto', padding: '14px 16px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.3)', letterSpacing: 2, fontFamily: 'monospace', marginBottom: 10 }}>RECENT BIDS</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {auctions.slice(0, 4).map(a => (
+                    <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => setBidTarget(a)}>
+                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(0,0,0,0.2)', flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.group_name} {a.member}</div>
+                        <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.3)' }}>₩{(a.current_price ?? a.start_price)?.toLocaleString()}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </aside>
+          )}
 
           {/* Main Content */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.82)' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'rgba(255,255,255,0.92)' }}>
 
             {/* Content Topbar */}
-            <div style={{
-              padding: '10px 20px',
-              borderBottom: '1px solid rgba(0,0,0,0.06)',
-              display: 'flex', alignItems: 'center', gap: 12,
-              flexShrink: 0,
-            }}>
+            <div style={{ padding: isMobile ? '10px 16px' : '10px 20px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
               <span style={{ fontSize: 14, fontWeight: 900, color: '#111', flexShrink: 0 }}>
-                {menuItems.find(m => m.id === activeTab)?.label}
+                {MENU_ITEMS.find(m => m.id === activeTab)?.label}
               </span>
-
               {activeTab === 'auctions' && (
-                <div style={{ display: 'flex', gap: 5, marginLeft: 'auto' }}>
+                <div style={{ display: 'flex', gap: 4, marginLeft: 'auto', flexWrap: 'wrap' }}>
                   {['전체', 'S급', 'A급', '마감임박'].map(f => (
-                    <button key={f} style={{
-                      padding: '3px 10px', borderRadius: 6,
-                      border: '1px solid rgba(0,0,0,0.1)',
-                      background: 'transparent', color: 'rgba(0,0,0,0.4)',
-                      fontSize: 11, cursor: 'pointer',
-                    }}>{f}</button>
+                    <button key={f} onClick={() => setGradeFilter(f)} style={{ padding: '3px 9px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.1)', background: gradeFilter === f ? 'rgba(0,0,0,0.08)' : 'transparent', color: gradeFilter === f ? '#111' : 'rgba(0,0,0,0.4)', fontSize: 11, cursor: 'pointer', fontWeight: gradeFilter === f ? 700 : 400 }}>{f}</button>
                   ))}
+                </div>
+              )}
+              {isMobile && activeTab === 'auctions' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,60,60,0.06)', border: '1px solid rgba(255,60,60,0.15)', padding: '2px 8px', borderRadius: 10, flexShrink: 0 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#e03030' }} />
+                  <span style={{ fontSize: 9, fontWeight: 700, color: '#c02020' }}>LIVE {auctions.length}</span>
                 </div>
               )}
             </div>
 
             {/* Scrollable Content */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '22px 24px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '16px' : '22px 24px' }}>
               {activeTab === 'auctions' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 14 }}>
-                  {auctions.map(item => (
-                    <div
-                      key={item.id}
-                      onMouseEnter={() => setHoveredCard(item.id)}
-                      onMouseLeave={() => setHoveredCard(null)}
-                      style={{
-                        background: '#fff',
-                        border: hoveredCard === item.id
-                          ? '1px solid rgba(0,0,0,0.15)'
-                          : '1px solid rgba(0,0,0,0.07)',
-                        borderRadius: 14,
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        transition: 'all 0.25s',
-                        transform: hoveredCard === item.id ? 'translateY(-4px)' : 'translateY(0)',
-                        boxShadow: hoveredCard === item.id
-                          ? '0 12px 32px rgba(0,0,0,0.12)'
-                          : '0 2px 8px rgba(0,0,0,0.05)',
-                      }}
-                    >
-                      {/* Image */}
-                      <div style={{ height: 160, overflow: 'hidden', position: 'relative' }}>
-                        <img src={item.img} alt={item.member} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s', transform: hoveredCard === item.id ? 'scale(1.06)' : 'scale(1)' }} />
-                        {/* Status badge */}
-                        <div style={{
-                          position: 'absolute', top: 10, left: 10,
-                          padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 800, letterSpacing: 1,
-                          background: item.status === 'ending' ? 'rgba(255,80,80,0.9)' : 'rgba(0,0,0,0.6)',
-                          color: item.status === 'ending' ? '#fff' : 'rgba(255,255,255,0.8)',
-                          backdropFilter: 'blur(4px)',
-                        }}>
-                          {item.status === 'ending' ? '⚡ 마감임박' : '● LIVE'}
-                        </div>
-                        {/* Grade */}
-                        <div style={{
-                          position: 'absolute', top: 10, right: 10,
-                          width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: item.grade === 'S' ? 'rgba(255,200,0,0.9)' : 'rgba(100,180,255,0.9)',
-                          fontSize: 10, fontWeight: 900, color: '#000',
-                        }}>
-                          {item.grade}
-                        </div>
-                        {/* Timer overlay at bottom */}
-                        <div style={{
-                          position: 'absolute', bottom: 0, left: 0, right: 0,
-                          padding: '20px 10px 8px',
-                          background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                          fontSize: 10, fontFamily: 'monospace', color: item.status === 'ending' ? '#ff8080' : 'rgba(255,255,255,0.6)',
-                          letterSpacing: 1,
-                        }}>
-                          ⏱ {item.ends_in}
-                        </div>
-                      </div>
-
-                      {/* Info */}
-                      <div style={{ padding: '12px 14px' }}>
-                        <div style={{ fontSize: 9, color: '#7c3aed', fontWeight: 800, letterSpacing: 1.5, fontFamily: 'monospace' }}>{item.group_name}</div>
-                        <div style={{ fontSize: 14, fontWeight: 900, margin: '3px 0 10px', color: '#111' }}>{item.member}</div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <div style={{ fontSize: 13, fontWeight: 900, color: '#111' }}>₩{item.price.toLocaleString()}</div>
-                            <div style={{ fontSize: 9, color: 'rgba(0,0,0,0.3)', marginTop: 1 }}>{item.bid_count}회 입찰</div>
-                          </div>
-                          <button style={{
-                            padding: '5px 12px', borderRadius: 6,
-                            background: hoveredCard === item.id ? '#111' : 'transparent',
-                            color: hoveredCard === item.id ? '#fff' : '#111',
-                            border: '1px solid rgba(0,0,0,0.15)',
-                            fontSize: 10, fontWeight: 900, cursor: 'pointer',
-                            transition: 'all 0.2s',
-                          }}>BID</button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                auctionsLoading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', color: 'rgba(0,0,0,0.25)', fontSize: 11, fontFamily: 'monospace', letterSpacing: 2 }}>LOADING...</div>
+                ) : filteredAuctions.length === 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', color: 'rgba(0,0,0,0.2)', fontSize: 11, fontFamily: 'monospace', letterSpacing: 2 }}>진행 중인 경매가 없습니다</div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(190px, 1fr))', gap: isMobile ? 10 : 14 }}>
+                    {filteredAuctions.map(item => <AuctionCard key={item.id} item={item} onBid={setBidTarget} />)}
+                  </div>
+                )
               )}
-
-              {activeTab === 'register' && (
-                <div style={{ maxWidth: 640, margin: '0 auto' }}>
-                  <div style={{ marginBottom: 24 }}>
-                    <h2 style={{ fontSize: 18, fontWeight: 900, color: '#111', margin: '0 0 4px' }}>포토카드 경매 등록</h2>
-                    <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', margin: 0 }}>정보를 입력하면 관리자 승인 후 경매가 시작됩니다.</p>
-                  </div>
-
-                  {/* 이미지 업로드 */}
-                  <div
-                    onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                    onDragLeave={() => setDragOver(false)}
-                    onDrop={e => { e.preventDefault(); setDragOver(false); }}
-                    style={{
-                      border: `2px dashed ${dragOver ? '#111' : 'rgba(0,0,0,0.12)'}`,
-                      borderRadius: 14, padding: '36px 20px',
-                      textAlign: 'center', cursor: 'pointer', marginBottom: 20,
-                      background: dragOver ? 'rgba(0,0,0,0.03)' : 'transparent',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <div style={{ fontSize: 28, marginBottom: 8 }}>📷</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 4 }}>이미지를 드래그하거나 클릭해서 업로드</div>
-                    <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)' }}>JPG, PNG · 최대 10MB</div>
-                  </div>
-
-                  {/* 폼 필드 */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                    {[
-                      { label: '그룹명', key: 'group', placeholder: 'BTS, aespa...' },
-                      { label: '멤버', key: 'member', placeholder: '정국, 카리나...' },
-                      { label: '앨범', key: 'album', placeholder: 'Yet To Come...' },
-                    ].map(f => (
-                      <div key={f.key} style={{ gridColumn: f.key === 'album' ? '1 / -1' : 'auto' }}>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', display: 'block', marginBottom: 5 }}>{f.label}</label>
-                        <input
-                          value={sellForm[f.key]}
-                          onChange={e => setSellForm(p => ({ ...p, [f.key]: e.target.value }))}
-                          placeholder={f.placeholder}
-                          style={{
-                            width: '100%', padding: '9px 12px', borderRadius: 8,
-                            border: '1px solid rgba(0,0,0,0.1)', outline: 'none',
-                            fontSize: 13, background: '#fff', color: '#111',
-                            boxSizing: 'border-box',
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
-                    <div>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', display: 'block', marginBottom: 5 }}>카테고리</label>
-                      <select value={sellForm.category} onChange={e => setSellForm(p => ({ ...p, category: e.target.value }))}
-                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 13, background: '#fff', color: '#111', outline: 'none' }}>
-                        {['포토카드', '슬로건', '키링', '브로마이드', '기타'].map(c => <option key={c}>{c}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', display: 'block', marginBottom: 5 }}>등급</label>
-                      <select value={sellForm.grade} onChange={e => setSellForm(p => ({ ...p, grade: e.target.value }))}
-                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 13, background: '#fff', color: '#111', outline: 'none' }}>
-                        {['S', 'A', 'B', 'C'].map(g => <option key={g}>{g}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', display: 'block', marginBottom: 5 }}>경매 시간</label>
-                      <select value={sellForm.duration} onChange={e => setSellForm(p => ({ ...p, duration: e.target.value }))}
-                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', fontSize: 13, background: '#fff', color: '#111', outline: 'none' }}>
-                        {[['12', '12시간'], ['24', '24시간'], ['48', '48시간'], ['72', '72시간']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: 20 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', display: 'block', marginBottom: 5 }}>시작가 (₩)</label>
-                    <input
-                      type="number" value={sellForm.price}
-                      onChange={e => setSellForm(p => ({ ...p, price: e.target.value }))}
-                      placeholder="10000"
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', outline: 'none', fontSize: 13, background: '#fff', color: '#111', boxSizing: 'border-box' }}
-                    />
-                  </div>
-
-                  <button style={{
-                    width: '100%', padding: '13px', borderRadius: 10, border: 'none',
-                    background: '#111', color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer',
-                    transition: 'opacity 0.2s',
-                  }}
-                    onMouseOver={e => e.currentTarget.style.opacity = '0.85'}
-                    onMouseOut={e => e.currentTarget.style.opacity = '1'}
-                  >
-                    경매 등록 신청
-                  </button>
-                </div>
-              )}
-
-              {activeTab !== 'auctions' && activeTab !== 'register' && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', flexDirection: 'column', gap: 12 }}>
-                  <div style={{ fontSize: 11, fontFamily: 'monospace', color: 'rgba(0,0,0,0.2)', letterSpacing: 3 }}>
-                    {menuItems.find(m => m.id === activeTab)?.sub} — COMING SOON
-                  </div>
-                </div>
-              )}
+              {activeTab === 'register' && <RegisterForm />}
+              {activeTab === 'ranking'  && <RankingTab />}
+              {activeTab === 'mypage'   && <MyPageTab />}
+              {activeTab === 'alarm'    && <AlarmTab />}
             </div>
           </div>
         </main>
       )}
 
-      <style>{`
-        @keyframes ticker {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-      `}</style>
+      {/* 모바일 하단 탭바 */}
+      {phase === 'station' && isMobile && (
+        <nav style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: 60, zIndex: 400,
+          background: '#fff', borderTop: '1px solid rgba(0,0,0,0.08)',
+          display: 'flex', alignItems: 'stretch',
+        }}>
+          {MENU_ITEMS.map(m => (
+            <button key={m.id} onClick={() => setActiveTab(m.id)} style={{
+              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              gap: 3, border: 'none', cursor: 'pointer',
+              background: 'transparent',
+              borderTop: activeTab === m.id ? '2px solid #7c3aed' : '2px solid transparent',
+            }}>
+              <span style={{ fontSize: 18 }}>{m.icon}</span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: activeTab === m.id ? '#7c3aed' : 'rgba(0,0,0,0.35)', letterSpacing: 0.5 }}>{m.label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
+
+      {/* Bid Modal */}
+      {bidTarget && (
+        <BidModal
+          auction={bidTarget}
+          onClose={() => setBidTarget(null)}
+          onBidSuccess={() => setBidTarget(null)}
+        />
+      )}
+
+      <style>{`@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }`}</style>
     </div>
   );
 }
