@@ -207,8 +207,8 @@ export default function Home() {
         </section>
       )}
 
-      {/* Background Globe — 데스크탑만 */}
-      {phase === 'station' && !isMobile && (
+      {/* Background Globe */}
+      {phase === 'station' && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           <div style={{ width: 'min(78vh, 78vw)', height: 'min(78vh, 78vw)' }}>
             <GlobeStation onSectorSelect={() => {}} noMenu syncRef={globeSyncRef} master />

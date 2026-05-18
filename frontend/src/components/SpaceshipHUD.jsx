@@ -125,27 +125,27 @@ const SpaceshipHUD = ({ step, onNext }) => {
       <div style={{ height: 1, background: 'rgba(0,229,255,0.07)', marginBottom: 28 }} />
 
       {/* 버튼 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
         <button
           onClick={() => onNext(true)}
           style={{
-            padding: '8px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: 4, fontSize: 10, fontFamily: 'monospace', letterSpacing: 3,
-            color: 'rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'all 0.2s',
+            padding: '8px 16px', background: 'transparent', border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 4, fontSize: 10, fontFamily: 'monospace', letterSpacing: 2,
+            color: 'rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
           }}
           onMouseOver={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
           onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.18)'}
         >
-          [ SKIP ]
+          SKIP
         </button>
 
         <button
           onClick={() => onNext(false)}
           disabled={!isReady}
           style={{
-            padding: '11px 32px', borderRadius: 4, fontSize: 12, fontWeight: 700,
-            fontFamily: 'monospace', letterSpacing: 2,
-            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '11px 20px', borderRadius: 4, fontSize: 11, fontWeight: 700,
+            fontFamily: 'monospace', letterSpacing: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             background: isReady ? 'rgba(0,229,255,0.08)' : 'transparent',
             color: isReady ? C : 'rgba(0,229,255,0.2)',
             border: `1px solid ${isReady ? 'rgba(0,229,255,0.35)' : 'rgba(0,229,255,0.08)'}`,
@@ -157,7 +157,7 @@ const SpaceshipHUD = ({ step, onNext }) => {
           onMouseOver={e => isReady && (e.currentTarget.style.background = 'rgba(0,229,255,0.15)')}
           onMouseOut={e => { if (isReady) e.currentTarget.style.background = 'rgba(0,229,255,0.08)'; }}
         >
-          {step === 4 ? '[ DOCKING_INITIATE ]' : '[ NEXT_COORDINATE ]'}
+          {step === 4 ? 'ENTER STATION' : 'NEXT'}
           <ChevronRight size={13} />
         </button>
       </div>
