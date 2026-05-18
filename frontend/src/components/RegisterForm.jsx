@@ -28,8 +28,6 @@ export default function RegisterForm() {
   const [verificationWord]        = useState(() => generateVerificationWord());
 
   const analyzeWithGemini = async (f) => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) return;
     setAnalyzing(true);
     try {
       const base64 = await new Promise((resolve) => {
@@ -39,18 +37,11 @@ export default function RegisterForm() {
       });
 
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-image`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { inline_data: { mime_type: f.type, data: base64 } },
-                { text: `이 이미지는 K-POP 포토카드입니다. 아래 JSON 형식으로만 답하세요. 정보를 모르면 빈 문자열로 두세요.\n{"group":"그룹명","member":"멤버명","album":"앨범명"}` }
-              ]
-            }]
-          }),
+          body: JSON.stringify({ imageBase64: base64, mimeType: f.type }),
         }
       );
       const json = await res.json();
