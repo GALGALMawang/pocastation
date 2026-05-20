@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import SettlementModal from './SettlementModal';
 
 export default function AlarmTab() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [alarms, setAlarms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [settlementTarget, setSettlementTarget] = useState(null);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -17,7 +19,7 @@ export default function AlarmTab() {
       // 내 입찰 목록
       const { data: myBids } = await supabase
         .from('bids')
-        .select('auction_id, amount, created_at, auctions(id, group_name, member, current_price, status, ends_at)')
+        .select('auction_id, amount, created_at, auctions(id, group_name, member, current_price, start_price, status, ends_at, seller_id, seller_contact, seller_name, winner_id)')
         .eq('bidder_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -42,6 +44,7 @@ export default function AlarmTab() {
           currentPrice: a.current_price,
           status: a.status,
           isLeading,
+          auction: a,
           type: a.status === 'ended' && isLeading ? 'won'
               : a.status === 'ended' && !isLeading ? 'lost'
               : isLeading ? 'leading'
@@ -86,6 +89,13 @@ export default function AlarmTab() {
 
   return (
     <div style={{ maxWidth: 560, margin: '0 auto' }}>
+      {settlementTarget && (
+        <SettlementModal
+          auction={settlementTarget}
+          onClose={() => setSettlementTarget(null)}
+          onComplete={() => setSettlementTarget(null)}
+        />
+      )}
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 18, fontWeight: 900, color: '#111', margin: '0 0 3px' }}>알림</h2>
         <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', margin: 0 }}>입찰 현황 및 경매 결과</p>
@@ -117,6 +127,14 @@ export default function AlarmTab() {
                     <div style={{ fontSize: 11, fontWeight: 700, color: cfg.color, marginTop: 6 }}>{cfg.label}</div>
                     {al.type === 'outbid' && (
                       <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', marginTop: 2 }}>현재 최고가: ₩{al.currentPrice?.toLocaleString()}</div>
+                    )}
+                    {al.type === 'won' && !al.settled && (
+                      <button
+                        onClick={() => setSettlementTarget(al.auction)}
+                        style={{ marginTop: 10, padding: '8px 16px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}
+                      >
+                        결제 / 직거래 선택 →
+                      </button>
                     )}
                   </div>
                 </div>
