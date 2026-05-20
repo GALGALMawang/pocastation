@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatTimeLeft } from '../lib/utils';
+import ChargeModal from './ChargeModal';
 
 const STATUS_LABEL = { pending: '승인 대기', live: '진행중', ended: '종료', rejected: '거부됨' };
 const STATUS_COLOR = { pending: '#b07700', live: '#006d30', ended: 'rgba(0,0,0,0.35)', rejected: '#b02020' };
@@ -17,6 +18,8 @@ export default function MyPageTab() {
   const [phone, setPhone] = useState('');
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSaved, setPhoneSaved] = useState(false);
+  const [credits, setCredits] = useState(0);
+  const [showCharge, setShowCharge] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -24,10 +27,12 @@ export default function MyPageTab() {
       supabase.from('auctions').select('*').eq('seller_id', user.id).order('created_at', { ascending: false }),
       supabase.from('bids').select('*, auctions(group_name, member, album, current_price, status)').eq('bidder_id', user.id).order('created_at', { ascending: false }),
       supabase.from('profiles').select('phone').eq('id', user.id).single(),
-    ]).then(([{ data: auc }, { data: bids }, { data: prof }]) => {
+      supabase.from('credits').select('balance').eq('user_id', user.id).single(),
+    ]).then(([{ data: auc }, { data: bids }, { data: prof }, { data: cr }]) => {
       setMyAuctions(auc ?? []);
       setMyBids(bids ?? []);
       setPhone(prof?.phone ?? '');
+      setCredits(cr?.balance ?? 0);
       setLoading(false);
     });
   }, [user]);
@@ -52,6 +57,8 @@ export default function MyPageTab() {
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto' }}>
+      {showCharge && <ChargeModal onClose={() => setShowCharge(false)} />}
+
       {/* 프로필 헤더 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, padding: '16px 20px', borderRadius: 14, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)' }}>
         <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed, #111)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 900, color: '#fff', flexShrink: 0 }}>
@@ -93,12 +100,23 @@ export default function MyPageTab() {
         <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.35)', marginTop: 6 }}>낙찰 시 카카오톡으로 즉시 알려드려요</div>
       </div>
 
+      {/* 크레딧 */}
+      <div style={{ marginBottom: 16, padding: '14px 18px', borderRadius: 14, background: 'linear-gradient(135deg, rgba(124,58,237,0.08), rgba(0,100,255,0.06))', border: '1px solid rgba(124,58,237,0.18)', display: 'flex', alignItems: 'center' }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#7c3aed', letterSpacing: 2, fontFamily: 'monospace', marginBottom: 4 }}>CREDIT</div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: '#111', fontFamily: 'monospace' }}>₩{credits.toLocaleString()}</div>
+        </div>
+        <button onClick={() => setShowCharge(true)} style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
+          + 충전
+        </button>
+      </div>
+
       {/* 통계 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
         {[
           { label: '등록한 경매', val: myAuctions.length },
           { label: '입찰 횟수', val: myBids.length },
-          { label: '낙찰 (미정)', val: '—' },
+          { label: '크레딧 잔액', val: `₩${credits.toLocaleString()}` },
         ].map(s => (
           <div key={s.label} style={{ padding: '14px', borderRadius: 12, background: '#fff', border: '1px solid rgba(0,0,0,0.07)', textAlign: 'center' }}>
             <div style={{ fontSize: 22, fontWeight: 900, color: '#111', fontFamily: 'monospace' }}>{s.val}</div>
