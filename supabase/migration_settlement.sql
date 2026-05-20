@@ -1,22 +1,42 @@
--- 1. pg_cron 낙찰자 지정 포함하여 업데이트
+-- 1. pg_cron 낙찰자 지정 + 크레딧 차감 포함하여 업데이트
 SELECT cron.unschedule('expire-auctions');
 
 SELECT cron.schedule(
   'expire-auctions',
   '* * * * *',
   $$
-    UPDATE public.auctions a
-    SET
-      status    = 'ended',
-      winner_id = (
-        SELECT bidder_id FROM public.bids
-        WHERE auction_id = a.id
-        ORDER BY amount DESC
-        LIMIT 1
-      )
-    WHERE status = 'live'
-      AND ends_at IS NOT NULL
-      AND ends_at < now();
+    DO $$
+    DECLARE
+      r RECORD;
+    BEGIN
+      FOR r IN
+        SELECT a.id, a.current_price,
+               (SELECT bidder_id FROM public.bids WHERE auction_id = a.id ORDER BY amount DESC LIMIT 1) AS winner
+        FROM public.auctions a
+        WHERE a.status = 'live'
+          AND a.ends_at IS NOT NULL
+          AND a.ends_at < now()
+      LOOP
+        -- 낙찰자 지정 및 상태 변경
+        UPDATE public.auctions
+        SET status = 'ended', winner_id = r.winner
+        WHERE id = r.id;
+
+        -- 낙찰자 크레딧 차감
+        IF r.winner IS NOT NULL THEN
+          BEGIN
+            PERFORM public.adjust_credit(
+              r.winner, -r.current_price, 'settle',
+              r.id::TEXT, '낙찰 대금 차감'
+            );
+          EXCEPTION WHEN OTHERS THEN
+            -- 크레딧 부족 시 차감 실패해도 경매는 종료 처리
+            NULL;
+          END;
+        END IF;
+      END LOOP;
+    END;
+    $$ LANGUAGE plpgsql;
   $$
 );
 

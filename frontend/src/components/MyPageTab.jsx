@@ -14,6 +14,7 @@ export default function MyPageTab() {
   const [myAuctions, setMyAuctions] = useState([]);
   const [myBids, setMyBids] = useState([]);
   const [tab, setTab] = useState('auctions');
+  const [txHistory, setTxHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [phone, setPhone] = useState('');
   const [phoneSaving, setPhoneSaving] = useState(false);
@@ -28,11 +29,13 @@ export default function MyPageTab() {
       supabase.from('bids').select('*, auctions(group_name, member, album, current_price, status)').eq('bidder_id', user.id).order('created_at', { ascending: false }),
       supabase.from('profiles').select('phone').eq('id', user.id).single(),
       supabase.from('credits').select('balance').eq('user_id', user.id).single(),
-    ]).then(([{ data: auc }, { data: bids }, { data: prof }, { data: cr }]) => {
+      supabase.from('credit_transactions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
+    ]).then(([{ data: auc }, { data: bids }, { data: prof }, { data: cr }, { data: tx }]) => {
       setMyAuctions(auc ?? []);
       setMyBids(bids ?? []);
       setPhone(prof?.phone ?? '');
       setCredits(cr?.balance ?? 0);
+      setTxHistory(tx ?? []);
       setLoading(false);
     });
   }, [user]);
@@ -127,7 +130,7 @@ export default function MyPageTab() {
 
       {/* 탭 */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: '1px solid rgba(0,0,0,0.07)', paddingBottom: 12 }}>
-        {[['auctions', '내 경매'], ['bids', '입찰 내역']].map(([v, l]) => (
+        {[['auctions', '내 경매'], ['bids', '입찰 내역'], ['credits', '크레딧 내역']].map(([v, l]) => (
           <button key={v} onClick={() => setTab(v)} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 12, background: tab === v ? 'rgba(0,0,0,0.06)' : 'transparent', color: tab === v ? '#111' : 'rgba(0,0,0,0.4)' }}>{l}</button>
         ))}
       </div>
@@ -172,6 +175,34 @@ export default function MyPageTab() {
                 </div>
               </div>
             ))}
+          </div>
+        )
+      ) : (
+        txHistory.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 40, color: 'rgba(0,0,0,0.2)', fontSize: 12 }}>크레딧 내역이 없습니다</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {txHistory.map(tx => {
+              const isPlus = tx.amount > 0;
+              const TYPE_LABEL = { charge: '충전', bid_hold: '입찰 보류', bid_release: '입찰 반환', settle: '낙찰 차감' };
+              return (
+                <div key={tx.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 12, background: '#fff', border: '1px solid rgba(0,0,0,0.07)' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: isPlus ? 'rgba(0,180,80,0.1)' : 'rgba(220,50,50,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
+                    {isPlus ? '↑' : '↓'}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111' }}>{TYPE_LABEL[tx.type] ?? tx.type}</div>
+                    {tx.note && <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.35)', marginTop: 1 }}>{tx.note}</div>}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 13, fontWeight: 900, fontFamily: 'monospace', color: isPlus ? '#006d30' : '#c02020' }}>
+                      {isPlus ? '+' : ''}₩{tx.amount?.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.35)', marginTop: 1 }}>잔액 ₩{tx.balance_after?.toLocaleString()}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )
       )}

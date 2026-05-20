@@ -16,6 +16,13 @@ export default function AlarmTab() {
 
     // 내가 입찰한 경매에서 다른 사람이 더 높게 입찰한 경우 = 내 입찰 최고가가 현재가보다 낮은 경우
     const fetchAlarms = async () => {
+      // 내 정산 완료 목록
+      const { data: mySettlements } = await supabase
+        .from('settlements')
+        .select('auction_id')
+        .eq('buyer_id', user.id);
+      const settledIds = new Set((mySettlements ?? []).map(s => s.auction_id));
+
       // 내 입찰 목록
       const { data: myBids } = await supabase
         .from('bids')
@@ -45,6 +52,7 @@ export default function AlarmTab() {
           status: a.status,
           isLeading,
           auction: a,
+          settled: settledIds.has(b.auction_id),
           type: a.status === 'ended' && isLeading ? 'won'
               : a.status === 'ended' && !isLeading ? 'lost'
               : isLeading ? 'leading'
