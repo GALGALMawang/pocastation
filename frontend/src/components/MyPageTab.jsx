@@ -19,6 +19,8 @@ export default function MyPageTab() {
   const [phone, setPhone] = useState('');
   const [phoneSaving, setPhoneSaving] = useState(false);
   const [phoneSaved, setPhoneSaved] = useState(false);
+  const [bankAccount, setBankAccount] = useState('');
+  const [bankSaved, setBankSaved] = useState(false);
   const [credits, setCredits] = useState(0);
   const [showCharge, setShowCharge] = useState(false);
 
@@ -27,13 +29,14 @@ export default function MyPageTab() {
     Promise.all([
       supabase.from('auctions').select('*').eq('seller_id', user.id).order('created_at', { ascending: false }),
       supabase.from('bids').select('*, auctions(group_name, member, album, current_price, status)').eq('bidder_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('profiles').select('phone').eq('id', user.id).single(),
+      supabase.from('profiles').select('phone, bank_account').eq('id', user.id).single(),
       supabase.from('credits').select('balance').eq('user_id', user.id).single(),
       supabase.from('credit_transactions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
     ]).then(([{ data: auc }, { data: bids }, { data: prof }, { data: cr }, { data: tx }]) => {
       setMyAuctions(auc ?? []);
       setMyBids(bids ?? []);
       setPhone(prof?.phone ?? '');
+      setBankAccount(prof?.bank_account ?? '');
       setCredits(cr?.balance ?? 0);
       setTxHistory(tx ?? []);
       setLoading(false);
@@ -101,6 +104,29 @@ export default function MyPageTab() {
           </button>
         </div>
         <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.35)', marginTop: 6 }}>낙찰 시 카카오톡으로 즉시 알려드려요</div>
+      </div>
+
+      {/* 정산 계좌 */}
+      <div style={{ marginBottom: 20, padding: '14px 16px', borderRadius: 12, background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.08)' }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,0.5)', marginBottom: 8 }}>정산 받을 계좌</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            value={bankAccount}
+            onChange={e => setBankAccount(e.target.value)}
+            placeholder="은행명 계좌번호 (예: 카카오뱅크 1234-56-789012)"
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', fontSize: 13, outline: 'none' }}
+          />
+          <button
+            onClick={async () => {
+              await supabase.from('profiles').update({ bank_account: bankAccount.trim() }).eq('id', user.id);
+              setBankSaved(true); setTimeout(() => setBankSaved(false), 2000);
+            }}
+            style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: bankSaved ? '#15803d' : '#111', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}
+          >
+            {bankSaved ? '저장됨 ✓' : '저장'}
+          </button>
+        </div>
+        <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.35)', marginTop: 6 }}>낙찰자 결제 완료 후 관리자가 이 계좌로 정산합니다</div>
       </div>
 
       {/* 크레딧 */}

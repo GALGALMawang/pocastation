@@ -1,6 +1,7 @@
--- 1. profiles에 전화번호 컬럼 추가
+-- 1. profiles에 전화번호 + 정산 계좌 컬럼 추가
 ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS phone TEXT;
+  ADD COLUMN IF NOT EXISTS phone        TEXT,
+  ADD COLUMN IF NOT EXISTS bank_account TEXT;
 
 -- 2. auctions에 낙찰자 + 알림 발송 여부 컬럼 추가
 ALTER TABLE public.auctions
