@@ -14,18 +14,32 @@ export default function MyPageTab() {
   const [myBids, setMyBids] = useState([]);
   const [tab, setTab] = useState('auctions');
   const [loading, setLoading] = useState(true);
+  const [phone, setPhone] = useState('');
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [phoneSaved, setPhoneSaved] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     Promise.all([
       supabase.from('auctions').select('*').eq('seller_id', user.id).order('created_at', { ascending: false }),
       supabase.from('bids').select('*, auctions(group_name, member, album, current_price, status)').eq('bidder_id', user.id).order('created_at', { ascending: false }),
-    ]).then(([{ data: auc }, { data: bids }]) => {
+      supabase.from('profiles').select('phone').eq('id', user.id).single(),
+    ]).then(([{ data: auc }, { data: bids }, { data: prof }]) => {
       setMyAuctions(auc ?? []);
       setMyBids(bids ?? []);
+      setPhone(prof?.phone ?? '');
       setLoading(false);
     });
   }, [user]);
+
+  const savePhone = async () => {
+    if (!phone.trim()) return;
+    setPhoneSaving(true);
+    await supabase.from('profiles').update({ phone: phone.trim() }).eq('id', user.id);
+    setPhoneSaving(false);
+    setPhoneSaved(true);
+    setTimeout(() => setPhoneSaved(false), 2000);
+  };
 
   if (!user) {
     return (
@@ -53,6 +67,30 @@ export default function MyPageTab() {
           )}
           <button onClick={signOut} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', color: 'rgba(0,0,0,0.5)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>로그아웃</button>
         </div>
+      </div>
+
+      {/* 카카오 알림 전화번호 */}
+      <div style={{ marginBottom: 20, padding: '14px 16px', borderRadius: 12, background: 'rgba(254,229,0,0.08)', border: '1px solid rgba(254,229,0,0.4)' }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: '#8a6c00', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <svg width="14" height="13" viewBox="0 0 18 17" fill="none"><path fillRule="evenodd" clipRule="evenodd" d="M9 0C4.029 0 0 3.066 0 6.848c0 2.42 1.584 4.543 3.976 5.75L3.04 15.9a.3.3 0 0 0 .44.334l4.977-3.3c.163.02.33.026.543.026 4.971 0 9-3.067 9-6.85C18 3.066 13.971 0 9 0Z" fill="#000"/></svg>
+          카카오 낙찰 알림
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+            placeholder="010-0000-0000"
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', fontSize: 13, outline: 'none' }}
+          />
+          <button
+            onClick={savePhone}
+            disabled={phoneSaving}
+            style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: phoneSaved ? '#15803d' : '#111', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}
+          >
+            {phoneSaved ? '저장됨 ✓' : phoneSaving ? '...' : '저장'}
+          </button>
+        </div>
+        <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.35)', marginTop: 6 }}>낙찰 시 카카오톡으로 즉시 알려드려요</div>
       </div>
 
       {/* 통계 */}
