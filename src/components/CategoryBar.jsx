@@ -1,6 +1,6 @@
 import React from 'react';
 
-const CATEGORIES = ['🌟 전체', '🃏 포토카드', '💿 앨범', '🎀 슬로건', '🔮 키링', '🖼 포스터', '✨ 팬메이드', '🛍 공식굿즈'];
+const CATEGORIES = ['🌟 전체', '🃏 포토카드'];
 
 function CategoryBar({ active, onSelect }) {
   return (
