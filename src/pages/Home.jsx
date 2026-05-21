@@ -26,6 +26,7 @@ function Home() {
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [activeCategory, setActiveCategory] = useState('🌟 전체');
   const [activeView, setActiveView] = useState('live');
+  const [sortBy, setSortBy] = useState('latest');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -78,6 +79,15 @@ function Home() {
     return a.category === catMap[activeCategory];
   });
 
+  const sortedAuctions = [...filteredAuctions].sort((a, b) => {
+    if (sortBy === 'latest') return new Date(b.created_at) - new Date(a.created_at);
+    if (sortBy === 'popular') return (b.bid_count || 0) - (a.bid_count || 0);
+    if (sortBy === 'views') return (b.view_count || 0) - (a.view_count || 0);
+    if (sortBy === 'price_asc') return (a.current_price || 0) - (b.current_price || 0);
+    if (sortBy === 'price_desc') return (b.current_price || 0) - (a.current_price || 0);
+    return 0;
+  });
+
   const artists = activeView === 'artist'
     ? [...new Set(auctions.filter(a => a.status !== 'closed').map(a => a.group_name).filter(Boolean))]
     : [];
@@ -102,10 +112,24 @@ function Home() {
         )}
         <section className="sec" id="auctions">
           <div className="pg">
-            {activeView === 'ended' && (
-              <div style={{marginBottom:'16px', fontWeight:700, fontSize:'15px', color:'var(--t2)'}}>종료된 경매</div>
-            )}
-            <AuctionGrid auctions={filteredAuctions} loading={loading} onOpenAuction={(a) => { setSelectedAuction(a); setActiveModal('auction'); }} />
+            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px', flexWrap:'wrap', gap:'8px'}}>
+              {activeView === 'ended'
+                ? <div style={{fontWeight:700, fontSize:'15px', color:'var(--t2)'}}>종료된 경매</div>
+                : <div style={{fontSize:'13px', color:'var(--t3)'}}>{sortedAuctions.length}개</div>
+              }
+              <div style={{display:'flex', gap:'6px', flexWrap:'wrap'}}>
+                {[['latest','최신순'],['popular','인기순'],['views','조회순'],['price_asc','낮은 가격'],['price_desc','높은 가격']].map(([val, label]) => (
+                  <button key={val} onClick={() => setSortBy(val)}
+                    style={{padding:'5px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:600, cursor:'pointer', border:'1px solid', transition:'all .15s',
+                      background: sortBy === val ? 'var(--pr)' : 'transparent',
+                      borderColor: sortBy === val ? 'var(--pr)' : 'var(--bd)',
+                      color: sortBy === val ? '#fff' : 'var(--t2)'}}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <AuctionGrid auctions={sortedAuctions} loading={loading} onOpenAuction={(a) => { setSelectedAuction(a); setActiveModal('auction'); }} />
           </div>
         </section>
       </main>
