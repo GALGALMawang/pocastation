@@ -595,7 +595,6 @@ const pad=n=>String(n).padStart(2,'0');
 const secLeft=d=>Math.max(0,Math.floor((new Date(d)-Date.now())/1000));
 const tHTML=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return`<div class="tsg"><span class="tsg-n">${pad(h)}</span><span class="tsg-u">시</span></div><span class="tc">:</span><div class="tsg"><span class="tsg-n">${pad(m)}</span><span class="tsg-u">분</span></div><span class="tc">:</span><div class="tsg"><span class="tsg-n">${pad(ss)}</span><span class="tsg-u">초</span></div>`;};
 
-// ── NEW FUNCTIONS ──
 async function fetchUserExtra(){
   if(!currentUser) return;
   try {
@@ -718,7 +717,6 @@ async function openBids(){
 }
 function closeBids(){ document.getElementById('bidsWrap').classList.remove('open'); }
 
-// ── AUTH ──
 function openAuth(){document.getElementById('authOv').classList.add('open');document.getElementById('authLoading').classList.remove('show');document.getElementById('authForm').classList.remove('fade');}
 function closeAuth(){document.getElementById('authOv').classList.remove('open');document.querySelectorAll('.soc-btn').forEach(b=>{b.disabled=false;b.classList.remove('loading');});}
 
@@ -767,7 +765,7 @@ async function checkOAuthReturn(){
   const{data:{session}}=await sb.auth.getSession();
   if(session?.user){
     const u=session.user,prov=u.app_metadata?.provider||'email';
-    const cols={kakao:{bg:'#FEE500',text:'#000'},google:{bg:'#4285F4',text:'#fff'}};
+    const cols={kakao:{bg:'#FEE500',text:'#000'},google:{bg:'#4285F4',text:'#fff'},naver:{bg:'#03C75A',text:'#fff'}};
     const c=cols[prov]||{bg:'#5B3FE8',text:'#fff'};
     setUser({id:u.id,name:u.user_metadata?.full_name||u.email?.split('@')[0]||'유저',color:c.bg,textColor:c.text,provider:prov});
     if(prov==='kakao'&&session.provider_token){
@@ -782,7 +780,6 @@ async function checkOAuthReturn(){
   }
 }
 
-// ── DATA ──
 async function updateTicker(){
   if(!sb) return;
   try {
@@ -795,32 +792,35 @@ async function updateTicker(){
         <span class="tk-pr">₩${d.amount.toLocaleString()}</span> 입찰
         <span class="tk-dt"></span>
       </span>`).join('');
-  } catch(e) { console.error('Ticker Update Error:', e); }
+  } catch(e) { console.error('Ticker Error:', e); }
 }
 
 async function init(){
-  setStatus('connecting','Supabase 연결 확인 중...');
-  try{
+  setStatus('connecting','서버와 통신하는 중...');
+  try {
     if(typeof supabase === 'undefined') throw new Error('Supabase SDK 로드 실패');
-    sb=supabase.createClient(SB_URL,SB_KEY);
-    const{data,error}=await sb.from('auctions').select('*').order('ends_at',{ascending:true});
-    if(error)throw error;
-    auctions=data;
-    document.getElementById('modeBadge').style.display='none';
-    if(auctions.length === 0){
-      setStatus('ok','✓ 연결됨 — 등록된 경매가 없습니다.');
+    sb = supabase.createClient(SB_URL, SB_KEY);
+    const { data, error } = await sb.from('auctions').select('*').order('ends_at', { ascending: true });
+    if(error) throw error;
+    auctions = data || [];
+    document.getElementById('modeBadge').style.display = 'none';
+    if(auctions.length === 0) {
+      setStatus('ok', '✓ 연결됨 (등록된 경매 없음)');
     } else {
-      setStatus('ok','✓ 실시간 연결됨');
+      setStatus('ok', '✓ 실시간 연결 성공');
     }
     subscribeRealtime();
     await checkOAuthReturn();
     updateTicker();
-  }catch(e){
-    console.error('Initialization Error:', e);
-    setStatus('err','연결 실패: ' + e.message);
-    auctions=[];
+  } catch(e) {
+    console.error('Init Error:', e);
+    setStatus('err', '연결 오류: ' + (e.message || '알 수 없는 에러'));
+    auctions = [];
+  } finally {
+    populateArtist();
+    renderGrid();
+    updateHero();
   }
-  populateArtist();renderGrid();updateHero();
 }
 
 function subscribeRealtime(){
@@ -1002,6 +1002,8 @@ async function placeBid(){
 function closeModal(){document.getElementById('modWrap').classList.remove('open');document.body.style.overflow='';curItem=null;}
 function closeCharge(){ document.getElementById('chargeWrap').classList.remove('open'); }
 function closeBids(){ document.getElementById('bidsWrap').classList.remove('open'); }
+function closePay(){ document.getElementById('payWrap').classList.remove('open'); }
+function closeProfile(){ document.getElementById('profileWrap').classList.remove('open'); }
 document.getElementById('mClose').addEventListener('click',closeModal);
 document.getElementById('modOv').addEventListener('click',e=>{if(e.target===document.getElementById('modOv'))closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAuth();closeCharge();closePay();closeProfile();closeBids();}});
