@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { loadPaymentWidget } from '@tosspayments/payment-widget-sdk';
 import { AuthContext } from '../App';
-import { useContext } from 'react';
+import { supabase } from '../lib/supabase';
 
 const useAuth = () => useContext(AuthContext);
-import { supabase } from '../lib/supabase';
 
 const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY;
 

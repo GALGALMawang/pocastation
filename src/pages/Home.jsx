@@ -11,12 +11,14 @@ import Footer from '../components/Footer';
 import AuthModal from '../components/AuthModal';
 import AuctionModal from '../components/AuctionModal';
 import ChargeModal from '../components/ChargeModal';
-import PaymentModal from '../components/PaymentModal';
-import CreateAuctionModal from '../components/CreateAuctionModal';
+import SettlementModal from '../components/SettlementModal';
+import RegisterForm from '../components/RegisterForm';
 import ProfileModal from '../components/ProfileModal';
+import { AuthContext } from '../App';
 
 function Home() {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [credit, setCredit] = useState(0);
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +33,7 @@ function Home() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if(session?.user) fetchUserExtra(session.user.id);
-      else setCredit(0);
+      else { setCredit(0); setProfile(null); }
     });
 
     fetchAuctions();
@@ -39,8 +41,10 @@ function Home() {
   }, []);
 
   const fetchUserExtra = async (userId) => {
-    const { data } = await supabase.from('credits').select('balance').eq('user_id', userId).maybeSingle();
-    setCredit(data?.balance || 0);
+    const { data: cData } = await supabase.from('credits').select('balance').eq('user_id', userId).maybeSingle();
+    setCredit(cData?.balance || 0);
+    const { data: pData } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+    setProfile(pData);
   };
 
   const fetchAuctions = async () => {
@@ -50,7 +54,7 @@ function Home() {
   };
 
   return (
-    <>
+    <AuthContext.Provider value={{ user, profile, credit }}>
       <Header user={user} credit={credit} onOpenModal={setActiveModal} />
       <main>
         <Hero auctions={auctions} onOpenAuction={(a) => { setSelectedAuction(a); setActiveModal('auction'); }} />
@@ -66,10 +70,24 @@ function Home() {
 
       {activeModal === 'auth' && <AuthModal onClose={() => setActiveModal(null)} />}
       {activeModal === 'auction' && selectedAuction && <AuctionModal auction={selectedAuction} user={user} onClose={() => setActiveModal(null)} onOpenAuth={() => setActiveModal('auth')} />}
-      {activeModal === 'charge' && <ChargeModal user={user} onClose={() => setActiveModal(null)} />}
-      {activeModal === 'create' && <CreateAuctionModal user={user} onClose={() => { setActiveModal(null); fetchAuctions(); }} />}
-      {activeModal === 'profile' && <ProfileModal user={user} onClose={() => setActiveModal(null)} fetchExtra={() => fetchUserExtra(user.id)} />}
-    </>
+      {activeModal === 'charge' && <ChargeModal onClose={() => setActiveModal(null)} />}
+      {activeModal === 'create' && (
+        <div className="mod-wrap open" style={{zIndex: 900}}>
+          <div className="mod-ov" style={{padding: '20px 10px'}}>
+            <div className="modal" style={{maxWidth: '540px', background: 'var(--sf)'}}>
+              <div className="mod-hd" style={{display:'flex', justifyContent:'space-between', padding:'16px'}}>
+                <div style={{fontWeight:800, fontSize:'16px'}}>경매 등록</div>
+                <button onClick={() => { setActiveModal(null); fetchAuctions(); }} style={{background:'none', border:'none', fontSize:'24px', cursor:'pointer', color:'var(--t3)'}}>×</button>
+              </div>
+              <div style={{maxHeight:'80vh', overflowY:'auto', padding:'20px'}}>
+                <RegisterForm />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {activeModal === 'profile' && <ProfileModal user={user} onClose={() => setActiveModal(null)} fetchExtra={() => fetchUserExtra(user?.id)} />}
+    </AuthContext.Provider>
   );
 }
 

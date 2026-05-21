@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
-import { useContext } from 'react';
-
-const useAuth = () => useContext(AuthContext);
 import { supabase } from '../lib/supabase';
 import { sha256File, pHashFile, hammingDistance, generateVerificationWord } from '../lib/imageHash';
+
+const useAuth = () => useContext(AuthContext);
 
 const FIELD_STYLE = {
   width: '100%', padding: '9px 12px', borderRadius: 8,
