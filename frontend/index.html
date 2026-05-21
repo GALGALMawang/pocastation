@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://js.tosspayments.com/v1/payment-widget"></script>
 <style>
 :root{
   --bg:#F7F7FA;--sf:#fff;--sf2:#F2F1F8;--sf3:#ECEAF6;
@@ -233,32 +232,6 @@ input,select{font:inherit;color:inherit}
 .auth-terms{font-size:11px;color:var(--t3);text-align:center;margin-top:18px;line-height:1.65}
 .auth-terms a{color:var(--pr);font-weight:600}
 
-/* ══ NEW FEATURES CSS ══ */
-.user-cr{font-size:11px;font-weight:800;color:var(--pr);margin-right:10px;font-family:var(--fe);background:var(--pr-d);padding:3px 10px;border-radius:var(--rf);display:none}
-.user-cr.show{display:inline-flex}
-.cr-btn{background:var(--pr);color:#fff;padding:6px 12px;border-radius:var(--r2);font-size:11px;font-weight:800;cursor:pointer}
-.tab-list{display:flex;flex-direction:column;gap:8px}
-.tab-it{padding:14px 16px;border-radius:var(--r3);background:var(--bg);border:1.5px solid var(--bd);display:flex;align-items:center;gap:12px;transition:all var(--t)}
-.tab-it:hover{border-color:var(--pr)}
-.tab-it.won{border-color:var(--pr);background:var(--pr-d)}
-.tab-it .emoji{font-size:24px;width:44px;height:44px;border-radius:10px;background:var(--sf);display:flex;align-items:center;justify-content:center;box-shadow:var(--sh)}
-.tab-it .info{flex:1}
-.tab-it .name{font-size:14px;font-weight:800;color:var(--t1)}
-.tab-it .sub{font-size:11px;color:var(--t3);margin-top:1px}
-.tab-it .price{font-family:var(--fe);font-weight:700;font-size:13px;color:var(--pr)}
-.pay-btn{background:var(--pr);color:#fff;padding:8px 16px;border-radius:var(--r2);font-size:12px;font-weight:800;transition:all var(--t)}
-.pay-btn:hover{background:var(--pr-k);transform:translateY(-1px)}
-.form-grp{margin-bottom:16px}
-.form-grp label{display:block;font-size:11px;font-weight:700;color:var(--t3);margin-bottom:6px}
-.form-grp input{width:100%;padding:10px 14px;border:1.5px solid var(--bd);border-radius:var(--r2);outline:none;font-size:13.5px;font-family:inherit}
-.form-grp input:focus{border-color:var(--pr);box-shadow:0 0 0 3px rgba(91,63,232,.1)}
-.v-acc{background:var(--bg);padding:16px;border-radius:var(--r3);border:1.5px solid var(--bd);margin-top:12px}
-.v-acc-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px}
-.v-acc-row:last-child{margin-bottom:0}
-.v-acc-lb{color:var(--t3)}
-.v-acc-vl{font-weight:700;color:var(--t1)}
-.loading-box{display:flex;flex-direction:column;align-items:center;padding:40px 0;gap:12px;color:var(--t3);font-size:13px}
-
 /* ══ AUCTION MODAL ══ */
 .mod-wrap{display:none;position:fixed;inset:0;z-index:500;overflow-y:auto}
 .mod-wrap.open{display:block}
@@ -398,8 +371,7 @@ input,select{font:inherit;color:inherit}
   </div>
   <nav class="gnv"><a href="#auctions" class="on">경매</a><a href="#">아티스트</a><a href="#">종료된 경매</a></nav>
   <div class="hdr-r">
-    <div class="user-cr" id="hdrCredit">₩ 0</div>
-    <button class="ic-btn" id="alarmBtn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ndot"></span></button>
+    <button class="ic-btn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ndot"></span></button>
     <a href="#" class="btn btn-p"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="btn-txt">판매 등록</span></a>
     <button class="btn btn-o" id="loginBtn">로그인</button>
     <div class="user-wrap" id="userWrap" style="display:none">
@@ -408,15 +380,8 @@ input,select{font:inherit;color:inherit}
         <span class="user-nm" id="userNm"></span>
       </div>
       <div class="user-menu" id="userMenu">
-        <div style="padding:16px 16px 12px;border-bottom:1px solid var(--bd)">
-          <div style="font-size:11px;color:var(--t3);margin-bottom:4px;font-weight:700">내 크레딧</div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <div style="font-family:var(--fe);font-size:16px;font-weight:800;color:var(--t1)" id="menuCredit">₩ 0</div>
-            <button class="cr-btn" onclick="openCharge()">충전</button>
-          </div>
-        </div>
-        <div class="user-menu-item" id="menuProfile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>내 프로필 (알림 설정)</div>
-        <div class="user-menu-item" id="menuBids"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>입찰 / 낙찰 내역</div>
+        <div class="user-menu-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>내 프로필</div>
+        <div class="user-menu-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>내 입찰 내역</div>
         <div class="user-menu-divider"></div>
         <div class="user-menu-item danger" id="logoutBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>로그아웃</div>
       </div>
@@ -440,7 +405,7 @@ input,select{font:inherit;color:inherit}
 </div></div></section>
 
 <div class="tkr"><div class="pg"><div class="tkr-in">
-  <div class="tkr-lb"><span class="pulse" style="background:rgba(255,255,255,.6)"></span>실시간 경매 현황</div>
+  <div class="tkr-lb"><span class="pulse" style="background:rgba(255,255,255,.6)"></span>실시간 낙찰</div>
   <div class="tkr-sc"><div class="tkr-tr" id="tkrTr"></div></div>
 </div></div></div>
 
@@ -480,6 +445,13 @@ input,select{font:inherit;color:inherit}
     <div class="how-cd"><div class="how-nm">STEP 04</div><div class="how-ic">📦</div><div class="how-tt">안전 결제·배송</div><div class="how-ds">에스크로 안전결제 후 판매자가 발송. 수령 확인 후 정산됩니다.</div></div>
   </div>
 </div></section>
+
+<div class="trust"><div class="pg"><div class="trust-grid">
+  <div><div class="tr-nm">120,000+</div><div class="tr-lb">누적 경매 건수</div></div>
+  <div><div class="tr-nm">98.7%</div><div class="tr-lb">안전 거래 완료율</div></div>
+  <div><div class="tr-nm">4.92 ★</div><div class="tr-lb">평균 판매자 평점</div></div>
+  <div><div class="tr-nm">45,000+</div><div class="tr-lb">활성 회원 수</div></div>
+</div></div></div>
 
 <footer class="ftr"><div class="pg">
   <div class="ftr-grid">
@@ -541,198 +513,49 @@ input,select{font:inherit;color:inherit}
   </div></div>
 </div></div></div>
 
-<!-- ══ 충전 모달 ══ -->
-<div class="mod-wrap" id="chargeWrap"><div class="mod-ov"><div class="modal" style="max-width:400px">
-  <div class="mod-hd"><div class="mod-ttl">크레딧 충전</div><button class="mod-cl" onclick="closeCharge()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-  <div class="mod-body">
-    <div class="form-grp">
-      <label>충전 금액</label>
-      <input type="number" id="chargeInp" value="50000" step="10000" min="1000">
-      <div class="quick" style="margin-top:8px">
-        <button class="qbtn" onclick="document.getElementById('chargeInp').value=10000">1만</button>
-        <button class="qbtn" onclick="document.getElementById('chargeInp').value=50000">5만</button>
-        <button class="qbtn" onclick="document.getElementById('chargeInp').value=100000">10만</button>
-      </div>
-    </div>
-    <div id="vAccArea"></div>
-    <button class="bid-btn df" style="margin-top:10px" id="chargeBtn" onclick="handleCharge()">계좌 발급받기</button>
-  </div>
-</div></div></div>
-
-<!-- ══ 결제/정산 모달 ══ -->
-<div class="mod-wrap" id="payWrap"><div class="mod-ov"><div class="modal" style="max-width:460px">
-  <div class="mod-hd"><div class="mod-ttl">낙찰 물품 결제</div><button class="mod-cl" onclick="closePay()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-  <div class="mod-body">
-    <div id="payItemArea" style="margin-bottom:20px"></div>
-    <div id="payment-widget"></div>
-    <button class="bid-btn df" style="margin-top:16px" id="payGoBtn" onclick="handlePayment()">결제하기</button>
-  </div>
-</div></div></div>
-
-<!-- ══ 내 프로필/알림 설정 모달 ══ -->
-<div class="mod-wrap" id="profileWrap"><div class="mod-ov"><div class="modal" style="max-width:400px">
-  <div class="mod-hd"><div class="mod-ttl">내 프로필 & 알림 설정</div><button class="mod-cl" onclick="closeProfile()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-  <div class="mod-body">
-    <div class="form-grp">
-      <label>전화번호 (카카오 알림톡용)</label>
-      <input type="tel" id="phoneInp" placeholder="010-0000-0000">
-    </div>
-    <div class="form-grp">
-      <label>정산 계좌 정보 (판매자용)</label>
-      <input type="text" id="bankInp" placeholder="은행명 계좌번호 예금주">
-    </div>
-    <button class="bid-btn df" id="saveProfileBtn" onclick="saveProfile()">설정 저장</button>
-  </div>
-</div></div></div>
-
-<!-- ══ 내 입찰/낙찰 내역 모달 ══ -->
-<div class="mod-wrap" id="bidsWrap"><div class="mod-ov"><div class="modal" style="max-width:500px">
-  <div class="mod-hd"><div class="mod-ttl">내 입찰 / 낙찰 내역</div><button class="mod-cl" onclick="closeBids()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-  <div class="mod-body" id="myBidsList" style="max-height:60vh;overflow-y:auto">
-    <div class="loading-box">데이터를 불러오는 중...</div>
-  </div>
-</div></div></div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 // ══════════════════════════════════
-// ⚙️  설정
+// ⚙️  설정 (여기만 바꾸세요)
 // ══════════════════════════════════
 const SB_URL = 'https://aizxaryprtbobftvlzib.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpenhhcnlwcnRib2JmdHZsemliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NzE2ODksImV4cCI6MjA5NDQ0NzY4OX0.rgEhIqk_FnDPV8Fnsf2CaDCQbRBUkTnn9D5XWoMJCZ8';
-const NAVER_CLIENT_ID = 'your-naver-client-id';
+const NAVER_CLIENT_ID = 'your-naver-client-id';       // ← 교체
 const SITE_URL = window.location.origin;
-const TOSS_CLIENT_KEY = 'test_ck_OA0Y32vPrW7P27771ZKV8N4W4p6D';
 const IS_DEMO = false;
+if(!IS_DEMO) document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('modeBadge');if(b)b.style.display='none';});
 
-let auctions=[],catFilter='all',curItem=null,timers={},sb=null,currentUser=null,userProfile=null,paymentWidget=null;
+// ── 목 데이터 ──
+const MOCK=[
+  {id:1,group_name:'BTS',member:'정국',album:'Yet To Come',category:'포토카드',grade:'S',emoji:'🃏',status:'live',price:48500,bid_count:14,ends_at:new Date(Date.now()+7653000),seller_name:'별빛상점',seller_rating:4.9},
+  {id:2,group_name:'aespa',member:'카리나',album:'MY WORLD',category:'포토카드',grade:'S',emoji:'🌙',status:'ending',price:62000,bid_count:21,ends_at:new Date(Date.now()+1087000),seller_name:'포카요정',seller_rating:5.0},
+  {id:3,group_name:'NewJeans',member:'민지',album:'OMG',category:'슬로건',grade:'A',emoji:'🎀',status:'live',price:17500,bid_count:6,ends_at:new Date(Date.now()+16935000),seller_name:'뉴진이',seller_rating:4.8},
+  {id:4,group_name:'IVE',member:'안유진',album:"I'VE IVE",category:'키링',grade:'S',emoji:'🔮',status:'live',price:22000,bid_count:9,ends_at:new Date(Date.now()+7548000),seller_name:'아이브팬',seller_rating:4.7},
+  {id:5,group_name:'SEVENTEEN',member:'승관',album:'FML',category:'포토카드',grade:'A',emoji:'💎',status:'ending',price:35000,bid_count:17,ends_at:new Date(Date.now()+412000),seller_name:'캐럿마켓',seller_rating:4.9},
+  {id:6,group_name:'스트레이키즈',member:'방찬',album:'MAXIDENT',category:'포토카드',grade:'S',emoji:'⭐',status:'live',price:51000,bid_count:12,ends_at:new Date(Date.now()+12489000),seller_name:'스키즈덕후',seller_rating:5.0},
+  {id:7,group_name:'르세라핌',member:'허윤진',album:'UNFORGIVEN',category:'앨범',grade:'S',emoji:'💿',status:'upcoming',price:15000,bid_count:0,ends_at:new Date(Date.now()+21600000),seller_name:'피어링',seller_rating:4.6},
+  {id:8,group_name:'BLACKPINK',member:'리사',album:'BORN PINK',category:'포스터',grade:'B',emoji:'🖼',status:'live',price:9800,bid_count:3,ends_at:new Date(Date.now()+18682000),seller_name:'블링크샵',seller_rating:4.5},
+  {id:9,group_name:'BTS',member:'뷔',album:'BE',category:'팬메이드',grade:'A',emoji:'🎨',status:'live',price:28000,bid_count:8,ends_at:new Date(Date.now()+9581000),seller_name:'V갤러리',seller_rating:4.8},
+  {id:10,group_name:'aespa',member:'윈터',album:'Girls',category:'포토카드',grade:'S',emoji:'❄️',status:'ending',price:44000,bid_count:19,ends_at:new Date(Date.now()+194000),seller_name:'에스파본진',seller_rating:4.9},
+  {id:11,group_name:'IVE',member:'레이',album:'AFTER LIKE',category:'공식굿즈',grade:'S',emoji:'🛍',status:'live',price:18500,bid_count:5,ends_at:new Date(Date.now()+26100000),seller_name:'아이브레이',seller_rating:4.7},
+  {id:12,group_name:'NewJeans',member:'하니',album:'Ditto',category:'포토카드',grade:'A',emoji:'🐇',status:'live',price:26000,bid_count:11,ends_at:new Date(Date.now()+6450000),seller_name:'뉴진팬클',seller_rating:4.8},
+];
+const MBIDS={1:[{user_name:'별빛유저',amount:48500},{user_name:'포카마니아',amount:46000}],2:[{user_name:'입찰왕',amount:62000},{user_name:'해피팬클',amount:59500}],5:[{user_name:'캐럿사랑',amount:35000}],10:[{user_name:'에스파덕',amount:44000}]};
+const BOTS=['별빛봇','팬심봇','덕후99','포카왕','찜콩이','입찰요정'];
+const TKR=[{n:'aespa 카리나 포토카드',p:'₩62,000'},{n:'NewJeans 민지 슬로건',p:'₩28,500'},{n:'SEVENTEEN 승관 포카',p:'₩41,000'},{n:'IVE 안유진 키링',p:'₩19,000'},{n:'SKZ 방찬 포카',p:'₩55,000'}];
+const BG={1:'linear-gradient(160deg,#1e1065,#4c1d95)',2:'linear-gradient(160deg,#1a0533,#6b21d6)',3:'linear-gradient(160deg,#500724,#9f1239)',4:'linear-gradient(160deg,#0c1a4a,#1d4ed8)',5:'linear-gradient(160deg,#064e3b,#15803d)',6:'linear-gradient(160deg,#431407,#c2410c)',7:'linear-gradient(160deg,#1e1b4b,#4338ca)',8:'linear-gradient(160deg,#4a0520,#be123c)',9:'linear-gradient(160deg,#2e1065,#7c3aed)',10:'linear-gradient(160deg,#0c4a6e,#0369a1)',11:'linear-gradient(160deg,#022c22,#059669)',12:'linear-gradient(160deg,#431407,#92400e)'};
+const SL={live:'🔴 진행 중',ending:'⚡ 마감 임박',upcoming:'🕐 시작 예정',closed:'✅ 종료'};
+const DEMO_USERS={kakao:{id:'demo_kakao',name:'김민준',color:'#FEE500',textColor:'#000',provider:'카카오'},naver:{id:'demo_naver',name:'박서연',color:'#03C75A',textColor:'#fff',provider:'네이버'},google:{id:'demo_google',name:'이지원',color:'#4285F4',textColor:'#fff',provider:'구글'}};
+
+let auctions=[],catFilter='all',curItem=null,timers={},sb=null,currentUser=null;
 const pad=n=>String(n).padStart(2,'0');
 const secLeft=d=>Math.max(0,Math.floor((new Date(d)-Date.now())/1000));
 const tHTML=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return`<div class="tsg"><span class="tsg-n">${pad(h)}</span><span class="tsg-u">시</span></div><span class="tc">:</span><div class="tsg"><span class="tsg-n">${pad(m)}</span><span class="tsg-u">분</span></div><span class="tc">:</span><div class="tsg"><span class="tsg-n">${pad(ss)}</span><span class="tsg-u">초</span></div>`;};
 
-// ── NEW FUNCTIONS ──
-async function fetchUserExtra(){
-  if(!currentUser||IS_DEMO) return;
-  try {
-    const {data:credit} = await sb.from('credits').select('balance').eq('user_id', currentUser.id).maybeSingle();
-    const {data:profile} = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
-    userProfile = profile;
-    updateCreditUI(credit?.balance || 0);
-    if(profile){
-      document.getElementById('phoneInp').value = profile.phone || '';
-      document.getElementById('bankInp').value = profile.bank_account || '';
-    }
-  } catch(e) { console.error(e); }
-}
+(()=>{const t=document.getElementById('tkrTr');t.innerHTML=[...TKR,...TKR].map(d=>`<span class="tk-it">${d.n} <span class="tk-pr">${d.p}</span> 낙찰<span class="tk-dt"></span></span>`).join('');})();
 
-function updateCreditUI(val){
-  const formatted = '₩ ' + val.toLocaleString();
-  const hdrCr = document.getElementById('hdrCredit');
-  if(hdrCr) { hdrCr.textContent = formatted; hdrCr.classList.add('show'); }
-  const menuCr = document.getElementById('menuCredit');
-  if(menuCr) menuCr.textContent = formatted;
-}
-
-function openCharge(){ closeAuth(); document.getElementById('chargeWrap').classList.add('open'); }
-function closeCharge(){ document.getElementById('chargeWrap').classList.remove('open'); document.getElementById('vAccArea').innerHTML=''; const btn=document.getElementById('chargeBtn'); btn.style.display='flex'; btn.disabled=false; btn.innerHTML='계좌 발급받기'; }
-async function handleCharge(){
-  const amount = parseInt(document.getElementById('chargeInp').value);
-  if(!amount || amount < 1000){ showToast('1,000원 이상 충전 가능합니다','err'); return; }
-  const btn = document.getElementById('chargeBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spin-s"></span> 처리 중...';
-  try {
-    const res = await fetch(SB_URL + '/functions/v1/toss-virtual-account', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SB_KEY },
-      body: JSON.stringify({ amount, userId: currentUser.id, userName: currentUser.name })
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.message || '가상계좌 발급 실패');
-    document.getElementById('vAccArea').innerHTML = `
-      <div class="v-acc">
-        <div class="v-acc-row"><span class="v-acc-lb">입금 은행</span><span class="v-acc-vl">${data.bank}</span></div>
-        <div class="v-acc-row"><span class="v-acc-lb">계좌 번호</span><span class="v-acc-vl">${data.accountNumber}</span></div>
-        <div class="v-acc-row"><span class="v-acc-lb">입금 금액</span><span class="v-acc-vl">₩${amount.toLocaleString()}</span></div>
-        <div style="font-size:11px;color:var(--ac);margin-top:10px;text-align:center">입금 확인 후 크레딧이 즉시 충전됩니다.</div>
-      </div>`;
-    btn.style.display = 'none';
-  } catch(e){ showToast(e.message, 'err'); btn.disabled = false; btn.innerHTML = '계좌 발급받기'; }
-}
-
-async function openPay(auctionId){
-  const a = auctions.find(x=>x.id===auctionId); if(!a) return;
-  curItem = a;
-  document.getElementById('payWrap').classList.add('open');
-  document.getElementById('payItemArea').innerHTML = `
-    <div class="tab-it won">
-      <div class="emoji">${a.emoji || '🃏'}</div>
-      <div class="info"><div class="name">${a.group_name} ${a.member}</div><div class="sub">${a.album}</div></div>
-      <div class="price">₩${(a.current_price || a.price).toLocaleString()}</div>
-    </div>`;
-
-  if(!paymentWidget){
-    paymentWidget = PaymentWidget(TOSS_CLIENT_KEY, currentUser.id);
-  }
-  paymentWidget.renderPaymentMethods('#payment-widget', { value: a.current_price || a.price });
-}
-function closePay(){ document.getElementById('payWrap').classList.remove('open'); }
-async function handlePayment(){
-  const btn = document.getElementById('payGoBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spin-s"></span> 결제 요청 중...';
-  try {
-    await paymentWidget.requestPayment({
-      orderId: Math.random().toString(36).slice(2, 12),
-      orderName: `${curItem.group_name} ${curItem.member} 포토카드`,
-      customerName: currentUser.name,
-      successUrl: SITE_URL + '/success',
-      failUrl: SITE_URL + '/fail',
-    });
-  } catch(e){ showToast(e.message, 'err'); btn.disabled = false; btn.innerHTML = '결제하기'; }
-}
-
-function openProfile(){ document.getElementById('profileWrap').classList.add('open'); }
-function closeProfile(){ document.getElementById('profileWrap').classList.remove('open'); }
-async function saveProfile(){
-  const phone = document.getElementById('phoneInp').value;
-  const bank = document.getElementById('bankInp').value;
-  const btn = document.getElementById('saveProfileBtn');
-  btn.disabled = true; btn.innerHTML = '저장 중...';
-  const {error} = await sb.from('profiles').update({ phone, bank_account: bank }).eq('id', currentUser.id);
-  btn.disabled = false; btn.innerHTML = '설정 저장';
-  if(error) showToast(error.message, 'err');
-  else { showToast('설정이 저장되었습니다', 'ok'); closeProfile(); fetchUserExtra(); }
-}
-
-const SL={live:'🔴 진행 중',ending:'⚡ 마감 임박',upcoming:'🕐 시작 예정',closed:'✅ 종료'};
-
-async function openBids(){
-  document.getElementById('bidsWrap').classList.add('open');
-  const list = document.getElementById('myBidsList');
-  list.innerHTML = '<div class="loading-box">로딩 중...</div>';
-  const {data} = await sb.from('bids').select('*, auctions(*)').eq('bidder_id', currentUser.id).order('created_at', {ascending:false});
-  if(!data?.length){ list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3)">내역이 없습니다</div>'; return; }
-
-  const map = {};
-  data.forEach(b => {
-    if(!map[b.auction_id] || b.amount > map[b.auction_id].amount) map[b.auction_id] = b;
-  });
-
-  list.innerHTML = Object.values(map).map(b => {
-    const a = b.auctions;
-    const isWinner = a.status === 'ended' && a.winner_id === currentUser.id;
-    return `
-      <div class="tab-it ${isWinner?'won':''}">
-        <div class="emoji">${a.emoji || '🃏'}</div>
-        <div class="info">
-          <div class="name">${a.group_name} ${a.member}</div>
-          <div class="sub">상태: ${SL[a.status] || a.status} | 내 입찰가: ₩${b.amount.toLocaleString()}</div>
-        </div>
-        ${isWinner ? `<button class="pay-btn" onclick="openPay(${a.id})">결제하기</button>` : `<div class="price">₩${(a.current_price || a.price)?.toLocaleString()}</div>`}
-      </div>`;
-  }).join('');
-}
-function closeBids(){ document.getElementById('bidsWrap').classList.remove('open'); }
+function setStatus(type,msg){const b=document.getElementById('stBar');document.getElementById('stMsg').textContent=msg;b.className='st-bar show '+type;if(type==='ok')setTimeout(()=>b.classList.remove('show'),4000);}
 
 // ── AUTH ──
 function openAuth(){document.getElementById('authOv').classList.add('open');document.getElementById('authLoading').classList.remove('show');document.getElementById('authForm').classList.remove('fade');}
@@ -744,8 +567,17 @@ async function loginWith(provider){
   document.getElementById('authForm').classList.add('fade');
   document.getElementById('authLoading').classList.add('show');
   document.getElementById('authLoadingTxt').textContent={kakao:'카카오 로그인 중...',naver:'네이버 로그인 중...',google:'Google 로그인 중...'}[provider];
+  if(IS_DEMO){
+    await new Promise(r=>setTimeout(r,1500));
+    setUser(DEMO_USERS[provider]);closeAuth();
+    showToast(DEMO_USERS[provider].provider+' 로그인 완료! 환영합니다 🎉','ok');return;
+  }
   if(provider==='kakao')await sb.auth.signInWithOAuth({provider:'kakao',options:{redirectTo:SITE_URL,scopes:'talk_message'}});
   else if(provider==='google')await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:SITE_URL}});
+  else if(provider==='naver'){
+    const state=Math.random().toString(36).slice(2);sessionStorage.setItem('naver_state',state);
+    window.location.href=`https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(SB_URL+'/functions/v1/naver-auth')}&state=${state}`;
+  }
 }
 
 function setUser(u){
@@ -755,14 +587,12 @@ function setUser(u){
   const av=document.getElementById('userAv');av.style.background=u.color;av.style.color=u.textColor;av.textContent=u.name[0];
   document.getElementById('userNm').textContent=u.name;
   if(curItem)renderBidArea();
-  fetchUserExtra();
 }
 
 function signOut(){
   currentUser=null;if(!IS_DEMO&&sb)sb.auth.signOut();
   document.getElementById('loginBtn').style.display='';
   document.getElementById('userWrap').style.display='none';
-  document.getElementById('hdrCredit').classList.remove('show');
   document.getElementById('userMenu').classList.remove('open');
   if(curItem)renderBidArea();showToast('로그아웃 되었습니다');
 }
@@ -770,13 +600,11 @@ function signOut(){
 document.getElementById('userChip').addEventListener('click',()=>document.getElementById('userMenu').classList.toggle('open'));
 document.addEventListener('click',e=>{if(!document.getElementById('userWrap').contains(e.target))document.getElementById('userMenu').classList.remove('open');});
 document.getElementById('logoutBtn').addEventListener('click',signOut);
-document.getElementById('menuProfile').addEventListener('click', openProfile);
-document.getElementById('menuBids').addEventListener('click', openBids);
-document.getElementById('alarmBtn').addEventListener('click', openBids);
 document.getElementById('loginBtn').addEventListener('click',openAuth);
 document.getElementById('authClose').addEventListener('click',closeAuth);
 document.getElementById('authOv').addEventListener('click',e=>{if(e.target===document.getElementById('authOv'))closeAuth();});
 document.getElementById('kakaoBtn').addEventListener('click',()=>loginWith('kakao'));
+document.getElementById('naverBtn').addEventListener('click',()=>loginWith('naver'));
 document.getElementById('googleBtn').addEventListener('click',()=>loginWith('google'));
 
 async function checkOAuthReturn(){
@@ -786,8 +614,9 @@ async function checkOAuthReturn(){
     const cols={kakao:{bg:'#FEE500',text:'#000'},google:{bg:'#4285F4',text:'#fff'},naver:{bg:'#03C75A',text:'#fff'}};
     const c=cols[prov]||{bg:'#5B3FE8',text:'#fff'};
     setUser({id:u.id,name:u.user_metadata?.full_name||u.email?.split('@')[0]||'유저',color:c.bg,textColor:c.text,provider:prov});
+    // 카카오 로그인인 경우 provider_token 저장 (알림 발송용)
     if(prov==='kakao'&&session.provider_token){
-      const expiresAt=new Date(Date.now()+21600*1000).toISOString();
+      const expiresAt=new Date(Date.now()+21600*1000).toISOString(); // 6시간
       await sb.from('profiles').upsert({
         id:u.id,
         kakao_access_token:session.provider_token,
@@ -802,31 +631,25 @@ async function checkOAuthReturn(){
 }
 
 // ── DATA ──
-async function updateTicker(){
-  if(!sb) return;
-  const {data} = await sb.from('bids').select('*, auctions(group_name, member)').order('created_at', {ascending:false}).limit(10);
-  if(!data?.length) return;
-  const t = document.getElementById('tkrTr');
-  t.innerHTML = [...data, ...data].map(d => `
-    <span class="tk-it">
-      ${d.auctions?.group_name} ${d.auctions?.member} — 
-      <span class="tk-pr">₩${d.amount.toLocaleString()}</span> 입찰
-      <span class="tk-dt"></span>
-    </span>`).join('');
-}
-
 async function init(){
   setStatus('connecting','Supabase 연결 확인 중...');
-  try{
-    sb=supabase.createClient(SB_URL,SB_KEY);
-    const{data,error}=await sb.from('auctions').select('*').order('ends_at',{ascending:true});
-    if(error)throw error;
-    auctions=data;document.getElementById('modeBadge').style.display='none';
-    setStatus('ok','✓ 실시간 연결됨 (Supabase)');
-    subscribeRealtime();await checkOAuthReturn();
-    updateTicker(); // 초기 티커 로드
-  }catch(e){setStatus('err','연결 실패');}
+  if(!IS_DEMO){
+    try{
+      sb=supabase.createClient(SB_URL,SB_KEY);
+      const{data,error}=await sb.from('auctions').select('*').order('ends_at',{ascending:true});
+      if(error)throw error;
+      auctions=data;document.getElementById('modeBadge').style.display='none';
+      setStatus('ok','✓ 실시간 연결됨 (Supabase)');
+      subscribeRealtime();await checkOAuthReturn();
+    }catch(e){setStatus('err','연결 실패 — 데모 모드로 실행');loadDemo();startBots();}
+  }else{await new Promise(r=>setTimeout(r,1400));loadDemo();startBots();}
   populateArtist();renderGrid();updateHero();
+}
+
+function loadDemo(){
+  auctions=MOCK.map(d=>({...d,ends_at:new Date(d.ends_at)}));
+  setStatus('ok','✓ 데모 모드 — Supabase 키 입력 시 실제 서비스로 전환됩니다');
+  document.getElementById('liveCount').textContent=auctions.filter(a=>a.status==='live'||a.status==='ending').length+'개';
 }
 
 function subscribeRealtime(){
@@ -837,9 +660,24 @@ function subscribeRealtime(){
     if(curItem&&curItem.id===u.id)updateModalPrice(u.price);
   }).on('postgres_changes',{event:'INSERT',schema:'public',table:'bids'},p=>{
     if(curItem&&curItem.id===p.new.auction_id)loadBids(p.new.auction_id);
-    if(currentUser && p.new.bidder_id === currentUser.id) fetchUserExtra();
-    updateTicker(); // 새 입찰 시 티커 업데이트
   }).subscribe();
+}
+
+function startBots(){
+  function doBid(){
+    const live=auctions.filter(a=>a.status==='live'||a.status==='ending');if(!live.length)return;
+    const t=live[Math.floor(Math.random()*live.length)];
+    const np=t.price+(Math.floor(Math.random()*3)+1)*500;
+    const bot=BOTS[Math.floor(Math.random()*BOTS.length)];
+    t.price=np;t.bid_count++;
+    if(!MBIDS[t.id])MBIDS[t.id]=[];
+    MBIDS[t.id].unshift({user_name:bot,amount:np,_new:true});
+    setTimeout(()=>{if(MBIDS[t.id]&&MBIDS[t.id][0])delete MBIDS[t.id][0]._new;},600);
+    flashPrice(t.id,np,t.bid_count);
+    if(curItem&&curItem.id===t.id){updateModalPrice(np);loadBids(t.id);}
+    setTimeout(doBid,9000+Math.random()*13000);
+  }
+  setTimeout(doBid,5000+Math.random()*5000);
 }
 
 function flashPrice(id,price,bidCount){
@@ -861,7 +699,7 @@ function getFiltered(){
   if(sort==='입찰가 낮은순')d.sort((a,b)=>a.price-b.price);
   else if(sort==='입찰가 높은순')d.sort((a,b)=>b.price-a.price);
   else if(sort==='입찰 많은순')d.sort((a,b)=>b.bid_count-a.bid_count);
-  else d.sort((a,b)=>{const ia=secLeft(a.ends_at),ib=secLeft(b.ends_at);return ia-ib;});
+  else d.sort((a,b)=>{const ia=a.status==='upcoming'?99999:secLeft(a.ends_at),ib=b.status==='upcoming'?99999:secLeft(b.ends_at);return ia-ib;});
   return d;
 }
 
@@ -872,9 +710,9 @@ function renderGrid(){
   g.innerHTML=data.map(d=>`
 <article class="acd" data-id="${d.id}" tabindex="0">
   <div class="thb">
-    <div class="thb-bg" style="position:absolute;inset:0;background:linear-gradient(160deg,#1e1065,#4c1d95)"></div>
+    <div class="thb-bg" style="position:absolute;inset:0;background:${BG[d.id]||'#1e1065'}"></div>
     <div class="thb-ov"></div>
-    <div class="thb-em">${d.emoji || '🃏'}</div>
+    <div class="thb-em">${d.emoji}</div>
     <span class="sbd ${d.status}">${d.status!=='upcoming'&&d.status!=='closed'?'<span class="sdot"></span>':''}${SL[d.status]||d.status}</span>
     <button class="wsh" onclick="toggleWish(event,this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
     <span class="grd-tg">${d.grade}급</span>
@@ -912,27 +750,21 @@ function startTimers(data){
 
 function populateArtist(){
   const artists=[...new Set(auctions.map(a=>a.group_name))].sort();
-  const flt = document.getElementById('fltArtist');
-  if(flt) flt.innerHTML='<option>전체 아티스트</option>'+artists.map(a=>`<option>${a}</option>`).join('');
+  document.getElementById('fltArtist').innerHTML='<option>전체 아티스트</option>'+artists.map(a=>`<option>${a}</option>`).join('');
 }
 
 function updateHero(){
   const f=auctions.find(x=>x.status==='live'||x.status==='ending');
-  if(f){
-    const hp = document.getElementById('heroPrice');
-    if(hp) hp.textContent='₩ '+f.price.toLocaleString();
-    const hc = document.getElementById('heroCard');
-    if(hc) hc.onclick=()=>openModal(f.id);
-  }
+  if(f){document.getElementById('heroPrice').textContent='₩ '+f.price.toLocaleString();document.getElementById('heroCard').onclick=()=>openModal(f.id);}
 }
 
 async function openModal(id){
   const item=auctions.find(x=>x.id===id);if(!item)return;curItem=item;
   document.getElementById('mTitle').textContent=`${item.group_name} · ${item.member} — ${item.category}`;
-  const img=document.getElementById('mImg');img.textContent=item.emoji || '🃏';
+  const img=document.getElementById('mImg');img.textContent=item.emoji;img.style.background=BG[item.id]||'#1e1065';
   document.getElementById('mArtist').textContent=`${item.group_name} · ${item.member} (${item.album})`;
   document.getElementById('mPrice').textContent='₩ '+item.price.toLocaleString();
-  document.getElementById('mGrade').textContent=item.grade+'급';document.getElementById('mCat').textContent=item.category;document.getElementById('mSeller').textContent='★ '+(item.seller_rating || 5.0);
+  document.getElementById('mGrade').textContent=item.grade+'급';document.getElementById('mCat').textContent=item.category;document.getElementById('mSeller').textContent='★ '+item.seller_rating;
   const s=secLeft(item.ends_at);document.getElementById('mH').textContent=pad(Math.floor(s/3600));document.getElementById('mM').textContent=pad(Math.floor((s%3600)/60));document.getElementById('mS').textContent=pad(s%60);
   document.getElementById('blogList').innerHTML='<div style="text-align:center;padding:16px 0;color:var(--t3);font-size:13px">불러오는 중...</div>';
   renderBidArea();document.getElementById('modWrap').classList.add('open');document.body.style.overflow='hidden';
@@ -963,12 +795,13 @@ function updateQuick(price){
 }
 
 async function loadBids(id){
-  const {data}=await sb.from('bids').select('*').eq('auction_id',id).order('created_at',{ascending:false}).limit(10);
-  const bids=data||[];
+  let bids=[];
+  if(IS_DEMO||!sb){bids=MBIDS[id]||[];}
+  else{const{data}=await sb.from('bids').select('*').eq('auction_id',id).order('created_at',{ascending:false}).limit(10);bids=data||[];}
   document.getElementById('mBidCnt').textContent=bids.length;
   const el=document.getElementById('blogList');
   if(!bids.length){el.innerHTML='<div style="text-align:center;padding:16px 0;color:var(--t3);font-size:13px">첫 입찰자가 되어보세요 🌟</div>';return;}
-  el.innerHTML=bids.map((b,i)=>`<div class="blog-row${i===0?' top':''}${b._new?' nb':''}"><div class="blog-usr"><div class="blog-av">${(b.bidder_name || b.user_name || 'U')[0]}</div>${b.bidder_name || b.user_name || '익명'}${i===0?'<span class="blog-top">최고가</span>':''}</div><div class="blog-amt">₩ ${b.amount.toLocaleString()}</div></div>`).join('');
+  el.innerHTML=bids.map((b,i)=>`<div class="blog-row${i===0?' top':''}${b._new?' nb':''}"><div class="blog-usr"><div class="blog-av">${b.user_name[0]}</div>${b.user_name}${i===0?'<span class="blog-top">최고가</span>':''}</div><div class="blog-amt">₩ ${b.amount.toLocaleString()}</div></div>`).join('');
 }
 
 async function placeBid(){
@@ -976,22 +809,31 @@ async function placeBid(){
   const inp=document.getElementById('bidInp');const amount=parseInt(inp.value),min=parseInt(inp.min);
   if(!amount||amount<min){inp.className='bid-inp err';setTimeout(()=>inp.className='bid-inp',1600);showToast('₩'+min.toLocaleString()+' 이상 입찰해야 합니다','err');return;}
   const btn=document.getElementById('bidGoBtn');btn.disabled=true;btn.innerHTML='<span class="spin-s"></span> 처리 중';
-  const{data,error}=await sb.rpc('place_bid',{p_auction_id:curItem.id,p_user_name:currentUser.name,p_amount:amount,p_user_id:currentUser.id});
-  btn.disabled=false;btn.innerHTML='입찰';
-  if(error||!data?.success){showToast(data?.message||'입찰 실패','err');return;}
-  inp.value='';showToast('입찰 완료! 🎉','ok');
+  if(IS_DEMO||!sb){
+    await new Promise(r=>setTimeout(r,700));
+    curItem.price=amount;curItem.bid_count++;
+    if(!MBIDS[curItem.id])MBIDS[curItem.id]=[];
+    MBIDS[curItem.id].unshift({user_name:currentUser.name,amount,_new:true});
+    updateModalPrice(amount);loadBids(curItem.id);flashPrice(curItem.id,amount,curItem.bid_count);
+    btn.disabled=false;btn.innerHTML='입찰';inp.value='';showToast('입찰 완료! 🎉','ok');
+  }else{
+    const{data,error}=await sb.rpc('place_bid',{p_auction_id:curItem.id,p_user_name:currentUser.name,p_amount:amount,p_user_id:currentUser.id});
+    btn.disabled=false;btn.innerHTML='입찰';
+    if(error||!data?.success){showToast(data?.message||'입찰 실패','err');return;}
+    inp.value='';showToast('입찰 완료! 🎉','ok');
+  }
 }
 
 function closeModal(){document.getElementById('modWrap').classList.remove('open');document.body.style.overflow='';curItem=null;}
 document.getElementById('mClose').addEventListener('click',closeModal);
 document.getElementById('modOv').addEventListener('click',e=>{if(e.target===document.getElementById('modOv'))closeModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAuth();closeCharge();closePay();closeProfile();closeBids();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAuth();}});
 function setQ(a){const el=document.getElementById('bidInp');if(el)el.value=a;}
 function toggleWish(e,btn){e.stopPropagation();btn.classList.toggle('on');}
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
 document.getElementById('catIn').addEventListener('click',e=>{const tab=e.target.closest('.cat-tb');if(!tab)return;document.querySelectorAll('.cat-tb').forEach(t=>t.classList.remove('on'));tab.classList.add('on');catFilter=tab.dataset.cat;renderGrid();});
-['fltSort','fltArtist','fltGrade','fltStatus'].forEach(id=>{const el=document.getElementById(id);if(el) el.addEventListener('change',renderGrid)});
-document.getElementById('searchInp').addEventListener('input',e=>{const q=e.target.value.toLowerCase().trim();if(!q){renderGrid();return;}const bk=auctions;auctions=auctions.filter(a=>(a.group_name||'').toLowerCase().includes(q)||(a.member||'').toLowerCase().includes(q)||(a.album||'').toLowerCase().includes(q));renderGrid();auctions=bk;});
+['fltSort','fltArtist','fltGrade','fltStatus'].forEach(id=>document.getElementById(id).addEventListener('change',renderGrid));
+document.getElementById('searchInp').addEventListener('input',e=>{const q=e.target.value.toLowerCase().trim();if(!q){renderGrid();return;}const bk=auctions;auctions=auctions.filter(a=>a.group_name.toLowerCase().includes(q)||a.member.toLowerCase().includes(q)||a.album.toLowerCase().includes(q));renderGrid();auctions=bk;});
 init();
 </script>
 </body>
