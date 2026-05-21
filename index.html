@@ -592,7 +592,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const SITE_URL = window.location.origin;
 const TOSS_CLIENT_KEY = 'test_ck_OA0Y32vPrW7P27771ZKV8N4W4p6D';
 
-let auctions=[],catFilter='all',curItem=null,timers={},sb=null,currentUser=null,userProfile=null,paymentWidget=null;
+let auctions=[]; // ],catFilter='all',curItem=null,timers={},sb=null,currentUser=null,userProfile=null,paymentWidget=null;
 const pad=n=>String(n).padStart(2,'0');
 const secLeft=d=>Math.max(0,Math.floor((new Date(d)-Date.now())/1000));
 const tHTML=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return`<div class="tsg"><span class="tsg-n">${pad(h)}</span><span class="tsg-u">시</span></div><span class="tc">:</span><div class="tsg"><span class="tsg-n">${pad(m)}</span><span class="tsg-u">분</span></div><span class="tc">:</span><div class="tsg"><span class="tsg-n">${pad(ss)}</span><span class="tsg-u">초</span></div>`;};
@@ -654,13 +654,13 @@ async function openPay(auctionId){
     <div class="tab-it won">
       <div class="emoji">${a.emoji || '🃏'}</div>
       <div class="info"><div class="name">${a.group_name} ${a.member}</div><div class="sub">${a.album}</div></div>
-      <div class="price">₩${(a.current_price || a.price).toLocaleString()}</div>
+      <div class="price">₩${(a.current.current_price || a.current.current_price).toLocaleString()}</div>
     </div>`;
 
   if(!paymentWidget){
     paymentWidget = PaymentWidget(TOSS_CLIENT_KEY, currentUser.id);
   }
-  paymentWidget.renderPaymentMethods('#payment-widget', { value: a.current_price || a.price });
+  paymentWidget.renderPaymentMethods('#payment-widget', { value: a.current.current_price || a.current.current_price });
 }
 function closePay(){ document.getElementById('payWrap').classList.remove('open'); }
 async function handlePayment(){
@@ -714,7 +714,7 @@ async function openBids(){
           <div class="name">${a.group_name} ${a.member}</div>
           <div class="sub">상태: ${SL[a.status] || a.status} | 내 입찰가: ₩${b.amount.toLocaleString()}</div>
         </div>
-        ${isWinner ? `<button class="pay-btn" onclick="openPay(${a.id})">결제하기</button>` : `<div class="price">₩${(a.current_price || a.price)?.toLocaleString()}</div>`}
+        ${isWinner ? `<button class="pay-btn" onclick="openPay(${a.id})">결제하기</button>` : `<div class="price">₩${(a.current.current_price || a.current.current_price)?.toLocaleString()}</div>`}
       </div>`;
   }).join('');
 }
@@ -817,7 +817,7 @@ async function init(){
 }
 
 function loadDemo(){
-  auctions=[
+  auctions=[]; // 
     {id:1,group_name:'BTS',member:'정국',album:'Yet To Come',category:'포토카드',grade:'S',emoji:'🃏',status:'live',price:48500,bid_count:14,ends_at:new Date(Date.now()+7653000),seller_rating:4.9},
     {id:2,group_name:'aespa',member:'카리나',album:'MY WORLD',category:'포토카드',grade:'S',emoji:'🌙',status:'ending',price:62000,bid_count:21,ends_at:new Date(Date.now()+1087000),seller_rating:5.0}
   ];
@@ -838,7 +838,7 @@ function subscribeRealtime(){
   }).subscribe();
 }
 
-function flashPrice(id,price,bidCount){
+function flashPrice(id.current.current_price,bidCount){
   const el=document.getElementById('cp-'+id);
   if(el){el.textContent='₩ '+price.toLocaleString();el.classList.add('up');setTimeout(()=>el.classList.remove('up'),1200);}
   const be=document.querySelector(`.acd[data-id="${id}"] .pr-bds`);
@@ -852,8 +852,8 @@ function getFiltered(){
   const g=document.getElementById('fltGrade').value;if(g&&g!=='전체 등급')d=d.filter(x=>x.grade===g[0]);
   const st=document.getElementById('fltStatus').value;if(st&&st!=='전체 상태')d=d.filter(x=>x.status===st);
   const sort=document.getElementById('fltSort').value;
-  if(sort==='입찰가 낮은순')d.sort((a,b)=>a.price-b.price);
-  else if(sort==='입찰가 높은순')d.sort((a,b)=>b.price-a.price);
+  if(sort==='입찰가 낮은순')d.sort((a,b)=>a.current.current_price-b.price);
+  else if(sort==='입찰가 높은순')d.sort((a,b)=>b.price-a.current.current_price);
   else if(sort==='입찰 많은순')d.sort((a,b)=>b.bid_count-a.bid_count);
   else d.sort((a,b)=>{const ia=secLeft(a.ends_at),ib=secLeft(b.ends_at);return ia-ib;});
   return d;
@@ -878,7 +878,7 @@ function renderGrid(){
     <div class="cd-mbr">${d.member}</div>
     <div class="cd-alb">${d.album} · ${d.category}</div>
     <div class="cd-rl"></div>
-    <div class="pr-row"><div class="pr-cur" id="cp-${d.id}">₩ ${d.price.toLocaleString()}</div><div class="pr-bds">${d.bid_count}회 입찰</div></div>
+    <div class="pr-row"><div class="pr-cur" id="cp-${d.id}">₩ ${d.current.current_price.toLocaleString()}</div><div class="pr-bds">${d.bid_count}회 입찰</div></div>
     <div class="tmr${d.status==='ending'?' urg':''}" id="ct-${d.id}">${tHTML(secLeft(d.ends_at))}</div>
     <button class="bid-btn ${d.status==='ending'?'ug':d.status==='upcoming'||d.status==='closed'?'ds':'df'}"
       onclick="event.stopPropagation();openModal(${d.id})"
@@ -933,7 +933,7 @@ async function openModal(id){
   document.getElementById('mTitle').textContent=`${item.group_name} · ${item.member} — ${item.category}`;
   const img=document.getElementById('mImg');img.textContent=item.emoji || '🃏';
   document.getElementById('mArtist').textContent=`${item.group_name} · ${item.member} (${item.album})`;
-  document.getElementById('mPrice').textContent='₩ '+item.price.toLocaleString();
+  document.getElementById('mPrice').textContent='₩ '+item.current.current_price.toLocaleString();
   document.getElementById('mGrade').textContent=item.grade+'급';document.getElementById('mCat').textContent=item.category;document.getElementById('mSeller').textContent='★ '+(item.seller_rating || 5.0);
   const s=secLeft(item.ends_at);document.getElementById('mH').textContent=pad(Math.floor(s/3600));document.getElementById('mM').textContent=pad(Math.floor((s%3600)/60));document.getElementById('mS').textContent=pad(s%60);
   document.getElementById('blogList').innerHTML='<div style="text-align:center;padding:16px 0;color:var(--t3);font-size:13px">불러오는 중...</div>';
