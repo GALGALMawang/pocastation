@@ -12,28 +12,38 @@ import AuthModal from './components/AuthModal';
 import AuctionModal from './components/AuctionModal';
 import ChargeModal from './components/ChargeModal';
 import PaymentModal from './components/PaymentModal';
+import CreateAuctionModal from './components/CreateAuctionModal';
+import ProfileModal from './components/ProfileModal';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [credit, setCredit] = useState(0);
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeModal, setActiveModal] = useState(null); // 'auth', 'auction', 'charge', 'payment', 'profile', 'bids'
+  const [activeModal, setActiveModal] = useState(null); // 'auth', 'auction', 'charge', 'payment', 'profile', 'bids', 'create'
   const [selectedAuction, setSelectedAuction] = useState(null);
 
   useEffect(() => {
     // 세션 체크
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setUser(session.user);
+      if (session) { setUser(session.user); fetchUserExtra(session.user.id); }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if(session?.user) fetchUserExtra(session.user.id);
+      else setCredit(0);
     });
 
     fetchAuctions();
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchUserExtra = async (userId) => {
+    const { data } = await supabase.from('credits').select('balance').eq('user_id', userId).maybeSingle();
+    setCredit(data?.balance || 0);
+  };
 
   const fetchAuctions = async () => {
     const { data, error } = await supabase.from('auctions').select('*').order('ends_at', { ascending: true });
@@ -45,6 +55,7 @@ function App() {
     <div className="app">
       <Header 
         user={user} 
+        credit={credit}
         onOpenModal={(m) => setActiveModal(m)} 
       />
       
@@ -77,6 +88,8 @@ function App() {
         />
       )}
       {activeModal === 'charge' && <ChargeModal user={user} onClose={() => setActiveModal(null)} />}
+      {activeModal === 'create' && <CreateAuctionModal user={user} onClose={() => { setActiveModal(null); fetchAuctions(); }} />}
+      {activeModal === 'profile' && <ProfileModal user={user} onClose={() => setActiveModal(null)} fetchExtra={() => fetchUserExtra(user.id)} />}
     </div>
   );
 }
