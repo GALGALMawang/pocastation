@@ -98,9 +98,6 @@ function Home() {
       <main>
         <Hero auctions={auctions} onOpenAuction={(a) => { setSelectedAuction(a); setActiveModal('auction'); }} />
         <Ticker />
-        {activeView !== 'ended' && activeView !== 'artist' && (
-          <CategoryBar active={activeCategory} onSelect={handleCategorySelect} />
-        )}
         {activeView === 'artist' && artists.length > 0 && (
           <div className="cat-bar"><div className="pg"><div className="cat-in">
             {artists.map(name => (
