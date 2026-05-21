@@ -1,8 +1,6 @@
 # 민감한 파일
 client_secret*.json
-*.html
-!frontend/index.html
-!포카스테이션_LIVE.html
+포카스테이션_LIVE.html
 
 # 개발 메모
 TODO.md
