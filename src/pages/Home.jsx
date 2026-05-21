@@ -24,6 +24,8 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [activeModal, setActiveModal] = useState(null);
   const [selectedAuction, setSelectedAuction] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('🌟 전체');
+  const [activeView, setActiveView] = useState('live');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -53,16 +55,57 @@ function Home() {
     setLoading(false);
   };
 
+  const handleNavClick = (view) => {
+    setActiveView(view);
+    setActiveCategory('🌟 전체');
+    document.getElementById('auctions')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleCategorySelect = (cat) => {
+    setActiveCategory(cat);
+    setActiveView('live');
+  };
+
+  const filteredAuctions = auctions.filter(a => {
+    if (activeView === 'ended') return a.status === 'closed';
+    const notEnded = a.status !== 'closed';
+    if (!notEnded) return false;
+    if (activeCategory === '🌟 전체') return true;
+    const catMap = {
+      '🃏 포토카드': '포토카드', '💿 앨범': '앨범', '🎀 슬로건': '슬로건',
+      '🔮 키링': '키링', '🖼 포스터': '포스터', '✨ 팬메이드': '팬메이드', '🛍 공식굿즈': '공식굿즈',
+    };
+    return a.category === catMap[activeCategory];
+  });
+
+  const artists = activeView === 'artist'
+    ? [...new Set(auctions.filter(a => a.status !== 'closed').map(a => a.group_name).filter(Boolean))]
+    : [];
+
   return (
     <AuthContext.Provider value={{ user, profile, credit }}>
-      <Header user={user} credit={credit} onOpenModal={setActiveModal} />
+      <Header user={user} credit={credit} onOpenModal={setActiveModal} activeView={activeView} onNavClick={handleNavClick} />
       <main>
         <Hero auctions={auctions} onOpenAuction={(a) => { setSelectedAuction(a); setActiveModal('auction'); }} />
         <Ticker />
-        <CategoryBar />
+        {activeView !== 'ended' && activeView !== 'artist' && (
+          <CategoryBar active={activeCategory} onSelect={handleCategorySelect} />
+        )}
+        {activeView === 'artist' && artists.length > 0 && (
+          <div className="cat-bar"><div className="pg"><div className="cat-in">
+            {artists.map(name => (
+              <button key={name} className="cat-tb" onClick={() => { setActiveCategory(name); setActiveView('live'); }}>
+                {name}
+              </button>
+            ))}
+          </div></div></div>
+        )}
         <section className="sec" id="auctions">
           <div className="pg">
-            <AuctionGrid auctions={auctions} loading={loading} onOpenAuction={(a) => { setSelectedAuction(a); setActiveModal('auction'); }} />
+            {activeView === 'ended' && (
+              <div style={{marginBottom:'16px', fontWeight:700, fontSize:'15px', color:'var(--t2)'}}>종료된 경매</div>
+            )}
+            <AuctionGrid auctions={filteredAuctions} loading={loading} onOpenAuction={(a) => { setSelectedAuction(a); setActiveModal('auction'); }} />
           </div>
         </section>
       </main>

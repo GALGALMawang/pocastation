@@ -12,11 +12,6 @@ function Hero({ auctions, onOpenAuction }) {
         </div>
         <h1><span className="ko">K-POP 포토카드</span><br />우주에서 만나는<br /><span className="ko">경매 플랫폼</span></h1>
         <p className="hero-desc">희귀 포카부터 한정판 굿즈까지 — 공정한 경매로 진짜 가치를 찾아드립니다.</p>
-        <div className="hero-stats">
-          <div className="hst"><div className="nm">12만+</div><div className="lb">누적 거래</div></div>
-          <div className="hst"><div className="nm">4.9 ★</div><div className="lb">만족도</div></div>
-          <div className="hst"><div className="nm">98%</div><div className="lb">안전 거래</div></div>
-        </div>
         <div className="hero-cta">
           <a href="#auctions" className="btn-hw wh">경매 둘러보기 →</a>
         </div>

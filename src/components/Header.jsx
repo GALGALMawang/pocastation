@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-function Header({ user, profile, credit, onOpenModal }) {
+function Header({ user, profile, credit, onOpenModal, activeView, onNavClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -19,7 +19,11 @@ function Header({ user, profile, credit, onOpenModal }) {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" placeholder="아티스트, 멤버, 앨범 검색..." />
       </div>
-      <nav className="gnv"><a href="#auctions" className="on">경매</a><a href="#">아티스트</a><a href="#">종료된 경매</a></nav>
+      <nav className="gnv">
+        <a href="#auctions" className={activeView === 'live' ? 'on' : ''} onClick={(e) => { e.preventDefault(); onNavClick('live'); }}>경매</a>
+        <a href="#auctions" className={activeView === 'artist' ? 'on' : ''} onClick={(e) => { e.preventDefault(); onNavClick('artist'); }}>아티스트</a>
+        <a href="#auctions" className={activeView === 'ended' ? 'on' : ''} onClick={(e) => { e.preventDefault(); onNavClick('ended'); }}>종료된 경매</a>
+      </nav>
       <div className="hdr-r">
         {user && (
           <div className="user-cr show">₩ {(credit || 0).toLocaleString()}</div>

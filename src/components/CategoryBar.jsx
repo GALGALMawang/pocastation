@@ -1,12 +1,12 @@
 import React from 'react';
 
-function CategoryBar() {
-  const categories = ['🌟 전체', '🃏 포토카드', '💿 앨범', '🎀 슬로건', '🔮 키링', '🖼 포스터', '✨ 팬메이드', '🛍 공식굿즈'];
-  
+const CATEGORIES = ['🌟 전체', '🃏 포토카드', '💿 앨범', '🎀 슬로건', '🔮 키링', '🖼 포스터', '✨ 팬메이드', '🛍 공식굿즈'];
+
+function CategoryBar({ active, onSelect }) {
   return (
     <div className="cat-bar"><div className="pg"><div className="cat-in">
-      {categories.map((cat, i) => (
-        <button key={i} className={`cat-tb ${i === 0 ? 'on' : ''}`}>
+      {CATEGORIES.map((cat) => (
+        <button key={cat} className={`cat-tb ${active === cat ? 'on' : ''}`} onClick={() => onSelect(cat)}>
           {cat}
         </button>
       ))}
