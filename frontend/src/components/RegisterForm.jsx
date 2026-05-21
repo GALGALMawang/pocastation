@@ -10,7 +10,7 @@ const FIELD_STYLE = {
   fontSize: 13, background: '#fff', color: '#111', boxSizing: 'border-box',
 };
 
-const INITIAL_FORM = { group: '', member: '', album: '', category: '포토카드', grade: 'A', price: '', duration: '24' };
+const INITIAL_FORM = { group: '', member: '', album: '', category: '포토카드', grade: 'A', price: '', duration: '24', contact: '' };
 
 export default function RegisterForm() {
   const { user, profile } = useAuth();
@@ -88,7 +88,7 @@ export default function RegisterForm() {
 
   const handleSubmit = async () => {
     if (!user) { navigate('/login'); return; }
-    if (!file || hashStatus !== 'ok' || !form.group || !form.member || !form.price) return;
+    if (!file || hashStatus !== 'ok' || !form.group || !form.member || !form.price || !form.contact) return;
     setSubmitting(true);
     try {
       const [sha, phash] = await Promise.all([sha256File(file), pHashFile(file)]);
@@ -113,6 +113,7 @@ export default function RegisterForm() {
         verification_word: verificationWord,
         img_sha256: sha,
         img_phash: phash,
+        seller_contact: form.contact,
       });
       if (insertErr) throw insertErr;
       setSuccess(true);
@@ -129,7 +130,7 @@ export default function RegisterForm() {
     setHashStatus(null); setAnalyzed(false); setForm(INITIAL_FORM);
   };
 
-  const canSubmit = hashStatus === 'ok' && !analyzing && form.group && form.member && form.price && !submitting;
+  const canSubmit = hashStatus === 'ok' && !analyzing && form.group && form.member && form.price && form.contact && !submitting;
 
   if (success) {
     return (
@@ -249,9 +250,15 @@ export default function RegisterForm() {
             </div>
           </div>
 
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>시작가 (₩) *</label>
-            <input type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} placeholder="10000" style={FIELD_STYLE} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>시작가 (₩) *</label>
+              <input type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} placeholder="10000" style={FIELD_STYLE} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>직거래 연락처 *</label>
+              <input value={form.contact} onChange={e => setForm(p => ({ ...p, contact: e.target.value }))} placeholder="카카오ID 또는 전화번호" style={FIELD_STYLE} />
+            </div>
           </div>
 
           <button

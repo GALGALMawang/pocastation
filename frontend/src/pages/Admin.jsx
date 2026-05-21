@@ -28,6 +28,9 @@ export default function Admin() {
   const [dataLoading, setDataLoading] = useState(true);
   const [filterTab, setFilterTab] = useState('all');
   const [actionLoading, setActionLoading] = useState(null);
+  const [mainTab, setMainTab] = useState('auctions'); // 'auctions' | 'settlements'
+  const [settlements, setSettlements] = useState([]);
+  const [settlementsLoading, setSettlementsLoading] = useState(false);
   const globeSyncRef = React.useRef({ y: 0 });
 
   // Auth guard
@@ -62,6 +65,21 @@ export default function Admin() {
     return () => supabase.removeChannel(channel);
   }, [isAdmin]);
 
+  useEffect(() => {
+    if (!isAdmin || mainTab !== 'settlements') return;
+    setSettlementsLoading(true);
+    supabase
+      .from('settlements')
+      .select(`
+        *,
+        auctions(group_name, member, current_price),
+        buyer:profiles!settlements_buyer_id_fkey(nickname, email),
+        seller:profiles!settlements_seller_id_fkey(nickname, email, bank_account)
+      `)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { setSettlements(data ?? []); setSettlementsLoading(false); });
+  }, [isAdmin, mainTab]);
+
   const updateStatus = async (id, status) => {
     setActionLoading(id + status);
     const update = { status };
@@ -75,6 +93,13 @@ export default function Admin() {
     if (!error) {
       setAuctions(prev => prev.map(a => a.id === id ? { ...a, ...update } : a));
     }
+    setActionLoading(null);
+  };
+
+  const completeSettlement = async (id) => {
+    setActionLoading(id);
+    await supabase.from('settlements').update({ status: 'completed', updated_at: new Date().toISOString() }).eq('id', id);
+    setSettlements(prev => prev.map(s => s.id === id ? { ...s, status: 'completed' } : s));
     setActionLoading(null);
   };
 
@@ -167,8 +192,28 @@ export default function Admin() {
           </div>
           <div style={{ margin: '0 14px 8px', height: 1, background: 'rgba(0,0,0,0.06)' }} />
 
-          {/* Filter nav */}
-          <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* 메인 탭 */}
+          <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 8 }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.25)', letterSpacing: 2, fontFamily: 'monospace', marginBottom: 8, paddingLeft: 12 }}>MENU</div>
+            {[['auctions', '경매 관리'], ['settlements', '정산 관리']].map(([id, label]) => (
+              <button key={id} onClick={() => setMainTab(id)} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                background: mainTab === id ? 'rgba(124,58,237,0.08)' : 'transparent', textAlign: 'left',
+              }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: mainTab === id ? '#7c3aed' : 'rgba(0,0,0,0.15)' }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: mainTab === id ? '#7c3aed' : 'rgba(0,0,0,0.4)' }}>{label}</span>
+                {id === 'settlements' && settlements.filter(s => s.status === 'paid').length > 0 && (
+                  <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 800, background: 'rgba(220,50,50,0.1)', color: '#c02020', padding: '1px 6px', borderRadius: 10 }}>
+                    {settlements.filter(s => s.status === 'paid').length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Filter nav (경매 탭일 때만) */}
+          {mainTab === 'auctions' && <div style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,0.25)', letterSpacing: 2, fontFamily: 'monospace', marginBottom: 8, paddingLeft: 12 }}>FILTER</div>
             {FILTER_TABS.map(tab => (
               <button key={tab.id} onClick={() => setFilterTab(tab.id)} style={{
@@ -190,7 +235,7 @@ export default function Admin() {
                 )}
               </button>
             ))}
-          </div>
+          </div>}
 
           {/* Stats */}
           <div style={{ marginTop: 'auto', padding: '14px 16px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
@@ -213,7 +258,7 @@ export default function Admin() {
 
           {/* Topbar */}
           <div style={{ padding: '10px 20px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-            <span style={{ fontSize: 14, fontWeight: 900, color: '#111' }}>경매 관리</span>
+            <span style={{ fontSize: 14, fontWeight: 900, color: '#111' }}>{mainTab === 'auctions' ? '경매 관리' : '정산 관리'}</span>
             <div style={{ display: 'flex', gap: 5, marginLeft: 'auto' }}>
               {FILTER_TABS.map(tab => (
                 <button key={tab.id} onClick={() => setFilterTab(tab.id)} style={{
@@ -228,7 +273,67 @@ export default function Admin() {
 
           {/* Table */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
-            {dataLoading ? (
+            {mainTab === 'settlements' ? (
+              settlementsLoading ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', color: 'rgba(0,0,0,0.25)', fontSize: 12, fontFamily: 'monospace', letterSpacing: 2 }}>LOADING...</div>
+              ) : settlements.length === 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', color: 'rgba(0,0,0,0.2)', fontSize: 11, fontFamily: 'monospace', letterSpacing: 2 }}>정산 내역 없음</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {settlements.map(s => {
+                    const isPaid = s.status === 'paid';
+                    const isCompleted = s.status === 'completed';
+                    return (
+                      <div key={s.id} style={{ padding: '16px 18px', borderRadius: 14, background: '#fff', border: `1px solid ${isPaid ? 'rgba(255,150,0,0.3)' : 'rgba(0,0,0,0.07)'}` }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                              <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6,
+                                background: isPaid ? 'rgba(255,150,0,0.1)' : isCompleted ? 'rgba(0,180,80,0.1)' : 'rgba(0,0,0,0.06)',
+                                color: isPaid ? '#b07700' : isCompleted ? '#006d30' : 'rgba(0,0,0,0.4)',
+                              }}>
+                                {isPaid ? '정산 대기' : isCompleted ? '정산 완료' : s.status}
+                              </span>
+                              <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.3)', fontFamily: 'monospace' }}>
+                                {s.method === 'toss' ? '토스결제' : '직거래'}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: 14, fontWeight: 900, color: '#111', marginBottom: 4 }}>
+                              {s.auctions?.group_name} {s.auctions?.member}
+                            </div>
+                            <div style={{ fontSize: 20, fontWeight: 900, color: '#111', fontFamily: 'monospace', marginBottom: 10 }}>
+                              ₩{s.amount?.toLocaleString()}
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                              <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)' }}>
+                                <div style={{ fontSize: 9, color: 'rgba(0,0,0,0.35)', fontWeight: 700, marginBottom: 4 }}>낙찰자</div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: '#111' }}>{s.buyer?.nickname ?? s.buyer?.email ?? '—'}</div>
+                              </div>
+                              <div style={{ padding: '10px 12px', borderRadius: 10, background: isPaid ? 'rgba(124,58,237,0.04)' : 'rgba(0,0,0,0.03)', border: `1px solid ${isPaid ? 'rgba(124,58,237,0.15)' : 'rgba(0,0,0,0.07)'}` }}>
+                                <div style={{ fontSize: 9, color: 'rgba(0,0,0,0.35)', fontWeight: 700, marginBottom: 4 }}>판매자 · 정산 계좌</div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: '#111' }}>{s.seller?.nickname ?? '—'}</div>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: '#7c3aed', marginTop: 2, fontFamily: 'monospace' }}>
+                                  {s.seller?.bank_account ?? '계좌 미등록'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          {isPaid && (
+                            <button
+                              onClick={() => completeSettlement(s.id)}
+                              disabled={actionLoading === s.id}
+                              style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 800, cursor: 'pointer', flexShrink: 0, opacity: actionLoading === s.id ? 0.5 : 1 }}
+                            >
+                              정산 완료
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )
+            ) : dataLoading ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', color: 'rgba(0,0,0,0.25)', fontSize: 12, fontFamily: 'monospace', letterSpacing: 2 }}>
                 LOADING...
               </div>
@@ -315,6 +420,7 @@ export default function Admin() {
                   </tbody>
                 </table>
               </div>
+            )}
             )}
           </div>
         </div>

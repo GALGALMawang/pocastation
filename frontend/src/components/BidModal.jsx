@@ -12,18 +12,28 @@ export default function BidModal({ auction, onClose, onBidSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [credits, setCredits] = useState(null);
 
-  // ESC 닫기
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('credits').select('balance').eq('user_id', user.id).single()
+      .then(({ data }) => setCredits(data?.balance ?? 0));
+  }, [user]);
+
   const handleBid = async () => {
     if (!user) { navigate('/login'); return; }
     if (amount <= auction.current_price) {
       setError(`현재가(₩${auction.current_price.toLocaleString()})보다 높아야 합니다`);
+      return;
+    }
+    if (credits !== null && credits < amount) {
+      setError(`크레딧이 부족합니다. 현재 잔액: ₩${credits.toLocaleString()}`);
       return;
     }
     setLoading(true);
@@ -83,6 +93,14 @@ export default function BidModal({ auction, onClose, onBidSuccess }) {
                   <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.3)', marginTop: 2 }}>등급 {auction.grade}</div>
                 </div>
               </div>
+
+              {/* 크레딧 잔액 */}
+              {credits !== null && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, background: credits < amount ? 'rgba(220,50,50,0.05)' : 'rgba(124,58,237,0.05)', border: `1px solid ${credits < amount ? 'rgba(220,50,50,0.2)' : 'rgba(124,58,237,0.15)'}`, marginBottom: 12 }}>
+                  <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', fontWeight: 600 }}>보유 크레딧</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, fontFamily: 'monospace', color: credits < amount ? '#e03030' : '#7c3aed' }}>₩{credits.toLocaleString()}</span>
+                </div>
+              )}
 
               {/* 입찰가 입력 */}
               <div style={{ marginBottom: 14 }}>
