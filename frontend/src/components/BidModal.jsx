@@ -32,23 +32,22 @@ export default function BidModal({ auction, onClose, onBidSuccess }) {
       setError(`현재가(₩${auction.current_price.toLocaleString()})보다 높아야 합니다`);
       return;
     }
-    if (credits !== null && credits < amount) {
-      setError(`크레딧이 부족합니다. 현재 잔액: ₩${credits.toLocaleString()}`);
-      return;
-    }
     setLoading(true);
     setError('');
-    const { error: err } = await supabase.from('bids').insert({
-      auction_id: auction.id,
-      bidder_id: user.id,
-      bidder_name: profile?.nickname ?? user.email,
-      amount,
+
+    // RPC 호출로 변경 (DB 트랜잭션 및 크레딧 체크 통합 처리)
+    const { data, error: err } = await supabase.rpc('place_bid', {
+      p_auction_id: auction.id,
+      p_user_id: user.id,
+      p_user_name: profile?.nickname ?? user.email,
+      p_amount: amount,
     });
-    if (err) {
-      setError(err.message);
+
+    if (err || (data && !data.success)) {
+      setError(err?.message || data?.message || '입찰 처리 중 오류가 발생했습니다.');
     } else {
       setSuccess(true);
-      // onBidSuccess는 확인 버튼 클릭 시 호출 (성공 화면을 먼저 보여줌)
+      // onBidSuccess는 확인 버튼 클릭 시 호출
     }
     setLoading(false);
   };

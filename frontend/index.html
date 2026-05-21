@@ -1,17 +1,840 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>POCASTATION</title>
-    <meta name="description" content="가장 거대하고 안전한 K-POP 포토카드 경매 플랫폼" />
-    <meta property="og:title" content="POCASTATION" />
-    <meta property="og:description" content="가장 거대하고 안전한 K-POP 포토카드 경매 플랫폼" />
-    <meta property="og:type" content="website" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POCA — K-POP 포토카드 경매</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#F7F7FA;--sf:#fff;--sf2:#F2F1F8;--sf3:#ECEAF6;
+  --bd:#EAEAEF;--bd2:#D8D7E8;
+  --t1:#111118;--t2:#484560;--t3:#9896B2;
+  --pr:#5B3FE8;--pr-d:#EEE9FD;--pr-k:#4A30CC;
+  --ac:#F43F5E;--ac-d:#FFF0F2;
+  --ok:#15803d;--ok-d:#f0fdf4;
+  --r1:6px;--r2:10px;--r3:14px;--r4:18px;--r5:22px;--rf:9999px;
+  --sh:0 1px 3px rgba(17,17,24,.06),0 4px 16px rgba(17,17,24,.04);
+  --sh-f:0 8px 32px rgba(91,63,232,.18);
+  --sh-m:0 24px 64px rgba(17,17,24,.16);
+  --ease:cubic-bezier(.22,1,.36,1);--t:180ms var(--ease);
+  --fk:'Noto Sans KR',-apple-system,sans-serif;
+  --fe:'Plus Jakarta Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{font-family:var(--fk);background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.5}
+button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
+a{text-decoration:none;color:inherit}
+input,select{font:inherit;color:inherit}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:var(--rf)}
+.pg{max-width:1160px;margin-inline:auto;padding-inline:clamp(1rem,4vw,2rem)}
+.hdr{position:sticky;top:0;z-index:300;height:60px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--bd)}
+.hdr-in{display:flex;align-items:center;height:100%;gap:1rem}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-i{width:32px;height:32px;border-radius:var(--r2);background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0}
+.logo-nm{font-family:var(--fe);font-size:14px;font-weight:800;letter-spacing:-.02em}
+.logo-ds{font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;margin-top:1px}
+.srch{flex:1;max-width:360px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--bd);border-radius:var(--rf);padding:0 14px;transition:border-color var(--t),box-shadow var(--t)}
+.srch:focus-within{border-color:var(--pr);box-shadow:0 0 0 3px rgba(91,63,232,.1)}
+.srch input{flex:1;border:none;outline:none;background:transparent;font-size:13.5px;padding:8px 0}
+.srch input::placeholder{color:var(--t3)}
+.gnv{display:flex;gap:2px}
+.gnv a{font-size:13.5px;font-weight:600;padding:6px 12px;border-radius:var(--rf);color:var(--t2);transition:all var(--t)}
+.gnv a:hover,.gnv a.on{color:var(--pr);background:var(--pr-d)}
+.hdr-r{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0}
+.ic-btn{position:relative;width:36px;height:36px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;color:var(--t2);transition:all var(--t)}
+.ic-btn:hover{background:var(--bg);color:var(--pr)}
+.ndot{position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--ac);border:2px solid #fff}
+.btn{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;padding:7px 16px;border-radius:var(--rf);transition:all var(--t);white-space:nowrap;letter-spacing:-.01em}
+.btn-p{background:var(--pr);color:#fff}
+.btn-p:hover{background:var(--pr-k);transform:translateY(-1px);box-shadow:var(--sh-f)}
+.btn-o{border:1.5px solid var(--bd2);color:var(--t2);background:#fff}
+.btn-o:hover{border-color:var(--pr);color:var(--pr)}
+.user-chip{display:flex;align-items:center;gap:8px;padding:4px;border-radius:var(--rf);border:1.5px solid var(--bd);background:#fff;cursor:pointer;transition:all var(--t)}
+.user-chip:hover{border-color:var(--pr)}
+.user-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+.user-nm{font-size:12.5px;font-weight:700;color:var(--t1);padding-right:8px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-menu{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1.5px solid var(--bd);border-radius:var(--r4);box-shadow:var(--sh-m);min-width:160px;overflow:hidden;display:none;z-index:400}
+.user-menu.open{display:block}
+.user-menu-item{display:flex;align-items:center;gap:8px;padding:11px 16px;font-size:13px;font-weight:600;color:var(--t2);transition:background var(--t);cursor:pointer}
+.user-menu-item:hover{background:var(--bg)}
+.user-menu-item.danger{color:var(--ac)}
+.user-menu-item.danger:hover{background:var(--ac-d)}
+.user-menu-divider{height:1px;background:var(--bd);margin:4px 0}
+.user-wrap{position:relative}
+.hero{background:var(--pr);padding:52px 0 48px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 65% 80% at 85% 50%,rgba(244,63,94,.25) 0%,transparent 60%),radial-gradient(ellipse 45% 60% at 5% 85%,rgba(67,48,200,.55) 0%,transparent 50%);pointer-events:none}
+.hero-in{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:48px}
+.hero-l{flex:1;max-width:560px}
+.lv-chip{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:var(--rf);padding:5px 12px;font-size:12px;font-weight:700;color:rgba(255,255,255,.85);letter-spacing:.04em;margin-bottom:20px}
+.lv-badge{display:flex;align-items:center;gap:4px;background:var(--ac);border-radius:var(--rf);padding:2px 7px;font-size:10.5px;font-weight:800;color:#fff;letter-spacing:.06em}
+.pulse{width:5px;height:5px;border-radius:50%;background:#fff;animation:pls 1.4s ease-in-out infinite}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.25}}
+.hero h1{font-family:var(--fe);font-size:clamp(26px,4.5vw,44px);font-weight:800;line-height:1.1;letter-spacing:-.03em;color:#fff;margin-bottom:14px}
+.hero h1 .ko{font-family:var(--fk);font-weight:900;letter-spacing:-.02em}
+.hero-desc{font-size:14.5px;color:rgba(255,255,255,.6);margin-bottom:28px;line-height:1.7}
+.hero-stats{display:flex;gap:28px;margin-bottom:32px}
+.hst .nm{font-family:var(--fe);font-size:22px;font-weight:800;color:#fff;line-height:1}
+.hst .lb{font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;letter-spacing:.04em}
+.hero-cta{display:flex;gap:10px}
+.btn-hw{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:11px 24px;border-radius:var(--rf);transition:all var(--t);letter-spacing:-.01em}
+.btn-hw.wh{background:#fff;color:var(--pr)}
+.btn-hw.wh:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.btn-hw.gh{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85)}
+.btn-hw.gh:hover{background:rgba(255,255,255,.18)}
+.h-card{width:200px;flex-shrink:0;background:rgba(255,255,255,.1);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.18);border-radius:var(--r5);overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3);cursor:pointer;transition:transform var(--t)}
+.h-card:hover{transform:translateY(-6px) rotate(1deg)}
+.h-card-img{aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;font-size:64px}
+.h-card-ft{padding:14px;border-top:1px solid rgba(255,255,255,.1)}
+.h-card-nm{font-weight:700;font-size:13.5px;color:#fff}
+.h-card-sb{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+.h-card-pr{font-family:var(--fe);font-weight:700;font-size:16px;color:#fff;margin-top:8px}
+.tkr{background:#4A30CC;padding:9px 0;overflow:hidden}
+.tkr-in{display:flex;align-items:center;gap:20px}
+.tkr-lb{flex-shrink:0;font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.08em;padding-right:16px;border-right:1px solid rgba(255,255,255,.15);display:flex;align-items:center;gap:6px}
+.tkr-sc{flex:1;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.tkr-tr{display:flex;animation:tkrm 28s linear infinite}
+@keyframes tkrm{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tk-it{flex-shrink:0;display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.65);padding-right:28px}
+.tk-pr{font-family:var(--fe);font-weight:700;color:#FDE68A}
+.tk-dt{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.3)}
+.cat-bar{background:var(--sf);border-bottom:1px solid var(--bd);position:sticky;top:60px;z-index:200}
+.cat-in{display:flex;gap:2px;overflow-x:auto;padding:10px 0;scrollbar-width:none}
+.cat-in::-webkit-scrollbar{display:none}
+.cat-tb{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--rf);font-size:13px;font-weight:600;color:var(--t2);cursor:pointer;transition:all var(--t);border:none;background:transparent}
+.cat-tb:hover{background:var(--bg);color:var(--t1)}
+.cat-tb.on{background:var(--t1);color:#fff}
+.sec{padding:40px 0}
+.sec-hd{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.sec-ttl{font-family:var(--fe);font-size:20px;font-weight:800;color:var(--t1);letter-spacing:-.025em}
+.sec-ttl .hl{color:var(--pr)}
+.sec-sb{font-size:13px;color:var(--t3);margin-top:3px}
+.sec-lk{font-size:13px;font-weight:700;color:var(--t3);transition:color var(--t)}
+.sec-lk:hover{color:var(--pr)}
+.demo-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:var(--rf);padding:4px 12px;font-size:11.5px;font-weight:700;margin-left:8px;vertical-align:middle}
+.st-bar{display:none;align-items:center;gap:8px;border-radius:var(--r2);padding:10px 14px;margin-bottom:16px;font-size:13px;font-weight:600;border:1.5px solid}
+.st-bar.show{display:flex}
+.st-bar.connecting{background:#FFF9EC;border-color:#FDE68A;color:#92400E}
+.st-bar.ok{background:var(--ok-d);border-color:#bbf7d0;color:var(--ok)}
+.st-bar.err{background:var(--ac-d);border-color:#fecdd3;color:#9F1239}
+.st-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.connecting .st-dot{background:#F59E0B;animation:pls 1s ease-in-out infinite}
+.ok .st-dot{background:var(--ok)}
+.err .st-dot{background:var(--ac)}
+.flts{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.flt-s{appearance:none;padding:6px 30px 6px 12px;border:1.5px solid var(--bd);border-radius:var(--rf);font-size:12.5px;font-weight:600;background:#fff;cursor:pointer;outline:none;transition:border-color var(--t);color:var(--t2);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239896B2' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.flt-s:focus{border-color:var(--pr)}
+.flt-cnt{font-size:12px;color:var(--t3);margin-left:auto;font-family:var(--fe)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(210px,100%),1fr));gap:14px}
+.ske{background:linear-gradient(90deg,var(--sf2) 25%,var(--sf3) 50%,var(--sf2) 75%);background-size:200% 100%;animation:shim 1.4s infinite;border-radius:var(--r4);border:1.5px solid var(--bd);height:380px}
+@keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.acd{background:var(--sf);border-radius:var(--r4);border:1.5px solid var(--bd);overflow:hidden;cursor:pointer;transition:transform var(--t),box-shadow var(--t),border-color var(--t);box-shadow:var(--sh)}
+.acd:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(17,17,24,.1);border-color:var(--pr)}
+.acd.upd{animation:upd .8s var(--ease)}
+@keyframes upd{0%{border-color:var(--pr);box-shadow:0 0 0 4px rgba(91,63,232,.15)}100%{}}
+.thb{position:relative;aspect-ratio:2/3;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:52px}
+.thb-bg{position:absolute;inset:0;transition:transform .35s var(--ease)}
+.acd:hover .thb-bg{transform:scale(1.04)}
+.thb-ov{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(17,17,24,.4) 100%)}
+.thb-em{position:relative;z-index:1;pointer-events:none}
+.sbd{position:absolute;top:9px;left:9px;z-index:2;display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:var(--rf);font-size:10.5px;font-weight:800;backdrop-filter:blur(8px)}
+.sbd.live{background:rgba(244,63,94,.9);color:#fff}
+.sbd.ending{background:rgba(245,158,11,.9);color:#fff}
+.sbd.upcoming{background:rgba(91,63,232,.85);color:#fff}
+.sbd.closed{background:rgba(90,85,117,.85);color:#fff}
+.sdot{width:4px;height:4px;border-radius:50%;background:currentColor;animation:pls 1.4s infinite}
+.upcoming .sdot,.closed .sdot{animation:none}
+.wsh{position:absolute;top:9px;right:9px;z-index:2;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;color:var(--t3);transition:all var(--t);backdrop-filter:blur(6px)}
+.wsh:hover,.wsh.on{color:var(--ac)}
+.grd-tg{position:absolute;bottom:8px;left:8px;z-index:2;background:rgba(255,255,255,.92);border-radius:var(--r1);padding:2px 6px;font-size:10px;font-weight:800;color:var(--t1);font-family:var(--fe)}
+.cd-body{padding:12px 13px 14px}
+.cd-grp{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--pr);margin-bottom:2px}
+.cd-mbr{font-size:14px;font-weight:700;color:var(--t1);line-height:1.3}
+.cd-alb{font-size:11.5px;color:var(--t3);margin-top:1px}
+.cd-rl{height:1px;background:var(--bd);margin:10px 0}
+.pr-row{display:flex;align-items:baseline;justify-content:space-between}
+.pr-cur{font-family:var(--fe);font-size:16px;font-weight:700;color:var(--t1);letter-spacing:-.01em;transition:color .4s}
+.pr-cur.up{color:var(--pr)}
+.pr-bds{font-size:11px;color:var(--t3);font-family:var(--fe)}
+.tmr{display:flex;align-items:center;gap:2px;margin:8px 0 10px}
+.tsg{display:flex;flex-direction:column;align-items:center;min-width:30px;background:var(--bg);border-radius:5px;padding:3px 5px}
+.tsg-n{font-family:var(--fe);font-size:13px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.tsg-u{font-size:9px;color:var(--t3);line-height:1;margin-top:1px}
+.tc{font-size:13px;font-weight:700;color:var(--bd2);margin-bottom:6px}
+.tmr.urg .tsg{background:var(--ac-d)}
+.tmr.urg .tsg-n{color:var(--ac)}
+.bid-btn{width:100%;padding:9px;border-radius:var(--r2);font-size:12.5px;font-weight:700;transition:all var(--t);display:flex;align-items:center;justify-content:center;gap:5px}
+.bid-btn.df{background:var(--pr);color:#fff}
+.bid-btn.df:hover{background:var(--pr-k);box-shadow:var(--sh-f);transform:translateY(-1px)}
+.bid-btn.ug{background:var(--ac);color:#fff}
+.bid-btn.ug:hover{background:#e02d50}
+.bid-btn.ds{background:var(--bg);color:var(--t3);cursor:not-allowed}
+.how{background:var(--sf);border-top:1px solid var(--bd)}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:24px}
+.how-cd{background:var(--bg);border-radius:var(--r4);padding:22px 20px;transition:all var(--t)}
+.how-cd:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.how-nm{font-family:var(--fe);font-size:11px;font-weight:800;color:var(--pr);letter-spacing:.08em;margin-bottom:12px}
+.how-ic{font-size:24px;margin-bottom:10px}
+.how-tt{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:5px}
+.how-ds{font-size:12.5px;color:var(--t2);line-height:1.7}
+.trust{background:var(--pr);padding:44px 0}
+.trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center}
+.tr-nm{font-family:var(--fe);font-size:clamp(20px,3vw,30px);font-weight:800;color:#fff;letter-spacing:-.02em}
+.tr-lb{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px}
+.ftr{background:#111118;color:rgba(255,255,255,.4);padding:48px 0 28px}
+.ftr-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.ftr-br{font-family:var(--fe);font-weight:800;font-size:14px;color:#fff;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ftr-bri{width:26px;height:26px;border-radius:6px;background:var(--pr);display:flex;align-items:center;justify-content:center;font-size:13px}
+.ftr-desc{font-size:12.5px;line-height:1.85;max-width:22ch}
+.ftr-col h4{font-size:11px;font-weight:800;color:rgba(255,255,255,.7);letter-spacing:.08em;margin-bottom:12px}
+.ftr-lk{display:block;font-size:12.5px;padding:4px 0;transition:color var(--t)}
+.ftr-lk:hover{color:rgba(255,255,255,.85)}
+.ftr-btm{border-top:1px solid rgba(255,255,255,.07);padding-top:20px;display:flex;align-items:center;justify-content:space-between;font-size:11.5px;flex-wrap:wrap;gap:10px}
+.socials{display:flex;gap:6px}
+.soc-ic{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;transition:all var(--t)}
+.soc-ic:hover{background:var(--pr)}
+
+/* ══ AUTH MODAL ══ */
+.auth-ov{display:none;position:fixed;inset:0;z-index:500;background:rgba(17,17,24,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
+.auth-ov.open{display:flex}
+.auth-box{background:var(--sf);border-radius:var(--r5);width:100%;max-width:380px;padding:32px 28px 24px;box-shadow:var(--sh-m);position:relative;animation:mod-in .22s var(--ease) both}
+@keyframes mod-in{from{transform:translateY(14px) scale(.97);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.auth-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;color:var(--t3);transition:all var(--t)}
+.auth-close:hover{background:var(--bg);color:var(--t1)}
+.auth-logo{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:20px}
+.auth-logo-i{width:36px;height:36px;border-radius:var(--r2);background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+.auth-logo-nm{font-family:var(--fe);font-weight:800;font-size:16px;color:var(--t1)}
+.auth-ttl{font-family:var(--fe);font-size:20px;font-weight:800;color:var(--t1);text-align:center;margin-bottom:6px;letter-spacing:-.02em}
+.auth-sub{font-size:13px;color:var(--t3);text-align:center;margin-bottom:26px;line-height:1.6}
+.soc-btn{width:100%;display:flex;align-items:center;gap:12px;padding:13px 18px;border-radius:var(--r3);font-size:14px;font-weight:700;cursor:pointer;transition:all var(--t);margin-bottom:10px;position:relative;border:none}
+.soc-btn:last-of-type{margin-bottom:0}
+.soc-icon{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.soc-lbl{flex:1;text-align:center;margin-right:20px}
+.soc-spin{position:absolute;right:16px;width:16px;height:16px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:sp .7s linear infinite;display:none;opacity:.6}
+.soc-btn.loading .soc-spin{display:block}
+.soc-btn:disabled{cursor:not-allowed;opacity:.8}
+.kakao-btn{background:#FEE500;color:#000}
+.kakao-btn:hover:not(:disabled){background:#f5dc00;transform:translateY(-1px);box-shadow:0 4px 16px rgba(254,229,0,.4)}
+.naver-btn{background:#03C75A;color:#fff}
+.naver-btn:hover:not(:disabled){background:#02b550;transform:translateY(-1px);box-shadow:0 4px 16px rgba(3,199,90,.4)}
+.google-btn{background:#fff;color:#3C4043;border:1.5px solid #DADCE0}
+.google-btn:hover:not(:disabled){background:#F8F9FA;transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+@keyframes sp{to{transform:rotate(360deg)}}
+.auth-loading{display:none;flex-direction:column;align-items:center;gap:14px;padding:12px 0 8px}
+.auth-loading.show{display:flex}
+.auth-form-wrap{transition:opacity .15s}
+.auth-form-wrap.fade{opacity:0;pointer-events:none}
+.big-spin{width:38px;height:38px;border:3px solid var(--sf2);border-top-color:var(--pr);border-radius:50%;animation:sp .9s linear infinite}
+.auth-loading-txt{font-size:13.5px;font-weight:600;color:var(--t2)}
+.auth-terms{font-size:11px;color:var(--t3);text-align:center;margin-top:18px;line-height:1.65}
+.auth-terms a{color:var(--pr);font-weight:600}
+
+/* ══ AUCTION MODAL ══ */
+.mod-wrap{display:none;position:fixed;inset:0;z-index:500;overflow-y:auto}
+.mod-wrap.open{display:block}
+.mod-ov{background:rgba(17,17,24,.55);backdrop-filter:blur(4px);min-height:100%;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px 60px}
+.modal{background:var(--sf);border-radius:var(--r5);width:100%;max-width:780px;box-shadow:var(--sh-m);animation:mod-in .24s var(--ease) both}
+.mod-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 16px;border-bottom:1px solid var(--bd)}
+.mod-ttl{font-size:15px;font-weight:700;color:var(--t1);letter-spacing:-.01em}
+.mod-cl{width:32px;height:32px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;color:var(--t3);transition:all var(--t)}
+.mod-cl:hover{background:var(--bg);color:var(--t1)}
+.mod-body{padding:20px}
+.mod-layout{display:grid;grid-template-columns:1fr 1.2fr;gap:24px}
+.mod-img{aspect-ratio:2/3;border-radius:var(--r4);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:72px}
+.mod-chips{display:flex;gap:8px;margin-top:10px}
+.mchip{flex:1;background:var(--bg);border-radius:var(--r2);padding:8px 10px;text-align:center}
+.mchip-lb{font-size:10px;color:var(--t3)}
+.mchip-vl{font-size:12.5px;font-weight:700;color:var(--t1);margin-top:2px;font-family:var(--fe)}
+.mlb{font-size:11px;font-weight:700;letter-spacing:.07em;color:var(--t3);text-transform:uppercase;margin-bottom:4px}
+.mvl{font-size:14.5px;font-weight:700;color:var(--t1);margin-bottom:16px}
+.mbig{font-family:var(--fe);font-size:28px;font-weight:800;color:var(--pr);letter-spacing:-.02em;margin-bottom:16px;line-height:1;transition:transform .3s var(--ease)}
+.mbig.bump{transform:scale(1.06)}
+.mod-tmr{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+.mtsg{text-align:center}
+.mtsg-n{font-family:var(--fe);font-size:22px;font-weight:800;line-height:1;color:var(--t1)}
+.mtsg-u{font-size:10px;color:var(--t3);margin-top:2px}
+.mtc{font-size:22px;font-weight:300;color:var(--bd2)}
+.blog-hd{font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.blog-cnt{background:var(--pr-d);color:var(--pr);font-size:11px;font-weight:800;padding:1px 7px;border-radius:var(--rf);font-family:var(--fe)}
+.blog-list{display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto;margin-bottom:18px}
+.blog-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:var(--r2);background:var(--bg);font-size:12.5px}
+.blog-row.top{background:var(--pr-d)}
+.blog-row.nb{animation:nb .4s var(--ease)}
+@keyframes nb{from{background:rgba(91,63,232,.12);transform:translateX(-4px)}to{}}
+.blog-usr{display:flex;align-items:center;gap:7px;color:var(--t2)}
+.blog-av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--pr),var(--ac));color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.blog-top{font-size:9.5px;font-weight:800;background:var(--pr);color:#fff;border-radius:3px;padding:1px 5px}
+.blog-amt{font-family:var(--fe);font-weight:700;font-size:13px;color:var(--pr)}
+.bid-pnl{background:var(--bg);border-radius:var(--r4);padding:16px}
+.bp-ttl{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:2px}
+.bp-mn{font-size:12px;color:var(--t3);margin-bottom:12px}
+.bp-mn strong{color:var(--pr);font-weight:700;font-family:var(--fe)}
+.bid-row{display:flex;gap:8px;margin-bottom:8px}
+.bid-inp{flex:1;padding:10px 14px;border:1.5px solid var(--bd);border-radius:var(--r2);font-family:var(--fe);font-size:15px;font-weight:700;background:#fff;outline:none;transition:border-color var(--t),box-shadow var(--t)}
+.bid-inp:focus{border-color:var(--pr);box-shadow:0 0 0 3px rgba(91,63,232,.1)}
+.bid-inp.err{border-color:var(--ac)!important}
+.bid-go{padding:10px 20px;background:var(--pr);color:#fff;border-radius:var(--r2);font-size:13.5px;font-weight:700;transition:all var(--t);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.bid-go:hover:not(:disabled){background:var(--pr-k);box-shadow:var(--sh-f);transform:translateY(-1px)}
+.bid-go:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.spin-s{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+.quick{display:flex;flex-wrap:wrap;gap:6px}
+.qbtn{padding:5px 11px;border-radius:var(--rf);font-size:11.5px;font-weight:700;border:1.5px solid var(--bd2);color:var(--t2);background:#fff;transition:all var(--t);font-family:var(--fe)}
+.qbtn:hover{border-color:var(--pr);color:var(--pr);background:var(--pr-d)}
+.bid-login-cta{background:var(--pr-d);border-radius:var(--r3);padding:16px;text-align:center}
+.bid-login-cta p{font-size:13px;color:var(--t2);margin-bottom:10px}
+.bid-login-cta-btn{background:var(--pr);color:#fff;border-radius:var(--r2);padding:9px 24px;font-size:13px;font-weight:700;transition:all var(--t)}
+.bid-login-cta-btn:hover{background:var(--pr-k)}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--t1);color:#fff;padding:10px 20px;border-radius:var(--rf);font-size:13px;font-weight:600;box-shadow:var(--sh-m);z-index:700;opacity:0;pointer-events:none;transition:all .28s var(--ease);display:flex;align-items:center;gap:7px;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--ac)}
+.toast.ok{background:var(--ok)}
+@media(max-width:900px){
+  .hero-in{flex-direction:column}
+  .h-card{display:none}
+  .mod-layout{grid-template-columns:1fr}
+  .trust-grid{grid-template-columns:repeat(2,1fr)}
+  .ftr-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .gnv{display:none}
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .cd-body{padding:10px 10px 12px}
+  .trust-grid{grid-template-columns:repeat(2,1fr)}
+  .ftr-grid{grid-template-columns:1fr}
+  .bid-row{flex-direction:column}
+  .sec{padding:28px 0}
+  .user-nm{display:none}
+  .srch{max-width:180px}
+  .hero{padding:36px 0 32px}
+  .hero-stats{gap:18px}
+  .hst .nm{font-size:18px}
+  .mod-ov{padding:0 0 0 0;align-items:flex-end}
+  .modal{border-radius:var(--r5) var(--r5) 0 0;max-height:92vh;overflow-y:auto}
+}
+@media(max-width:480px){
+  .srch{display:none}
+  .btn-p .btn-txt{display:none}
+  .hdr-in{gap:8px}
+  .hero{padding:28px 0 24px}
+  .hero h1{font-size:clamp(22px,7vw,32px)}
+  .hero-desc{font-size:13px;margin-bottom:20px}
+  .hero-stats{gap:14px;margin-bottom:22px}
+  .hst .nm{font-size:16px}
+  .hst .lb{font-size:10px}
+  .hero-cta{flex-direction:column;gap:8px}
+  .btn-hw{width:100%;justify-content:center;padding:12px 20px}
+  .lv-chip{font-size:11px;padding:4px 10px;margin-bottom:14px}
+  .flts{gap:5px}
+  .flt-s{font-size:11.5px;padding:5px 22px 5px 9px}
+  .flt-cnt{display:none}
+  .grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .pr-cur{font-size:14px}
+  .bid-btn{font-size:12px;padding:8px}
+  .sec-hd{flex-direction:column;align-items:flex-start;gap:6px}
+  .how-grid{grid-template-columns:1fr}
+  .trust-grid{grid-template-columns:repeat(2,1fr)}
+  .trust{padding:28px 0}
+  .ftr{padding:32px 0 20px}
+  .ftr-grid{gap:24px}
+  .auth-box{padding:24px 18px 18px;border-radius:var(--r4) var(--r4) 0 0;max-width:100%}
+  .auth-ov{align-items:flex-end;padding:0}
+  .auth-ttl{font-size:17px}
+  .soc-btn{padding:12px 14px;font-size:13px}
+  .mod-body{padding:14px}
+  .mbig{font-size:22px}
+  .mtsg-n{font-size:18px}
+  .mod-hd{padding:14px 14px 12px}
+  .mod-ttl{font-size:13.5px}
+  .blog-list{max-height:120px}
+  .bid-go{padding:10px 14px;font-size:13px}
+  .cat-tb{font-size:12px;padding:5px 10px}
+  .demo-badge{font-size:10px;padding:3px 8px}
+  .sec-ttl{font-size:17px}
+  .toast{font-size:12px;padding:9px 16px;bottom:20px;white-space:normal;text-align:center;max-width:80vw}
+  .ic-btn{width:32px;height:32px}
+  .btn{font-size:12px;padding:6px 12px}
+}
+</style>
+</head>
+<body>
+<header class="hdr"><div class="pg hdr-in">
+  <a href="#" class="logo">
+    <div class="logo-i">★</div>
+    <div><div class="logo-nm">POCA</div><div class="logo-ds">K-POP 포카 경매</div></div>
+  </a>
+  <div class="srch">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" placeholder="아티스트, 멤버, 앨범 검색..." id="searchInp">
+  </div>
+  <nav class="gnv"><a href="#auctions" class="on">경매</a><a href="#">아티스트</a><a href="#">종료된 경매</a></nav>
+  <div class="hdr-r">
+    <button class="ic-btn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ndot"></span></button>
+    <a href="#" class="btn btn-p"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="btn-txt">판매 등록</span></a>
+    <button class="btn btn-o" id="loginBtn">로그인</button>
+    <div class="user-wrap" id="userWrap" style="display:none">
+      <div class="user-chip" id="userChip">
+        <div class="user-av" id="userAv"></div>
+        <span class="user-nm" id="userNm"></span>
+      </div>
+      <div class="user-menu" id="userMenu">
+        <div class="user-menu-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>내 프로필</div>
+        <div class="user-menu-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>내 입찰 내역</div>
+        <div class="user-menu-divider"></div>
+        <div class="user-menu-item danger" id="logoutBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>로그아웃</div>
+      </div>
+    </div>
+  </div>
+</div></header>
+
+<section class="hero"><div class="pg"><div class="hero-in">
+  <div class="hero-l">
+    <div class="lv-chip"><div class="lv-badge"><span class="pulse"></span>LIVE</div>지금 <strong id="liveCount" style="color:#fff;margin:0 3px">—</strong> 경매 진행 중</div>
+    <h1><span class="ko">K-POP 포토카드</span><br>우주에서 만나는<br><span class="ko">경매 플랫폼</span></h1>
+    <p class="hero-desc">희귀 포카부터 한정판 굿즈까지 — 공정한 경매로 진짜 가치를 찾아드립니다.</p>
+    <div class="hero-stats">
+      <div class="hst"><div class="nm">12만+</div><div class="lb">누적 거래</div></div>
+      <div class="hst"><div class="nm">4.9 ★</div><div class="lb">만족도</div></div>
+      <div class="hst"><div class="nm">98%</div><div class="lb">안전 거래</div></div>
+    </div>
+    <div class="hero-cta"><a href="#auctions" class="btn-hw wh">경매 둘러보기 →</a><a href="#how" class="btn-hw gh">이용 방법</a></div>
+  </div>
+  <div class="h-card" id="heroCard"><div class="h-card-img" style="background:linear-gradient(160deg,#1e1065,#4c1d95)">🃏</div><div class="h-card-ft"><div class="h-card-nm">BTS · 정국</div><div class="h-card-sb">Yet To Come — S급</div><div class="h-card-pr" id="heroPrice">₩ —</div></div></div>
+</div></div></section>
+
+<div class="tkr"><div class="pg"><div class="tkr-in">
+  <div class="tkr-lb"><span class="pulse" style="background:rgba(255,255,255,.6)"></span>실시간 낙찰</div>
+  <div class="tkr-sc"><div class="tkr-tr" id="tkrTr"></div></div>
+</div></div></div>
+
+<div class="cat-bar"><div class="pg"><div class="cat-in" id="catIn">
+  <button class="cat-tb on" data-cat="all">🌟 전체</button>
+  <button class="cat-tb" data-cat="포토카드">🃏 포토카드</button>
+  <button class="cat-tb" data-cat="앨범">💿 앨범</button>
+  <button class="cat-tb" data-cat="슬로건">🎀 슬로건</button>
+  <button class="cat-tb" data-cat="키링">🔮 키링</button>
+  <button class="cat-tb" data-cat="포스터">🖼 포스터</button>
+  <button class="cat-tb" data-cat="팬메이드">✨ 팬메이드</button>
+  <button class="cat-tb" data-cat="공식굿즈">🛍 공식굿즈</button>
+</div></div></div>
+
+<section class="sec" id="auctions"><div class="pg">
+  <div class="sec-hd">
+    <div><h2 class="sec-ttl">진행 중인 <span class="hl">경매</span><span class="demo-badge" id="modeBadge">🎮 데모 모드</span></h2><p class="sec-sb">실시간 업데이트 · 지금 바로 입찰하세요</p></div>
+    <a href="#" class="sec-lk">전체 보기 →</a>
+  </div>
+  <div class="st-bar connecting show" id="stBar"><span class="st-dot"></span><span id="stMsg">Supabase 연결 확인 중...</span></div>
+  <div class="flts">
+    <select class="flt-s" id="fltSort"><option>종료 임박순</option><option>입찰가 낮은순</option><option>입찰가 높은순</option><option>입찰 많은순</option></select>
+    <select class="flt-s" id="fltArtist"><option>전체 아티스트</option></select>
+    <select class="flt-s" id="fltGrade"><option>전체 등급</option><option>S급</option><option>A급</option><option>B급</option></select>
+    <select class="flt-s" id="fltStatus"><option>전체 상태</option><option value="live">진행 중</option><option value="ending">마감 임박</option><option value="upcoming">시작 예정</option></select>
+    <span class="flt-cnt" id="fltCnt"></span>
+  </div>
+  <div class="grid" id="aGrid"><div class="ske"></div><div class="ske"></div><div class="ske"></div><div class="ske"></div></div>
+</div></section>
+
+<section class="sec how" id="how"><div class="pg">
+  <div class="sec-hd"><div><h2 class="sec-ttl">경매는 <span class="hl">이렇게</span> 진행돼요</h2><p class="sec-sb">공정하고 투명한 4단계 프로세스</p></div></div>
+  <div class="how-grid">
+    <div class="how-cd"><div class="how-nm">STEP 01</div><div class="how-ic">🔍</div><div class="how-tt">경매 탐색</div><div class="how-ds">아티스트·카테고리·등급 필터로 원하는 포카를 빠르게 찾아보세요.</div></div>
+    <div class="how-cd"><div class="how-nm">STEP 02</div><div class="how-ic">💸</div><div class="how-tt">입찰하기</div><div class="how-ds">현재 최고 입찰가보다 높은 금액을 입력해 입찰. 실시간으로 반영됩니다.</div></div>
+    <div class="how-cd"><div class="how-nm">STEP 03</div><div class="how-ic">🏆</div><div class="how-tt">낙찰 확인</div><div class="how-ds">경매 종료 시 최고 입찰자에게 낙찰 알림이 즉시 전송됩니다.</div></div>
+    <div class="how-cd"><div class="how-nm">STEP 04</div><div class="how-ic">📦</div><div class="how-tt">안전 결제·배송</div><div class="how-ds">에스크로 안전결제 후 판매자가 발송. 수령 확인 후 정산됩니다.</div></div>
+  </div>
+</div></section>
+
+<div class="trust"><div class="pg"><div class="trust-grid">
+  <div><div class="tr-nm">120,000+</div><div class="tr-lb">누적 경매 건수</div></div>
+  <div><div class="tr-nm">98.7%</div><div class="tr-lb">안전 거래 완료율</div></div>
+  <div><div class="tr-nm">4.92 ★</div><div class="tr-lb">평균 판매자 평점</div></div>
+  <div><div class="tr-nm">45,000+</div><div class="tr-lb">활성 회원 수</div></div>
+</div></div></div>
+
+<footer class="ftr"><div class="pg">
+  <div class="ftr-grid">
+    <div><div class="ftr-br"><div class="ftr-bri">★</div>POCA</div><p class="ftr-desc">K-pop 포토카드·굿즈 전문 경매 플랫폼.</p></div>
+    <div class="ftr-col"><h4>서비스</h4><a href="#" class="ftr-lk">경매 참여</a><a href="#" class="ftr-lk">판매 등록</a><a href="#" class="ftr-lk">경매 결과</a><a href="#" class="ftr-lk">안전거래 안내</a></div>
+    <div class="ftr-col"><h4>고객지원</h4><a href="#" class="ftr-lk">자주 묻는 질문</a><a href="#" class="ftr-lk">1:1 문의</a><a href="#" class="ftr-lk">신고하기</a><a href="#" class="ftr-lk">공지사항</a></div>
+    <div class="ftr-col"><h4>정책</h4><a href="#" class="ftr-lk">이용약관</a><a href="#" class="ftr-lk">개인정보처리방침</a><a href="#" class="ftr-lk">경매 운영 정책</a></div>
+  </div>
+  <div class="ftr-btm"><span>© 2026 POCA. All rights reserved.</span><div class="socials"><a href="#" class="soc-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a></div></div>
+</div></footer>
+
+<!-- ══ 소셜 로그인 모달 ══ -->
+<div class="auth-ov" id="authOv">
+<div class="auth-box">
+  <button class="auth-close" id="authClose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <div class="auth-loading" id="authLoading"><div class="big-spin"></div><div class="auth-loading-txt" id="authLoadingTxt">로그인 중...</div></div>
+  <div class="auth-form-wrap" id="authForm">
+    <div class="auth-logo"><div class="auth-logo-i">★</div><div class="auth-logo-nm">POCA</div></div>
+    <h2 class="auth-ttl">간편 로그인</h2>
+    <p class="auth-sub">소셜 계정으로 바로 시작하세요</p>
+    <button class="soc-btn kakao-btn" id="kakaoBtn">
+      <span class="soc-icon"><svg width="18" height="17" viewBox="0 0 18 17" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 0C4.029 0 0 3.066 0 6.848c0 2.42 1.584 4.543 3.976 5.75L3.04 15.9a.3.3 0 0 0 .44.334l4.977-3.3c.163.02.33.026.543.026 4.971 0 9-3.067 9-6.85C18 3.066 13.971 0 9 0Z" fill="#000"/></svg></span>
+      <span class="soc-lbl">카카오로 시작하기</span><span class="soc-spin"></span>
+    </button>
+    <button class="soc-btn naver-btn" id="naverBtn">
+      <span class="soc-icon" style="font-family:var(--fe);font-size:15px;font-weight:800;color:#fff;line-height:1">N</span>
+      <span class="soc-lbl">네이버로 시작하기</span><span class="soc-spin"></span>
+    </button>
+    <button class="soc-btn google-btn" id="googleBtn">
+      <span class="soc-icon"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.616Z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/></svg></span>
+      <span class="soc-lbl">Google로 시작하기</span><span class="soc-spin"></span>
+    </button>
+    <p class="auth-terms">가입 시 <a href="#">이용약관</a> 및 <a href="#">개인정보처리방침</a>에 동의합니다</p>
+  </div>
+</div>
+</div>
+
+<!-- ══ 경매 상세 모달 ══ -->
+<div class="mod-wrap" id="modWrap"><div class="mod-ov" id="modOv"><div class="modal">
+  <div class="mod-hd"><div class="mod-ttl" id="mTitle">경매 상세</div><button class="mod-cl" id="mClose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+  <div class="mod-body"><div class="mod-layout">
+    <div>
+      <div class="mod-img" id="mImg"></div>
+      <div class="mod-chips">
+        <div class="mchip"><div class="mchip-lb">등급</div><div class="mchip-vl" id="mGrade">—</div></div>
+        <div class="mchip"><div class="mchip-lb">카테고리</div><div class="mchip-vl" id="mCat">—</div></div>
+        <div class="mchip"><div class="mchip-lb">판매자 평점</div><div class="mchip-vl" id="mSeller">—</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="mlb">아티스트 / 멤버</div><div class="mvl" id="mArtist">—</div>
+      <div class="mlb">현재 최고 입찰가</div><div class="mbig" id="mPrice">₩ —</div>
+      <div class="mlb">남은 시간</div>
+      <div class="mod-tmr"><div class="mtsg"><div class="mtsg-n" id="mH">00</div><div class="mtsg-u">시간</div></div><div class="mtc">:</div><div class="mtsg"><div class="mtsg-n" id="mM">00</div><div class="mtsg-u">분</div></div><div class="mtc">:</div><div class="mtsg"><div class="mtsg-n" id="mS" style="color:var(--ac)">00</div><div class="mtsg-u">초</div></div></div>
+      <div class="blog-hd">입찰 현황 <span class="blog-cnt" id="mBidCnt">0</span></div>
+      <div class="blog-list" id="blogList"></div>
+      <div id="bidArea"></div>
+    </div>
+  </div></div>
+</div></div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════
+// ⚙️  설정 (여기만 바꾸세요)
+// ══════════════════════════════════
+const SB_URL = 'https://aizxaryprtbobftvlzib.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpenhhcnlwcnRib2JmdHZsemliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NzE2ODksImV4cCI6MjA5NDQ0NzY4OX0.rgEhIqk_FnDPV8Fnsf2CaDCQbRBUkTnn9D5XWoMJCZ8';
+const NAVER_CLIENT_ID = 'your-naver-client-id';       // ← 교체
+const SITE_URL = window.location.origin;
+const IS_DEMO = false;
+if(!IS_DEMO) document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('modeBadge');if(b)b.style.display='none';});
+
+// ── 목 데이터 ──
+const MOCK=[
+  {id:1,group_name:'BTS',member:'정국',album:'Yet To Come',category:'포토카드',grade:'S',emoji:'🃏',status:'live',price:48500,bid_count:14,ends_at:new Date(Date.now()+7653000),seller_name:'별빛상점',seller_rating:4.9},
+  {id:2,group_name:'aespa',member:'카리나',album:'MY WORLD',category:'포토카드',grade:'S',emoji:'🌙',status:'ending',price:62000,bid_count:21,ends_at:new Date(Date.now()+1087000),seller_name:'포카요정',seller_rating:5.0},
+  {id:3,group_name:'NewJeans',member:'민지',album:'OMG',category:'슬로건',grade:'A',emoji:'🎀',status:'live',price:17500,bid_count:6,ends_at:new Date(Date.now()+16935000),seller_name:'뉴진이',seller_rating:4.8},
+  {id:4,group_name:'IVE',member:'안유진',album:"I'VE IVE",category:'키링',grade:'S',emoji:'🔮',status:'live',price:22000,bid_count:9,ends_at:new Date(Date.now()+7548000),seller_name:'아이브팬',seller_rating:4.7},
+  {id:5,group_name:'SEVENTEEN',member:'승관',album:'FML',category:'포토카드',grade:'A',emoji:'💎',status:'ending',price:35000,bid_count:17,ends_at:new Date(Date.now()+412000),seller_name:'캐럿마켓',seller_rating:4.9},
+  {id:6,group_name:'스트레이키즈',member:'방찬',album:'MAXIDENT',category:'포토카드',grade:'S',emoji:'⭐',status:'live',price:51000,bid_count:12,ends_at:new Date(Date.now()+12489000),seller_name:'스키즈덕후',seller_rating:5.0},
+  {id:7,group_name:'르세라핌',member:'허윤진',album:'UNFORGIVEN',category:'앨범',grade:'S',emoji:'💿',status:'upcoming',price:15000,bid_count:0,ends_at:new Date(Date.now()+21600000),seller_name:'피어링',seller_rating:4.6},
+  {id:8,group_name:'BLACKPINK',member:'리사',album:'BORN PINK',category:'포스터',grade:'B',emoji:'🖼',status:'live',price:9800,bid_count:3,ends_at:new Date(Date.now()+18682000),seller_name:'블링크샵',seller_rating:4.5},
+  {id:9,group_name:'BTS',member:'뷔',album:'BE',category:'팬메이드',grade:'A',emoji:'🎨',status:'live',price:28000,bid_count:8,ends_at:new Date(Date.now()+9581000),seller_name:'V갤러리',seller_rating:4.8},
+  {id:10,group_name:'aespa',member:'윈터',album:'Girls',category:'포토카드',grade:'S',emoji:'❄️',status:'ending',price:44000,bid_count:19,ends_at:new Date(Date.now()+194000),seller_name:'에스파본진',seller_rating:4.9},
+  {id:11,group_name:'IVE',member:'레이',album:'AFTER LIKE',category:'공식굿즈',grade:'S',emoji:'🛍',status:'live',price:18500,bid_count:5,ends_at:new Date(Date.now()+26100000),seller_name:'아이브레이',seller_rating:4.7},
+  {id:12,group_name:'NewJeans',member:'하니',album:'Ditto',category:'포토카드',grade:'A',emoji:'🐇',status:'live',price:26000,bid_count:11,ends_at:new Date(Date.now()+6450000),seller_name:'뉴진팬클',seller_rating:4.8},
+];
+const MBIDS={1:[{user_name:'별빛유저',amount:48500},{user_name:'포카마니아',amount:46000}],2:[{user_name:'입찰왕',amount:62000},{user_name:'해피팬클',amount:59500}],5:[{user_name:'캐럿사랑',amount:35000}],10:[{user_name:'에스파덕',amount:44000}]};
+const BOTS=['별빛봇','팬심봇','덕후99','포카왕','찜콩이','입찰요정'];
+const TKR=[{n:'aespa 카리나 포토카드',p:'₩62,000'},{n:'NewJeans 민지 슬로건',p:'₩28,500'},{n:'SEVENTEEN 승관 포카',p:'₩41,000'},{n:'IVE 안유진 키링',p:'₩19,000'},{n:'SKZ 방찬 포카',p:'₩55,000'}];
+const BG={1:'linear-gradient(160deg,#1e1065,#4c1d95)',2:'linear-gradient(160deg,#1a0533,#6b21d6)',3:'linear-gradient(160deg,#500724,#9f1239)',4:'linear-gradient(160deg,#0c1a4a,#1d4ed8)',5:'linear-gradient(160deg,#064e3b,#15803d)',6:'linear-gradient(160deg,#431407,#c2410c)',7:'linear-gradient(160deg,#1e1b4b,#4338ca)',8:'linear-gradient(160deg,#4a0520,#be123c)',9:'linear-gradient(160deg,#2e1065,#7c3aed)',10:'linear-gradient(160deg,#0c4a6e,#0369a1)',11:'linear-gradient(160deg,#022c22,#059669)',12:'linear-gradient(160deg,#431407,#92400e)'};
+const SL={live:'🔴 진행 중',ending:'⚡ 마감 임박',upcoming:'🕐 시작 예정',closed:'✅ 종료'};
+const DEMO_USERS={kakao:{id:'demo_kakao',name:'김민준',color:'#FEE500',textColor:'#000',provider:'카카오'},naver:{id:'demo_naver',name:'박서연',color:'#03C75A',textColor:'#fff',provider:'네이버'},google:{id:'demo_google',name:'이지원',color:'#4285F4',textColor:'#fff',provider:'구글'}};
+
+let auctions=[],catFilter='all',curItem=null,timers={},sb=null,currentUser=null;
+const pad=n=>String(n).padStart(2,'0');
+const secLeft=d=>Math.max(0,Math.floor((new Date(d)-Date.now())/1000));
+const tHTML=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return`<div class="tsg"><span class="tsg-n">${pad(h)}</span><span class="tsg-u">시</span></div><span class="tc">:</span><div class="tsg"><span class="tsg-n">${pad(m)}</span><span class="tsg-u">분</span></div><span class="tc">:</span><div class="tsg"><span class="tsg-n">${pad(ss)}</span><span class="tsg-u">초</span></div>`;};
+
+(()=>{const t=document.getElementById('tkrTr');t.innerHTML=[...TKR,...TKR].map(d=>`<span class="tk-it">${d.n} <span class="tk-pr">${d.p}</span> 낙찰<span class="tk-dt"></span></span>`).join('');})();
+
+function setStatus(type,msg){const b=document.getElementById('stBar');document.getElementById('stMsg').textContent=msg;b.className='st-bar show '+type;if(type==='ok')setTimeout(()=>b.classList.remove('show'),4000);}
+
+// ── AUTH ──
+function openAuth(){document.getElementById('authOv').classList.add('open');document.getElementById('authLoading').classList.remove('show');document.getElementById('authForm').classList.remove('fade');}
+function closeAuth(){document.getElementById('authOv').classList.remove('open');document.querySelectorAll('.soc-btn').forEach(b=>{b.disabled=false;b.classList.remove('loading');});}
+
+async function loginWith(provider){
+  const btn=document.getElementById(provider+'Btn');
+  btn.disabled=true;btn.classList.add('loading');
+  document.getElementById('authForm').classList.add('fade');
+  document.getElementById('authLoading').classList.add('show');
+  document.getElementById('authLoadingTxt').textContent={kakao:'카카오 로그인 중...',naver:'네이버 로그인 중...',google:'Google 로그인 중...'}[provider];
+  if(IS_DEMO){
+    await new Promise(r=>setTimeout(r,1500));
+    setUser(DEMO_USERS[provider]);closeAuth();
+    showToast(DEMO_USERS[provider].provider+' 로그인 완료! 환영합니다 🎉','ok');return;
+  }
+  if(provider==='kakao')await sb.auth.signInWithOAuth({provider:'kakao',options:{redirectTo:SITE_URL,scopes:'talk_message'}});
+  else if(provider==='google')await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:SITE_URL}});
+  else if(provider==='naver'){
+    const state=Math.random().toString(36).slice(2);sessionStorage.setItem('naver_state',state);
+    window.location.href=`https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(SB_URL+'/functions/v1/naver-auth')}&state=${state}`;
+  }
+}
+
+function setUser(u){
+  currentUser=u;
+  document.getElementById('loginBtn').style.display='none';
+  const wrap=document.getElementById('userWrap');wrap.style.display='block';
+  const av=document.getElementById('userAv');av.style.background=u.color;av.style.color=u.textColor;av.textContent=u.name[0];
+  document.getElementById('userNm').textContent=u.name;
+  if(curItem)renderBidArea();
+}
+
+function signOut(){
+  currentUser=null;if(!IS_DEMO&&sb)sb.auth.signOut();
+  document.getElementById('loginBtn').style.display='';
+  document.getElementById('userWrap').style.display='none';
+  document.getElementById('userMenu').classList.remove('open');
+  if(curItem)renderBidArea();showToast('로그아웃 되었습니다');
+}
+
+document.getElementById('userChip').addEventListener('click',()=>document.getElementById('userMenu').classList.toggle('open'));
+document.addEventListener('click',e=>{if(!document.getElementById('userWrap').contains(e.target))document.getElementById('userMenu').classList.remove('open');});
+document.getElementById('logoutBtn').addEventListener('click',signOut);
+document.getElementById('loginBtn').addEventListener('click',openAuth);
+document.getElementById('authClose').addEventListener('click',closeAuth);
+document.getElementById('authOv').addEventListener('click',e=>{if(e.target===document.getElementById('authOv'))closeAuth();});
+document.getElementById('kakaoBtn').addEventListener('click',()=>loginWith('kakao'));
+document.getElementById('naverBtn').addEventListener('click',()=>loginWith('naver'));
+document.getElementById('googleBtn').addEventListener('click',()=>loginWith('google'));
+
+async function checkOAuthReturn(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(session?.user){
+    const u=session.user,prov=u.app_metadata?.provider||'email';
+    const cols={kakao:{bg:'#FEE500',text:'#000'},google:{bg:'#4285F4',text:'#fff'},naver:{bg:'#03C75A',text:'#fff'}};
+    const c=cols[prov]||{bg:'#5B3FE8',text:'#fff'};
+    setUser({id:u.id,name:u.user_metadata?.full_name||u.email?.split('@')[0]||'유저',color:c.bg,textColor:c.text,provider:prov});
+    // 카카오 로그인인 경우 provider_token 저장 (알림 발송용)
+    if(prov==='kakao'&&session.provider_token){
+      const expiresAt=new Date(Date.now()+21600*1000).toISOString(); // 6시간
+      await sb.from('profiles').upsert({
+        id:u.id,
+        kakao_access_token:session.provider_token,
+        kakao_refresh_token:session.provider_refresh_token||null,
+        kakao_token_expires_at:expiresAt,
+      },{onConflict:'id'});
+    }
+  }
+  const p=new URLSearchParams(window.location.search);
+  if(p.get('auth_error'))showToast('로그인 실패: '+p.get('auth_error'),'err');
+  if(p.get('provider'))showToast('로그인이 완료되었습니다 🎉','ok');
+}
+
+// ── DATA ──
+async function init(){
+  setStatus('connecting','Supabase 연결 확인 중...');
+  if(!IS_DEMO){
+    try{
+      sb=supabase.createClient(SB_URL,SB_KEY);
+      const{data,error}=await sb.from('auctions').select('*').order('ends_at',{ascending:true});
+      if(error)throw error;
+      auctions=data;document.getElementById('modeBadge').style.display='none';
+      setStatus('ok','✓ 실시간 연결됨 (Supabase)');
+      subscribeRealtime();await checkOAuthReturn();
+    }catch(e){setStatus('err','연결 실패 — 데모 모드로 실행');loadDemo();startBots();}
+  }else{await new Promise(r=>setTimeout(r,1400));loadDemo();startBots();}
+  populateArtist();renderGrid();updateHero();
+}
+
+function loadDemo(){
+  auctions=MOCK.map(d=>({...d,ends_at:new Date(d.ends_at)}));
+  setStatus('ok','✓ 데모 모드 — Supabase 키 입력 시 실제 서비스로 전환됩니다');
+  document.getElementById('liveCount').textContent=auctions.filter(a=>a.status==='live'||a.status==='ending').length+'개';
+}
+
+function subscribeRealtime(){
+  sb.channel('poka').on('postgres_changes',{event:'UPDATE',schema:'public',table:'auctions'},p=>{
+    const u=p.new,i=auctions.findIndex(a=>a.id===u.id);
+    if(i!==-1)auctions[i]={...auctions[i],...u};
+    flashPrice(u.id,u.price,u.bid_count);
+    if(curItem&&curItem.id===u.id)updateModalPrice(u.price);
+  }).on('postgres_changes',{event:'INSERT',schema:'public',table:'bids'},p=>{
+    if(curItem&&curItem.id===p.new.auction_id)loadBids(p.new.auction_id);
+  }).subscribe();
+}
+
+function startBots(){
+  function doBid(){
+    const live=auctions.filter(a=>a.status==='live'||a.status==='ending');if(!live.length)return;
+    const t=live[Math.floor(Math.random()*live.length)];
+    const np=t.price+(Math.floor(Math.random()*3)+1)*500;
+    const bot=BOTS[Math.floor(Math.random()*BOTS.length)];
+    t.price=np;t.bid_count++;
+    if(!MBIDS[t.id])MBIDS[t.id]=[];
+    MBIDS[t.id].unshift({user_name:bot,amount:np,_new:true});
+    setTimeout(()=>{if(MBIDS[t.id]&&MBIDS[t.id][0])delete MBIDS[t.id][0]._new;},600);
+    flashPrice(t.id,np,t.bid_count);
+    if(curItem&&curItem.id===t.id){updateModalPrice(np);loadBids(t.id);}
+    setTimeout(doBid,9000+Math.random()*13000);
+  }
+  setTimeout(doBid,5000+Math.random()*5000);
+}
+
+function flashPrice(id,price,bidCount){
+  const el=document.getElementById('cp-'+id);
+  if(el){el.textContent='₩ '+price.toLocaleString();el.classList.add('up');setTimeout(()=>el.classList.remove('up'),1200);}
+  const be=document.querySelector(`.acd[data-id="${id}"] .pr-bds`);
+  if(be)be.textContent=bidCount+'회 입찰';
+  const card=document.querySelector(`.acd[data-id="${id}"]`);
+  if(card){card.classList.add('upd');setTimeout(()=>card.classList.remove('upd'),900);}
+}
+
+function getFiltered(){
+  let d=[...auctions];
+  if(catFilter!=='all')d=d.filter(x=>x.category===catFilter);
+  const a=document.getElementById('fltArtist').value;if(a&&a!=='전체 아티스트')d=d.filter(x=>x.group_name===a);
+  const g=document.getElementById('fltGrade').value;if(g&&g!=='전체 등급')d=d.filter(x=>x.grade===g[0]);
+  const st=document.getElementById('fltStatus').value;if(st&&st!=='전체 상태')d=d.filter(x=>x.status===st);
+  const sort=document.getElementById('fltSort').value;
+  if(sort==='입찰가 낮은순')d.sort((a,b)=>a.price-b.price);
+  else if(sort==='입찰가 높은순')d.sort((a,b)=>b.price-a.price);
+  else if(sort==='입찰 많은순')d.sort((a,b)=>b.bid_count-a.bid_count);
+  else d.sort((a,b)=>{const ia=a.status==='upcoming'?99999:secLeft(a.ends_at),ib=b.status==='upcoming'?99999:secLeft(b.ends_at);return ia-ib;});
+  return d;
+}
+
+function renderGrid(){
+  const data=getFiltered();document.getElementById('fltCnt').textContent=data.length+'개 경매';
+  const g=document.getElementById('aGrid');
+  if(!data.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:64px 0;color:var(--t3);font-size:14px">해당 조건의 경매가 없습니다.</div>';return;}
+  g.innerHTML=data.map(d=>`
+<article class="acd" data-id="${d.id}" tabindex="0">
+  <div class="thb">
+    <div class="thb-bg" style="position:absolute;inset:0;background:${BG[d.id]||'#1e1065'}"></div>
+    <div class="thb-ov"></div>
+    <div class="thb-em">${d.emoji}</div>
+    <span class="sbd ${d.status}">${d.status!=='upcoming'&&d.status!=='closed'?'<span class="sdot"></span>':''}${SL[d.status]||d.status}</span>
+    <button class="wsh" onclick="toggleWish(event,this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+    <span class="grd-tg">${d.grade}급</span>
+  </div>
+  <div class="cd-body">
+    <div class="cd-grp">${d.group_name}</div>
+    <div class="cd-mbr">${d.member}</div>
+    <div class="cd-alb">${d.album} · ${d.category}</div>
+    <div class="cd-rl"></div>
+    <div class="pr-row"><div class="pr-cur" id="cp-${d.id}">₩ ${d.price.toLocaleString()}</div><div class="pr-bds">${d.bid_count}회 입찰</div></div>
+    <div class="tmr${d.status==='ending'?' urg':''}" id="ct-${d.id}">${tHTML(secLeft(d.ends_at))}</div>
+    <button class="bid-btn ${d.status==='ending'?'ug':d.status==='upcoming'||d.status==='closed'?'ds':'df'}"
+      onclick="event.stopPropagation();openModal(${d.id})"
+      ${d.status==='upcoming'||d.status==='closed'?'disabled':''}>
+      ${d.status==='upcoming'?'⏰ 시작 예정':d.status==='closed'?'✅ 종료':d.status==='ending'?'⚡ 지금 입찰':'입찰하기'}
+    </button>
+  </div>
+</article>`).join('');
+  g.querySelectorAll('.acd').forEach(c=>{c.addEventListener('click',()=>openModal(Number(c.dataset.id)));});
+  startTimers(data);
+}
+
+function startTimers(data){
+  Object.values(timers).forEach(clearInterval);timers={};
+  data.forEach(item=>{
+    if(item.status==='upcoming'||item.status==='closed')return;
+    timers[item.id]=setInterval(()=>{
+      const s=secLeft(item.ends_at);
+      const el=document.getElementById('ct-'+item.id);if(el)el.innerHTML=tHTML(s);
+      if(curItem&&curItem.id===item.id){document.getElementById('mH').textContent=pad(Math.floor(s/3600));document.getElementById('mM').textContent=pad(Math.floor((s%3600)/60));document.getElementById('mS').textContent=pad(s%60);}
+      if(s<=0)clearInterval(timers[item.id]);
+    },1000);
+  });
+}
+
+function populateArtist(){
+  const artists=[...new Set(auctions.map(a=>a.group_name))].sort();
+  document.getElementById('fltArtist').innerHTML='<option>전체 아티스트</option>'+artists.map(a=>`<option>${a}</option>`).join('');
+}
+
+function updateHero(){
+  const f=auctions.find(x=>x.status==='live'||x.status==='ending');
+  if(f){document.getElementById('heroPrice').textContent='₩ '+f.price.toLocaleString();document.getElementById('heroCard').onclick=()=>openModal(f.id);}
+}
+
+async function openModal(id){
+  const item=auctions.find(x=>x.id===id);if(!item)return;curItem=item;
+  document.getElementById('mTitle').textContent=`${item.group_name} · ${item.member} — ${item.category}`;
+  const img=document.getElementById('mImg');img.textContent=item.emoji;img.style.background=BG[item.id]||'#1e1065';
+  document.getElementById('mArtist').textContent=`${item.group_name} · ${item.member} (${item.album})`;
+  document.getElementById('mPrice').textContent='₩ '+item.price.toLocaleString();
+  document.getElementById('mGrade').textContent=item.grade+'급';document.getElementById('mCat').textContent=item.category;document.getElementById('mSeller').textContent='★ '+item.seller_rating;
+  const s=secLeft(item.ends_at);document.getElementById('mH').textContent=pad(Math.floor(s/3600));document.getElementById('mM').textContent=pad(Math.floor((s%3600)/60));document.getElementById('mS').textContent=pad(s%60);
+  document.getElementById('blogList').innerHTML='<div style="text-align:center;padding:16px 0;color:var(--t3);font-size:13px">불러오는 중...</div>';
+  renderBidArea();document.getElementById('modWrap').classList.add('open');document.body.style.overflow='hidden';
+  await loadBids(id);
+}
+
+function renderBidArea(){
+  if(!curItem)return;const area=document.getElementById('bidArea');
+  if(!currentUser){area.innerHTML=`<div class="bid-login-cta"><p>입찰하려면 로그인이 필요해요</p><button class="bid-login-cta-btn" onclick="closeModal();openAuth()">로그인하기</button></div>`;return;}
+  const minBid=curItem.price+500;
+  area.innerHTML=`<div class="bid-pnl"><div class="bp-ttl">입찰하기</div><div class="bp-mn">최소 입찰가: <strong id="mMinBid">₩ ${minBid.toLocaleString()}</strong> 이상</div><div class="bid-row"><input type="number" class="bid-inp" id="bidInp" placeholder="${minBid.toLocaleString()}" min="${minBid}"><button class="bid-go" id="bidGoBtn">입찰</button></div><div class="quick" id="quickBids"></div></div>`;
+  updateQuick(curItem.price);
+  document.getElementById('bidGoBtn').addEventListener('click',placeBid);
+}
+
+function updateModalPrice(price){
+  const el=document.getElementById('mPrice');if(!el)return;
+  el.textContent='₩ '+price.toLocaleString();el.classList.add('bump');setTimeout(()=>el.classList.remove('bump'),400);
+  const mn=document.getElementById('mMinBid');if(mn)mn.textContent='₩ '+(price+500).toLocaleString();
+  const inp=document.getElementById('bidInp');if(inp){inp.min=price+500;inp.placeholder=(price+500).toLocaleString();}
+  updateQuick(price);
+}
+
+function updateQuick(price){
+  const el=document.getElementById('quickBids');if(!el)return;
+  const min=price+500;
+  el.innerHTML=[min,min+1000,min+3000,min+5000].map(a=>`<button class="qbtn" onclick="setQ(${a})">₩${a.toLocaleString()}</button>`).join('');
+}
+
+async function loadBids(id){
+  let bids=[];
+  if(IS_DEMO||!sb){bids=MBIDS[id]||[];}
+  else{const{data}=await sb.from('bids').select('*').eq('auction_id',id).order('created_at',{ascending:false}).limit(10);bids=data||[];}
+  document.getElementById('mBidCnt').textContent=bids.length;
+  const el=document.getElementById('blogList');
+  if(!bids.length){el.innerHTML='<div style="text-align:center;padding:16px 0;color:var(--t3);font-size:13px">첫 입찰자가 되어보세요 🌟</div>';return;}
+  el.innerHTML=bids.map((b,i)=>`<div class="blog-row${i===0?' top':''}${b._new?' nb':''}"><div class="blog-usr"><div class="blog-av">${b.user_name[0]}</div>${b.user_name}${i===0?'<span class="blog-top">최고가</span>':''}</div><div class="blog-amt">₩ ${b.amount.toLocaleString()}</div></div>`).join('');
+}
+
+async function placeBid(){
+  if(!currentUser){openAuth();return;}
+  const inp=document.getElementById('bidInp');const amount=parseInt(inp.value),min=parseInt(inp.min);
+  if(!amount||amount<min){inp.className='bid-inp err';setTimeout(()=>inp.className='bid-inp',1600);showToast('₩'+min.toLocaleString()+' 이상 입찰해야 합니다','err');return;}
+  const btn=document.getElementById('bidGoBtn');btn.disabled=true;btn.innerHTML='<span class="spin-s"></span> 처리 중';
+  if(IS_DEMO||!sb){
+    await new Promise(r=>setTimeout(r,700));
+    curItem.price=amount;curItem.bid_count++;
+    if(!MBIDS[curItem.id])MBIDS[curItem.id]=[];
+    MBIDS[curItem.id].unshift({user_name:currentUser.name,amount,_new:true});
+    updateModalPrice(amount);loadBids(curItem.id);flashPrice(curItem.id,amount,curItem.bid_count);
+    btn.disabled=false;btn.innerHTML='입찰';inp.value='';showToast('입찰 완료! 🎉','ok');
+  }else{
+    const{data,error}=await sb.rpc('place_bid',{p_auction_id:curItem.id,p_user_name:currentUser.name,p_amount:amount,p_user_id:currentUser.id});
+    btn.disabled=false;btn.innerHTML='입찰';
+    if(error||!data?.success){showToast(data?.message||'입찰 실패','err');return;}
+    inp.value='';showToast('입찰 완료! 🎉','ok');
+  }
+}
+
+function closeModal(){document.getElementById('modWrap').classList.remove('open');document.body.style.overflow='';curItem=null;}
+document.getElementById('mClose').addEventListener('click',closeModal);
+document.getElementById('modOv').addEventListener('click',e=>{if(e.target===document.getElementById('modOv'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAuth();}});
+function setQ(a){const el=document.getElementById('bidInp');if(el)el.value=a;}
+function toggleWish(e,btn){e.stopPropagation();btn.classList.toggle('on');}
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+document.getElementById('catIn').addEventListener('click',e=>{const tab=e.target.closest('.cat-tb');if(!tab)return;document.querySelectorAll('.cat-tb').forEach(t=>t.classList.remove('on'));tab.classList.add('on');catFilter=tab.dataset.cat;renderGrid();});
+['fltSort','fltArtist','fltGrade','fltStatus'].forEach(id=>document.getElementById(id).addEventListener('change',renderGrid));
+document.getElementById('searchInp').addEventListener('input',e=>{const q=e.target.value.toLowerCase().trim();if(!q){renderGrid();return;}const bk=auctions;auctions=auctions.filter(a=>a.group_name.toLowerCase().includes(q)||a.member.toLowerCase().includes(q)||a.album.toLowerCase().includes(q));renderGrid();auctions=bk;});
+init();
+</script>
+</body>
 </html>
