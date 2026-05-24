@@ -5,6 +5,10 @@ client_secret*.json
 # 개발 메모
 TODO.md
 
+# 빌드/의존성
+node_modules/
+dist/
+
 # OS
 .DS_Store
 .vercel
