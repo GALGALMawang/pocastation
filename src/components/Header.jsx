@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-function Header({ user, profile, credit, onOpenModal, activeView, onNavClick }) {
+function Header({ user, profile, credit, onOpenModal, activeView, onNavClick, search, onSearch }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -17,7 +17,13 @@ function Header({ user, profile, credit, onOpenModal, activeView, onNavClick }) 
       </a>
       <div className="srch">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" placeholder="아티스트, 멤버, 앨범 검색..." />
+        <input
+          type="text"
+          placeholder="아티스트, 멤버, 앨범 검색..."
+          value={search || ''}
+          onChange={e => onSearch?.(e.target.value)}
+          onFocus={() => document.getElementById('auctions')?.scrollIntoView({ behavior: 'smooth' })}
+        />
       </div>
       <nav className="gnv">
         <a href="#auctions" className={activeView === 'live' ? 'on' : ''} onClick={(e) => { e.preventDefault(); onNavClick('live'); }}>경매</a>
