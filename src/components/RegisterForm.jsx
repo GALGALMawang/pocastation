@@ -1,10 +1,7 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { supabase } from '../lib/supabase';
 import { sha256File, pHashFile, hammingDistance, generateVerificationWord } from '../lib/imageHash';
-
-const useAuth = () => useContext(AuthContext);
 
 const FIELD_STYLE = {
   width: '100%', padding: '9px 12px', borderRadius: 8,
@@ -89,7 +86,7 @@ export default function RegisterForm() {
   };
 
   const handleSubmit = async () => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) return; // Home.jsx에서 비로그인 시 auth 모달로 전환하므로 여기 도달하지 않음
     if (!file || hashStatus !== 'ok' || !form.group || !form.member || !form.price || !form.contact) return;
     setSubmitting(true);
     try {

@@ -102,6 +102,11 @@ function Home() {
     document.getElementById('auctions')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // 판매 등록 모달 열기 — 비로그인 시 로그인 모달로 전환
+  const openCreate = () => {
+    setActiveModal(user ? 'create' : 'auth');
+  };
+
   // 경매 상세 모달 열기
   const openAuction = (auction) => {
     setSelectedAuction(auction);
@@ -154,7 +159,7 @@ function Home() {
     <AuthContext.Provider value={{ user, profile, credit }}>
       <Header
         user={user} profile={profile} credit={credit}
-        onOpenModal={setActiveModal}
+        onOpenModal={(key) => key === 'create' ? openCreate() : setActiveModal(key)}
         activeView={activeView} onNavClick={handleNavClick}
         search={search} onSearch={setSearch}
       />
