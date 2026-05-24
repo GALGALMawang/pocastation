@@ -60,14 +60,14 @@ export default function BidsModal({ user, onClose, onOpenSettlement }) {
             </div>
           ) : (
             <div>
-              {bids.map((bid, i) => {
+              {bids.map((bid) => {
                 const a = bid.auctions;
                 if (!a) return null;
                 const isWinner = a.status === 'ended' && a.winner_id === user.id && bid.amount === a.current_price;
                 const isMyHighest = bid.amount === a.current_price;
 
                 return (
-                  <div key={i} style={{
+                  <div key={bid.id} style={{
                     padding:'16px 20px',
                     borderBottom:'1px solid rgba(0,0,0,0.06)',
                     background: isWinner ? 'rgba(124,58,237,0.03)' : '#fff',

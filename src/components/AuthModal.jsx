@@ -14,7 +14,7 @@ function AuthModal({ onClose }) {
     <div className="auth-ov open">
       <div className="auth-box">
         <button className="auth-close" onClick={onClose}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
         <div className="auth-logo"><div className="auth-logo-i">★</div><div className="auth-logo-nm">POCA</div></div>
         <h2 className="auth-ttl">간편 로그인</h2>

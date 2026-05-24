@@ -83,7 +83,6 @@ function Home() {
     }
     // 뷰 필터
     if (activeView === 'ended') return a.status === 'ended';
-    if (activeView === 'artist') return a.status !== 'ended' && a.status !== 'pending';
     return a.status !== 'ended' && a.status !== 'pending';
   });
 
@@ -103,7 +102,7 @@ function Home() {
   return (
     <AuthContext.Provider value={{ user, profile, credit }}>
       <Header
-        user={user} credit={credit} onOpenModal={setActiveModal}
+        user={user} profile={profile} credit={credit} onOpenModal={setActiveModal}
         activeView={activeView} onNavClick={handleNavClick}
         search={search} onSearch={setSearch}
       />

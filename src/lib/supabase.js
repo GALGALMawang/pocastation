@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SB_URL = 'https://aizxaryprtbobftvlzib.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpenhhcnlwcnRib2JmdHZsemliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NzE2ODksImV4cCI6MjA5NDQ0NzY4OX0.rgEhIqk_FnDPV8Fnsf2CaDCQbRBUkTnn9D5XWoMJCZ8';
+const SB_URL = import.meta.env.VITE_SUPABASE_URL;
+const SB_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!SB_URL || !SB_KEY) {
+  throw new Error('VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set in .env.local');
+}
 
 export const supabase = createClient(SB_URL, SB_KEY);

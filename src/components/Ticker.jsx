@@ -30,7 +30,7 @@ function Ticker() {
       <div className="tkr-sc">
         <div className="tkr-tr">
           {[...bids, ...bids].map((bid, i) => (
-            <span key={i} className="tk-it">
+            <span key={`${bid.id}-${i}`} className="tk-it">
               {bid.auctions?.group_name} {bid.auctions?.member} — 
               <span className="tk-pr"> ₩{bid.amount.toLocaleString()}</span> 입찰
               <span className="tk-dt"></span>

@@ -81,6 +81,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
         .eq('id', auction.id)
         .single();
       setDirectContact(data);
+      onComplete?.();
     } catch (e) {
       alert('오류: ' + e.message);
     }

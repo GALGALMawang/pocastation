@@ -121,8 +121,8 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
 
             {/* 입찰 내역 */}
             <div className="blog-list">
-              {bids.map((b, i) => (
-                <div key={i} className="blog-row">
+              {bids.map((b) => (
+                <div key={b.id} className="blog-row">
                   <span>{b.bidder_name || '익명'}</span>
                   <span className="blog-amt">₩ {b.amount.toLocaleString()}</span>
                 </div>
