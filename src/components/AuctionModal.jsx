@@ -32,11 +32,12 @@ function getTimeLeft(endsAt) {
 }
 
 function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOpenSettlement }) {
-  const [auction,  setAuction]  = useState(initialAuction);
-  const [bidAmount,setBidAmount]= useState((initialAuction.current_price || 0) + 500);
-  const [bids,     setBids]     = useState([]);
-  const [bidMsg,   setBidMsg]   = useState(null); // { type: 'ok' | 'err', text }
-  const [bidding,  setBidding]  = useState(false);
+  const [auction,   setAuction]  = useState(initialAuction);
+  const [bidAmount, setBidAmount]= useState((initialAuction.current_price || 0) + 500);
+  const [bids,      setBids]     = useState([]);
+  const [bidMsg,    setBidMsg]   = useState(null); // { type: 'ok' | 'err', text }
+  const [bidding,   setBidding]  = useState(false);
+  const [buyingNow, setBuyingNow]= useState(false);
   const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(initialAuction.ends_at));
 
   const isEnded  = auction.status === 'ended';
@@ -89,6 +90,27 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
   // view_count 컬럼이 없으면 RPC가 실패해도 무시
   const incrementViewCount = async () => {
     try { await supabase.rpc('increment_view_count', { p_auction_id: auction.id }); } catch {}
+  };
+
+  // ──────────────────────────────────────────────────────────
+  // 즉시 구매
+  // ──────────────────────────────────────────────────────────
+  const handleBuyNow = async () => {
+    if (!user) { onOpenAuth(); return; }
+    if (!window.confirm(`₩${auction.buy_now_price?.toLocaleString()}에 즉시 구매하시겠어요?`)) return;
+    setBuyingNow(true);
+    setBidMsg(null);
+    const { data, error } = await supabase.rpc('buy_now', {
+      p_auction_id: auction.id,
+      p_user_id:    user.id,
+      p_user_name:  user.email?.split('@')[0] || '유저',
+    });
+    setBuyingNow(false);
+    if (error || !data?.success) {
+      setBidMsg({ type: 'err', text: data?.message || '즉시 구매 실패' });
+    } else {
+      setBidMsg({ type: 'ok', text: '즉시 구매 완료! 결제를 진행하세요.' });
+    }
   };
 
   // ──────────────────────────────────────────────────────────
@@ -220,16 +242,35 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
 
                 {/* 입찰 패널 (진행 중인 경매에만 표시) */}
                 {!isEnded && (
-                  <div className="bid-pnl">
-                    <input
-                      type="number"
-                      className="bid-inp"
-                      value={bidAmount}
-                      onChange={e => setBidAmount(parseInt(e.target.value) || 0)}
-                    />
-                    <button className="bid-go" onClick={handleBid} disabled={bidding}>
-                      {bidding ? '처리 중...' : '입찰하기'}
-                    </button>
+                  <div>
+                    <div className="bid-pnl">
+                      <input
+                        type="number"
+                        className="bid-inp"
+                        value={bidAmount}
+                        onChange={e => setBidAmount(parseInt(e.target.value) || 0)}
+                      />
+                      <button className="bid-go" onClick={handleBid} disabled={bidding}>
+                        {bidding ? '처리 중...' : '입찰하기'}
+                      </button>
+                    </div>
+
+                    {/* 즉시 구매 버튼 */}
+                    {auction.buy_now_price && (
+                      <button
+                        onClick={handleBuyNow}
+                        disabled={buyingNow}
+                        style={{
+                          width:'100%', marginTop:8, padding:'11px',
+                          borderRadius:10, border:'2px solid #e8a020',
+                          background:'rgba(232,160,32,0.07)', color:'#b87000',
+                          fontSize:13, fontWeight:800, cursor:'pointer',
+                          transition:'all 0.15s',
+                        }}
+                      >
+                        {buyingNow ? '처리 중...' : `⚡ 즉시 구매 ₩${auction.buy_now_price.toLocaleString()}`}
+                      </button>
+                    )}
                   </div>
                 )}
 

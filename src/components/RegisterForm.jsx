@@ -9,7 +9,7 @@ const FIELD_STYLE = {
   fontSize: 13, background: '#fff', color: '#111', boxSizing: 'border-box',
 };
 
-const INITIAL_FORM = { group: '', gender: '여돌', member: '', cardName: '', album: '', category: '포토카드', grade: 'A', price: '', duration: '24', durationMode: '24', contact: '' };
+const INITIAL_FORM = { group: '', gender: '여돌', member: '', cardName: '', album: '', category: '포토카드', grade: 'A', price: '', buyNow: '', duration: '24', durationMode: '24', contact: '' };
 
 export default function RegisterForm() {
   const { user, profile } = useContext(AuthContext);
@@ -69,6 +69,7 @@ export default function RegisterForm() {
         start_price:      parseInt(form.price),
         current_price:    parseInt(form.price),
         duration_hours:   parseInt(form.duration),
+        buy_now_price:    form.buyNow ? parseInt(form.buyNow) : null,
         verification_word: verificationWord,
         img_sha256:       sha,
         img_phash:        phash,
@@ -89,7 +90,8 @@ export default function RegisterForm() {
     setHashStatus(null); setForm(INITIAL_FORM);
   };
 
-  const canSubmit = hashStatus === 'ok' && form.group && form.member && form.price && form.contact && !submitting;
+  const buyNowInvalid = form.buyNow && form.price && parseInt(form.buyNow) <= parseInt(form.price);
+  const canSubmit = hashStatus === 'ok' && form.group && form.member && form.price && form.contact && !submitting && !buyNowInvalid;
 
   if (success) {
     return (
@@ -254,9 +256,26 @@ export default function RegisterForm() {
               <input type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} placeholder="10000" style={FIELD_STYLE} />
             </div>
             <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>직거래 연락처 *</label>
-              <input value={form.contact} onChange={e => setForm(p => ({ ...p, contact: e.target.value }))} placeholder="카카오ID 또는 전화번호" style={FIELD_STYLE} />
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>
+                즉시 구매가 (₩)
+                <span style={{ fontSize: 10, fontWeight: 500, color: 'rgba(0,0,0,0.3)', marginLeft: 4 }}>선택</span>
+              </label>
+              <input
+                type="number"
+                value={form.buyNow}
+                onChange={e => setForm(p => ({ ...p, buyNow: e.target.value }))}
+                placeholder="비워두면 미사용"
+                style={FIELD_STYLE}
+              />
+              {form.buyNow && form.price && parseInt(form.buyNow) <= parseInt(form.price) && (
+                <div style={{ fontSize: 10, color: '#c02020', marginTop: 4 }}>시작가보다 높아야 해요</div>
+              )}
             </div>
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>직거래 연락처 *</label>
+            <input value={form.contact} onChange={e => setForm(p => ({ ...p, contact: e.target.value }))} placeholder="카카오ID 또는 전화번호" style={FIELD_STYLE} />
           </div>
 
           <button
