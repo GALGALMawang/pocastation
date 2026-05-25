@@ -9,7 +9,7 @@ const FIELD_STYLE = {
   fontSize: 13, background: '#fff', color: '#111', boxSizing: 'border-box',
 };
 
-const INITIAL_FORM = { group: '', gender: '여돌', member: '', cardName: '', album: '', category: '포토카드', grade: 'A', price: '', duration: '24', contact: '' };
+const INITIAL_FORM = { group: '', gender: '여돌', member: '', cardName: '', album: '', category: '포토카드', grade: 'A', price: '', duration: '24', durationMode: '24', contact: '' };
 
 export default function RegisterForm() {
   const { user, profile } = useContext(AuthContext);
@@ -219,9 +219,32 @@ export default function RegisterForm() {
             </div>
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>경매 시간</label>
-              <select value={form.duration} onChange={e => setForm(p => ({ ...p, duration: e.target.value }))} style={FIELD_STYLE}>
-                {[['12','12시간'],['24','24시간'],['48','48시간'],['72','72시간']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {[['1','1h'],['3','3h'],['6','6h'],['12','12h'],['24','1일'],['48','2일'],['72','3일'],['custom','직접']].map(([v, l]) => (
+                  <button key={v} type="button"
+                    onClick={() => setForm(p => ({ ...p, duration: v === 'custom' ? '' : v, durationMode: v }))}
+                    style={{
+                      padding: '5px 10px', borderRadius: 7, fontSize: 12, fontWeight: 700,
+                      cursor: 'pointer', border: '1.5px solid',
+                      background: (form.durationMode || '24') === v ? '#111' : '#fff',
+                      color:      (form.durationMode || '24') === v ? '#fff' : 'rgba(0,0,0,0.5)',
+                      borderColor:(form.durationMode || '24') === v ? '#111' : 'rgba(0,0,0,0.12)',
+                    }}
+                  >{l}</button>
+                ))}
+              </div>
+              {form.durationMode === 'custom' && (
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <input
+                    type="number" min="1" max="168"
+                    value={form.duration}
+                    onChange={e => setForm(p => ({ ...p, duration: e.target.value }))}
+                    placeholder="시간 직접 입력"
+                    style={{ ...FIELD_STYLE, width: 130 }}
+                  />
+                  <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)' }}>시간 (최대 168h)</span>
+                </div>
+              )}
             </div>
           </div>
 
