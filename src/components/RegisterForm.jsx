@@ -13,7 +13,6 @@ const INITIAL_FORM = { group: '', member: '', album: '', category: '포토카드
 
 export default function RegisterForm() {
   const { user, profile } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const [form, setForm]           = useState(INITIAL_FORM);
   const [file, setFile]           = useState(null);
