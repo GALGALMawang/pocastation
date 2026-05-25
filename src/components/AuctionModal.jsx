@@ -66,8 +66,8 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
   };
 
   // view_count 컬럼이 없으면 RPC가 실패해도 무시
-  const incrementViewCount = () => {
-    supabase.rpc('increment_view_count', { p_auction_id: auction.id }).catch(() => {});
+  const incrementViewCount = async () => {
+    try { await supabase.rpc('increment_view_count', { p_auction_id: auction.id }); } catch {}
   };
 
   // ──────────────────────────────────────────────────────────
