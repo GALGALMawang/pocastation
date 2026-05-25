@@ -120,7 +120,8 @@ export default function RegisterForm() {
   };
 
   const buyNowInvalid = form.buyNow && form.price && parseInt(form.buyNow) <= parseInt(form.price);
-  const canSubmit = hashStatus === 'ok' && verifyStatus === 'ok' && form.group && form.member && form.price && form.contact && !submitting && !buyNowInvalid;
+  // verifyStatus는 참고용 — 실패해도 등록 가능 (관리자가 이미지 보고 최종 판단)
+  const canSubmit = hashStatus === 'ok' && form.group && form.member && form.price && form.contact && !submitting && !buyNowInvalid;
 
   if (success) {
     return (
