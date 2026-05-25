@@ -131,8 +131,12 @@ function Admin() {
                       <div style={{fontSize:'11px', color:'var(--t3)', marginTop:'2px'}}>판매자: {a.seller_name}</div>
                     )}
                     {a.verification_word && (
-                      <div style={{marginTop:5, display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:5, background:'rgba(124,58,237,0.08)', border:'1px solid rgba(124,58,237,0.2)'}}>
-                        <span style={{fontSize:10, color:'#7c3aed', fontWeight:800}}>인증코드</span>
+                      <div style={{marginTop:5, display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:5,
+                        background: a.verify_matched ? 'rgba(0,180,80,0.08)' : 'rgba(220,50,50,0.08)',
+                        border: `1px solid ${a.verify_matched ? 'rgba(0,180,80,0.25)' : 'rgba(220,50,50,0.25)'}`,
+                      }}>
+                        <span style={{fontSize:12, fontWeight:800}}>{a.verify_matched ? '✓' : '✗'}</span>
+                        <span style={{fontSize:10, color: a.verify_matched ? '#006d30' : '#c02020', fontWeight:800}}>코드</span>
                         <span style={{fontSize:11, fontFamily:'monospace', fontWeight:700, color:'#111', letterSpacing:1}}>{a.verification_word}</span>
                       </div>
                     )}
