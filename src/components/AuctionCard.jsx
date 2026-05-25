@@ -3,14 +3,14 @@
  *
  * 경매 한 건을 그리드 아이템으로 표시한다.
  * img_url이 있으면 실제 이미지를, 없으면 기본 그라데이션 배경을 사용한다.
+ * ends_at 기준으로 남은 시간을 실시간 카운트다운으로 표시한다.
  *
  * Props:
  *   auction - auctions 테이블 행
  *   onClick - 카드 클릭 시 호출 (AuctionModal 오픈)
  */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-// 상태 → 표시 라벨
 const STATUS_LABEL = {
   live:    '🔴 진행 중',
   ending:  '⚡ 마감 임박',
@@ -18,8 +18,30 @@ const STATUS_LABEL = {
   ended:   '✅ 종료',
 };
 
+// 남은 시간 문자열 계산
+function getTimeLeft(endsAt) {
+  if (!endsAt) return null;
+  const diff = new Date(endsAt) - new Date();
+  if (diff <= 0) return '종료';
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  if (h > 0) return `${h}시간 ${m}분`;
+  if (m > 0) return `${m}분 ${s}초`;
+  return `${s}초`;
+}
+
 function AuctionCard({ auction, onClick }) {
   const isEnded = auction.status === 'ended';
+  const isLive  = auction.status === 'live';
+
+  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(auction.ends_at));
+
+  useEffect(() => {
+    if (!isLive || !auction.ends_at) return;
+    const timer = setInterval(() => setTimeLeft(getTimeLeft(auction.ends_at)), 1000);
+    return () => clearInterval(timer);
+  }, [isLive, auction.ends_at]);
 
   return (
     <article className="acd" onClick={onClick} tabIndex="0">
@@ -45,6 +67,18 @@ function AuctionCard({ auction, onClick }) {
 
         {/* 등급 태그 */}
         <span className="grd-tg">{auction.grade}급</span>
+
+        {/* 남은 시간 (진행 중인 경매만) */}
+        {isLive && timeLeft && (
+          <span style={{
+            position:'absolute', bottom:8, left:8,
+            fontSize:11, fontWeight:700, color:'#fff',
+            background:'rgba(0,0,0,0.55)', borderRadius:6,
+            padding:'3px 8px', backdropFilter:'blur(4px)',
+          }}>
+            ⏱ {timeLeft}
+          </span>
+        )}
       </div>
 
       {/* 카드 내용 */}

@@ -9,66 +9,25 @@ const FIELD_STYLE = {
   fontSize: 13, background: '#fff', color: '#111', boxSizing: 'border-box',
 };
 
-const INITIAL_FORM = { group: '', member: '', album: '', category: '포토카드', grade: 'A', price: '', duration: '24', contact: '' };
+const INITIAL_FORM = { group: '', gender: '여돌', member: '', cardName: '', album: '', category: '포토카드', grade: 'A', price: '', duration: '24', contact: '' };
 
 export default function RegisterForm() {
   const { user, profile } = useContext(AuthContext);
 
-  const [form, setForm]           = useState(INITIAL_FORM);
-  const [file, setFile]           = useState(null);
-  const [preview, setPreview]     = useState(null);
+  const [form, setForm]             = useState(INITIAL_FORM);
+  const [file, setFile]             = useState(null);
+  const [preview, setPreview]       = useState(null);
   const [hashStatus, setHashStatus] = useState(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [analyzed, setAnalyzed]   = useState(false);
-  const [dragOver, setDragOver]   = useState(false);
+  const [dragOver, setDragOver]     = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess]     = useState(false);
-  const [verificationWord]        = useState(() => generateVerificationWord());
-
-  const analyzeWithGemini = async (f) => {
-    setAnalyzing(true);
-    try {
-      const base64 = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.readAsDataURL(f);
-      });
-
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-image`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: base64, mimeType: f.type }),
-        }
-      );
-      const json = await res.json();
-      const text = json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-      const match = text.match(/\{[\s\S]*?\}/);
-      if (match) {
-        const parsed = JSON.parse(match[0]);
-        setForm(p => ({
-          ...p,
-          group:  parsed.group  || p.group,
-          member: parsed.member || p.member,
-          album:  parsed.album  || p.album,
-        }));
-      }
-    } catch {}
-    finally {
-      setAnalyzing(false);
-      setAnalyzed(true);
-    }
-  };
+  const [success, setSuccess]       = useState(false);
+  const [verificationWord]          = useState(() => generateVerificationWord());
 
   const handleFile = async (f) => {
     if (!f || !f.type.startsWith('image/')) return;
     setFile(f);
     setPreview(URL.createObjectURL(f));
     setHashStatus('checking');
-    setAnalyzed(false);
-
-    analyzeWithGemini(f);
 
     try {
       const [sha, phash] = await Promise.all([sha256File(f), pHashFile(f)]);
@@ -85,7 +44,7 @@ export default function RegisterForm() {
   };
 
   const handleSubmit = async () => {
-    if (!user) return; // Home.jsx에서 비로그인 시 auth 모달로 전환하므로 여기 도달하지 않음
+    if (!user) return;
     if (!file || hashStatus !== 'ok' || !form.group || !form.member || !form.price || !form.contact) return;
     setSubmitting(true);
     try {
@@ -96,22 +55,24 @@ export default function RegisterForm() {
       if (uploadErr) throw uploadErr;
       const { data: { publicUrl } } = supabase.storage.from('auction-images').getPublicUrl(path);
       const { error: insertErr } = await supabase.from('auctions').insert({
-        seller_id: user.id,
-        seller_name: profile?.nickname ?? user.email,
-        group_name: form.group,
-        member: form.member,
-        album: form.album,
-        category: form.category,
-        grade: form.grade,
-        img_url: publicUrl,
-        status: 'pending',
-        start_price: parseInt(form.price),
-        current_price: parseInt(form.price),
-        duration_hours: parseInt(form.duration),
+        seller_id:        user.id,
+        seller_name:      profile?.nickname ?? user.email,
+        group_name:       form.group,
+        gender:           form.gender,
+        member:           form.member,
+        card_name:        form.cardName,
+        album:            form.album,
+        category:         form.category,
+        grade:            form.grade,
+        img_url:          publicUrl,
+        status:           'pending',
+        start_price:      parseInt(form.price),
+        current_price:    parseInt(form.price),
+        duration_hours:   parseInt(form.duration),
         verification_word: verificationWord,
-        img_sha256: sha,
-        img_phash: phash,
-        seller_contact: form.contact,
+        img_sha256:       sha,
+        img_phash:        phash,
+        seller_contact:   form.contact,
       });
       if (insertErr) throw insertErr;
       setSuccess(true);
@@ -125,10 +86,10 @@ export default function RegisterForm() {
   const reset = () => {
     if (preview) URL.revokeObjectURL(preview);
     setSuccess(false); setFile(null); setPreview(null);
-    setHashStatus(null); setAnalyzed(false); setForm(INITIAL_FORM);
+    setHashStatus(null); setForm(INITIAL_FORM);
   };
 
-  const canSubmit = hashStatus === 'ok' && !analyzing && form.group && form.member && form.price && form.contact && !submitting;
+  const canSubmit = hashStatus === 'ok' && form.group && form.member && form.price && form.contact && !submitting;
 
   if (success) {
     return (
@@ -167,7 +128,7 @@ export default function RegisterForm() {
             : (hashStatus === 'dup_sha' || hashStatus === 'dup_phash') ? 'rgba(220,50,50,0.4)'
             : 'rgba(0,0,0,0.12)'
           }`,
-          borderRadius: 14, marginBottom: preview ? 0 : 0, overflow: 'hidden',
+          borderRadius: 14, overflow: 'hidden',
           cursor: 'pointer', transition: 'all 0.2s',
           background: dragOver ? 'rgba(0,0,0,0.02)' : 'transparent',
         }}
@@ -177,8 +138,7 @@ export default function RegisterForm() {
             <img src={preview} alt="preview" style={{ width: '100%', maxHeight: 280, objectFit: 'cover', display: 'block' }} />
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 14px', background: 'linear-gradient(transparent, rgba(0,0,0,0.65))', display: 'flex', alignItems: 'center', gap: 8 }}>
               {hashStatus === 'checking'  && <span style={{ fontSize: 11, color: '#fff' }}>검사 중...</span>}
-              {hashStatus === 'ok'        && !analyzing && <span style={{ fontSize: 11, color: '#6aff9c', fontWeight: 700 }}>✓ 등록 가능</span>}
-              {hashStatus === 'ok'        && analyzing  && <span style={{ fontSize: 11, color: '#ffe580', fontWeight: 700 }}>✦ AI 분석 중...</span>}
+              {hashStatus === 'ok'        && <span style={{ fontSize: 11, color: '#6aff9c', fontWeight: 700 }}>✓ 등록 가능</span>}
               {hashStatus === 'dup_sha'   && <span style={{ fontSize: 11, color: '#ff8080', fontWeight: 700 }}>✗ 이미 등록된 파일</span>}
               {hashStatus === 'dup_phash' && <span style={{ fontSize: 11, color: '#ff8080', fontWeight: 700 }}>✗ 유사 이미지 존재</span>}
               {hashStatus === 'error'     && <span style={{ fontSize: 11, color: '#ffcc80', fontWeight: 700 }}>검사 실패</span>}
@@ -193,38 +153,55 @@ export default function RegisterForm() {
                 <circle cx="12" cy="13" r="4"/>
               </svg>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>사진 한 장으로 시작하기</div>
-            <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)' }}>드래그 또는 클릭 · AI가 정보를 자동으로 채워드려요</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>인증 코드와 포카를 함께 찍어 업로드</div>
+            <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.3)' }}>드래그 또는 클릭</div>
           </div>
         )}
       </div>
 
       {/* 사진 올린 후 폼 표시 */}
       {preview && (hashStatus === 'ok' || hashStatus === 'error') && (
-        <div style={{
-          marginTop: 20,
-          opacity: analyzed || !analyzing ? 1 : 0.5,
-          transition: 'opacity 0.4s',
-          pointerEvents: analyzing ? 'none' : 'auto',
-        }}>
+        <div style={{ marginTop: 20 }}>
 
-          {analyzed && (
-            <div style={{ fontSize: 11, color: '#7c3aed', fontWeight: 700, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>✦</span> AI가 정보를 채웠어요. 확인 후 수정하세요.
+          {/* 그룹명 + 남돌/여돌 */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, marginBottom: 12 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>그룹명 *</label>
+              <input value={form.group} onChange={e => setForm(p => ({ ...p, group: e.target.value }))} placeholder="BTS, aespa..." style={FIELD_STYLE} />
             </div>
-          )}
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-            {[
-              { label: '그룹명 *', key: 'group',  placeholder: 'BTS, aespa...' },
-              { label: '멤버 *',   key: 'member', placeholder: '정국, 카리나...' },
-              { label: '앨범',     key: 'album',  placeholder: 'Yet To Come...' },
-            ].map(f => (
-              <div key={f.key} style={{ gridColumn: f.key === 'album' ? '1 / -1' : 'auto' }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>{f.label}</label>
-                <input value={form[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.placeholder} style={FIELD_STYLE} />
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>구분</label>
+              <div style={{ display: 'flex', gap: 6, paddingTop: 2 }}>
+                {['남돌', '여돌'].map(g => (
+                  <button key={g} type="button"
+                    onClick={() => setForm(p => ({ ...p, gender: g }))}
+                    style={{
+                      padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1.5px solid',
+                      background: form.gender === g ? '#111' : '#fff',
+                      color: form.gender === g ? '#fff' : 'rgba(0,0,0,0.5)',
+                      borderColor: form.gender === g ? '#111' : 'rgba(0,0,0,0.12)',
+                    }}>{g}</button>
+                ))}
               </div>
-            ))}
+            </div>
+          </div>
+
+          {/* 멤버 + 포카 이름 */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>멤버 *</label>
+              <input value={form.member} onChange={e => setForm(p => ({ ...p, member: e.target.value }))} placeholder="정국, 카리나..." style={FIELD_STYLE} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>포카 이름</label>
+              <input value={form.cardName} onChange={e => setForm(p => ({ ...p, cardName: e.target.value }))} placeholder="Fade ver., 화보..." style={FIELD_STYLE} />
+            </div>
+          </div>
+
+          {/* 앨범 */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>앨범</label>
+            <input value={form.album} onChange={e => setForm(p => ({ ...p, album: e.target.value }))} placeholder="Yet To Come..." style={FIELD_STYLE} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
@@ -271,7 +248,7 @@ export default function RegisterForm() {
               transition: 'all 0.2s',
             }}
           >
-            {submitting ? '등록 중...' : analyzing ? 'AI 분석 중...' : '경매 등록 신청'}
+            {submitting ? '등록 중...' : '경매 등록 신청'}
           </button>
         </div>
       )}

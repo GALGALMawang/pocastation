@@ -2,9 +2,9 @@
  * AuctionModal.jsx — 경매 상세 모달
  *
  * 기능:
- *   - 경매 이미지, 현재가, 입찰 내역 표시
+ *   - 경매 이미지, 현재가, 남은 시간, 입찰 내역 표시
  *   - Supabase Realtime으로 경매 업데이트·신규 입찰 실시간 반영
- *   - 입찰: place_bid RPC 호출 (크레딧 잔액 검증 포함)
+ *   - 입찰: place_bid RPC 호출 (크레딧 잔액 검증 + 차감)
  *   - 낙찰자(auction.winner_id === user.id)에게 결제 버튼 노출
  *   - 모달 오픈 시 view_count 증가 (increment_view_count RPC)
  *
@@ -18,15 +18,36 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
+// 남은 시간 문자열 계산
+function getTimeLeft(endsAt) {
+  if (!endsAt) return null;
+  const diff = new Date(endsAt) - new Date();
+  if (diff <= 0) return '종료';
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  if (h > 0) return `${h}시간 ${m}분 ${s}초`;
+  if (m > 0) return `${m}분 ${s}초`;
+  return `${s}초`;
+}
+
 function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOpenSettlement }) {
   const [auction,  setAuction]  = useState(initialAuction);
   const [bidAmount,setBidAmount]= useState((initialAuction.current_price || 0) + 500);
   const [bids,     setBids]     = useState([]);
   const [bidMsg,   setBidMsg]   = useState(null); // { type: 'ok' | 'err', text }
   const [bidding,  setBidding]  = useState(false);
+  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(initialAuction.ends_at));
 
   const isEnded  = auction.status === 'ended';
   const isWinner = isEnded && user && auction.winner_id === user.id;
+
+  // 1초마다 카운트다운 갱신
+  useEffect(() => {
+    if (isEnded || !auction.ends_at) return;
+    const timer = setInterval(() => setTimeLeft(getTimeLeft(auction.ends_at)), 1000);
+    return () => clearInterval(timer);
+  }, [isEnded, auction.ends_at]);
 
   // ──────────────────────────────────────────────────────────
   // 초기 로드 + 실시간 구독
@@ -127,15 +148,28 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
               </div>
 
               <div>
-                {/* 앨범·등급 */}
-                {(auction.album || auction.grade) && (
-                  <div style={{fontSize:'12px', color:'var(--t3)', marginBottom:'6px'}}>
-                    {auction.album}{auction.album && auction.grade ? ' · ' : ''}{auction.grade && `${auction.grade}급`}
-                  </div>
-                )}
+                {/* 앨범·등급·카드명 */}
+                <div style={{fontSize:'12px', color:'var(--t3)', marginBottom:'6px', display:'flex', gap:'6px', flexWrap:'wrap'}}>
+                  {auction.gender && <span style={{background:'var(--bg)', borderRadius:4, padding:'2px 6px'}}>{auction.gender}</span>}
+                  {auction.card_name && <span style={{background:'var(--bg)', borderRadius:4, padding:'2px 6px'}}>{auction.card_name}</span>}
+                  {auction.album && <span>{auction.album}</span>}
+                  {auction.grade && <span>{auction.grade}급</span>}
+                </div>
 
                 {/* 현재가 */}
                 <div className="mbig">₩ {(auction.current_price || 0).toLocaleString()}</div>
+
+                {/* 남은 시간 */}
+                {!isEnded && timeLeft && (
+                  <div style={{
+                    display:'inline-flex', alignItems:'center', gap:6,
+                    marginTop:6, marginBottom:4,
+                    fontSize:13, fontWeight:700,
+                    color: timeLeft === '종료' ? 'var(--t3)' : '#e55',
+                  }}>
+                    ⏱ {timeLeft} 남음
+                  </div>
+                )}
 
                 {/* 낙찰 완료 배너 (본인이 낙찰자일 때) */}
                 {isWinner && (
