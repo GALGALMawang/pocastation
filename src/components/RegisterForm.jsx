@@ -14,33 +14,62 @@ const INITIAL_FORM = { group: '', gender: '여돌', member: '', cardName: '', al
 export default function RegisterForm() {
   const { user, profile } = useContext(AuthContext);
 
-  const [form, setForm]             = useState(INITIAL_FORM);
-  const [file, setFile]             = useState(null);
-  const [preview, setPreview]       = useState(null);
-  const [hashStatus, setHashStatus] = useState(null);
-  const [dragOver, setDragOver]     = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess]       = useState(false);
-  const [verificationWord]          = useState(() => generateVerificationWord());
+  const [form, setForm]               = useState(INITIAL_FORM);
+  const [file, setFile]               = useState(null);
+  const [preview, setPreview]         = useState(null);
+  const [hashStatus, setHashStatus]   = useState(null);
+  const [verifyStatus, setVerifyStatus] = useState(null); // null | 'checking' | 'ok' | 'fail'
+  const [dragOver, setDragOver]       = useState(false);
+  const [submitting, setSubmitting]   = useState(false);
+  const [success, setSuccess]         = useState(false);
+  const [verificationWord]            = useState(() => generateVerificationWord());
 
   const handleFile = async (f) => {
     if (!f || !f.type.startsWith('image/')) return;
     setFile(f);
     setPreview(URL.createObjectURL(f));
     setHashStatus('checking');
+    setVerifyStatus('checking');
 
-    try {
-      const [sha, phash] = await Promise.all([sha256File(f), pHashFile(f)]);
-      const { data: dupSha } = await supabase.rpc('check_img_sha256', { hash: sha });
-      if (dupSha) { setHashStatus('dup_sha'); return; }
-      const { data: phashes } = await supabase.rpc('get_all_phashes');
-      if (phashes?.some(row => hammingDistance(row.img_phash, phash) <= 10)) {
-        setHashStatus('dup_phash'); return;
+    // 중복 이미지 검사 + 손글씨 인증 코드 검증을 병렬 실행
+    const [hashResult, verifyResult] = await Promise.allSettled([
+      checkImageHash(f),
+      verifyHandwriting(f),
+    ]);
+
+    if (hashResult.status === 'fulfilled') setHashStatus(hashResult.value);
+    else setHashStatus('error');
+
+    if (verifyResult.status === 'fulfilled') setVerifyStatus(verifyResult.value);
+    else setVerifyStatus('fail');
+  };
+
+  const checkImageHash = async (f) => {
+    const [sha, phash] = await Promise.all([sha256File(f), pHashFile(f)]);
+    const { data: dupSha } = await supabase.rpc('check_img_sha256', { hash: sha });
+    if (dupSha) return 'dup_sha';
+    const { data: phashes } = await supabase.rpc('get_all_phashes');
+    if (phashes?.some(row => hammingDistance(row.img_phash, phash) <= 10)) return 'dup_phash';
+    return 'ok';
+  };
+
+  const verifyHandwriting = async (f) => {
+    const base64 = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.readAsDataURL(f);
+    });
+
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-image`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mimeType: f.type, verificationWord }),
       }
-      setHashStatus('ok');
-    } catch {
-      setHashStatus('error');
-    }
+    );
+    const json = await res.json();
+    return json.matched ? 'ok' : 'fail';
   };
 
   const handleSubmit = async () => {
@@ -87,11 +116,11 @@ export default function RegisterForm() {
   const reset = () => {
     if (preview) URL.revokeObjectURL(preview);
     setSuccess(false); setFile(null); setPreview(null);
-    setHashStatus(null); setForm(INITIAL_FORM);
+    setHashStatus(null); setVerifyStatus(null); setForm(INITIAL_FORM);
   };
 
   const buyNowInvalid = form.buyNow && form.price && parseInt(form.buyNow) <= parseInt(form.price);
-  const canSubmit = hashStatus === 'ok' && form.group && form.member && form.price && form.contact && !submitting && !buyNowInvalid;
+  const canSubmit = hashStatus === 'ok' && verifyStatus === 'ok' && form.group && form.member && form.price && form.contact && !submitting && !buyNowInvalid;
 
   if (success) {
     return (
@@ -139,8 +168,15 @@ export default function RegisterForm() {
           <div style={{ position: 'relative' }}>
             <img src={preview} alt="preview" style={{ width: '100%', maxHeight: 280, objectFit: 'cover', display: 'block' }} />
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 14px', background: 'linear-gradient(transparent, rgba(0,0,0,0.65))', display: 'flex', alignItems: 'center', gap: 8 }}>
-              {hashStatus === 'checking'  && <span style={{ fontSize: 11, color: '#fff' }}>검사 중...</span>}
-              {hashStatus === 'ok'        && <span style={{ fontSize: 11, color: '#6aff9c', fontWeight: 700 }}>✓ 등록 가능</span>}
+              {(hashStatus === 'checking' || verifyStatus === 'checking') && (
+                <span style={{ fontSize: 11, color: '#fff' }}>검사 중...</span>
+              )}
+              {hashStatus === 'ok' && verifyStatus === 'ok' && (
+                <span style={{ fontSize: 11, color: '#6aff9c', fontWeight: 700 }}>✓ 이미지 · 코드 확인됨</span>
+              )}
+              {hashStatus === 'ok' && verifyStatus === 'fail' && (
+                <span style={{ fontSize: 11, color: '#ff8080', fontWeight: 700 }}>✗ 인증 코드가 보이지 않아요</span>
+              )}
               {hashStatus === 'dup_sha'   && <span style={{ fontSize: 11, color: '#ff8080', fontWeight: 700 }}>✗ 이미 등록된 파일</span>}
               {hashStatus === 'dup_phash' && <span style={{ fontSize: 11, color: '#ff8080', fontWeight: 700 }}>✗ 유사 이미지 존재</span>}
               {hashStatus === 'error'     && <span style={{ fontSize: 11, color: '#ffcc80', fontWeight: 700 }}>검사 실패</span>}
@@ -162,7 +198,7 @@ export default function RegisterForm() {
       </div>
 
       {/* 사진 올린 후 폼 표시 */}
-      {preview && (hashStatus === 'ok' || hashStatus === 'error') && (
+      {preview && (hashStatus === 'ok' || hashStatus === 'error') && verifyStatus !== 'checking' && (
         <div style={{ marginTop: 20 }}>
 
           {/* 그룹명 + 남돌/여돌 */}
