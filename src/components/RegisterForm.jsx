@@ -12,7 +12,7 @@ const FIELD_STYLE = {
 const INITIAL_FORM = { group: '', member: '', album: '', category: '포토카드', grade: 'A', price: '', duration: '24', contact: '' };
 
 export default function RegisterForm() {
-  const { user, profile } = useAuth();
+  const { user, profile } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [form, setForm]           = useState(INITIAL_FORM);
