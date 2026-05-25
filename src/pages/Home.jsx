@@ -31,6 +31,7 @@ import SettlementModal from '../components/SettlementModal';
 import BidsModal     from '../components/BidsModal';
 import RegisterForm  from '../components/RegisterForm';
 import ProfileModal  from '../components/ProfileModal';
+import SalesModal    from '../components/SalesModal';
 import { AuthContext } from '../App';
 
 function Home() {
@@ -281,6 +282,10 @@ function Home() {
           onClose={() => setActiveModal(null)}
           fetchExtra={() => fetchUserExtra(user?.id)}
         />
+      )}
+
+      {activeModal === 'sales' && (
+        <SalesModal user={user} onClose={() => setActiveModal(null)} />
       )}
 
       {activeModal === 'create' && (

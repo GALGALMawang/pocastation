@@ -119,6 +119,7 @@ function Header({ user, profile, credit, onOpenModal, activeView, onNavClick, se
 
                   <div className="user-menu-item" onClick={() => { setMenuOpen(false); onOpenModal('profile'); }}>내 프로필</div>
                   <div className="user-menu-item" onClick={() => { setMenuOpen(false); onOpenModal('bids'); }}>입찰 내역</div>
+                  <div className="user-menu-item" onClick={() => { setMenuOpen(false); onOpenModal('sales'); }}>판매 내역</div>
                   <div className="user-menu-divider"></div>
                   <div className="user-menu-item danger" onClick={handleLogout}>로그아웃</div>
                 </div>

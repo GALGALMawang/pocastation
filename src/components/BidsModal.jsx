@@ -15,6 +15,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { fetchTracking, STATUS_KO, CARRIERS } from '../lib/delivery';
 
 export default function BidsModal({ user, onClose, onOpenSettlement }) {
   const [bids,    setBids]    = useState([]);
@@ -27,10 +28,10 @@ export default function BidsModal({ user, onClose, onOpenSettlement }) {
 
   const fetchBids = async () => {
     setLoading(true);
-    // 입찰 내역과 해당 경매 정보를 JOIN
+    // 입찰 내역 + 경매 정보 + settlement(운송장) JOIN
     const { data } = await supabase
       .from('bids')
-      .select('*, auctions(id, group_name, member, album, current_price, status, winner_id, img_url, seller_id, seller_contact, seller_name, start_price)')
+      .select('*, auctions(id, group_name, member, album, current_price, status, winner_id, img_url, seller_id, seller_contact, seller_name, start_price, settlements(carrier, tracking_number, shipped_at, shipping_address))')
       .eq('bidder_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -88,6 +89,7 @@ export default function BidsModal({ user, onClose, onOpenSettlement }) {
 
               const isWinner   = a.status === 'ended' && a.winner_id === user.id;
               const isHighest  = bid.amount === a.current_price;
+              const settlement = a.settlements?.[0];
 
               return (
                 <div
@@ -143,8 +145,8 @@ export default function BidsModal({ user, onClose, onOpenSettlement }) {
                       </div>
                     </div>
 
-                    {/* 낙찰자 결제 버튼 */}
-                    {isWinner && (
+                    {/* 낙찰자 결제 버튼 (settlement 없으면) */}
+                    {isWinner && !settlement && (
                       <button
                         onClick={() => { onClose(); onOpenSettlement(a); }}
                         style={{
@@ -157,12 +159,89 @@ export default function BidsModal({ user, onClose, onOpenSettlement }) {
                       </button>
                     )}
                   </div>
+
+                  {/* 배송 현황 (운송장 등록된 경우) */}
+                  {isWinner && settlement?.tracking_number && (
+                    <TrackingStatus settlement={settlement} />
+                  )}
                 </div>
               );
             })
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── 배송 현황 컴포넌트 ──────────────────────────────────────
+function TrackingStatus({ settlement }) {
+  const [trackData, setTrackData] = useState(null);
+  const [loading,   setLoading]   = useState(false);
+  const [open,      setOpen]      = useState(false);
+
+  const carrierName = CARRIERS.find(c => c.id === settlement.carrier)?.name || settlement.carrier;
+
+  const load = async () => {
+    if (trackData) { setOpen(o => !o); return; }
+    setLoading(true);
+    const data = await fetchTracking(settlement.carrier, settlement.tracking_number);
+    setTrackData(data);
+    setLoading(false);
+    setOpen(true);
+  };
+
+  return (
+    <div style={{marginTop:10, padding:'10px 12px', borderRadius:8, background:'rgba(0,100,255,0.04)', border:'1px solid rgba(0,100,255,0.12)'}}>
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+        <div>
+          <div style={{fontSize:11, fontWeight:800, color:'#0064ff', marginBottom:2}}>{carrierName}</div>
+          <div style={{fontSize:12, fontFamily:'monospace', color:'#111', fontWeight:700}}>{settlement.tracking_number}</div>
+        </div>
+        <button
+          onClick={load}
+          style={{
+            padding:'6px 12px', borderRadius:7, border:'1px solid rgba(0,100,255,0.2)',
+            background:'rgba(0,100,255,0.06)', color:'#0064ff', fontSize:11,
+            fontWeight:700, cursor:'pointer',
+          }}
+        >
+          {loading ? '조회 중...' : open ? '접기' : '배송 조회'}
+        </button>
+      </div>
+
+      {open && trackData && (
+        <div style={{marginTop:10, borderTop:'1px solid rgba(0,0,0,0.06)', paddingTop:10}}>
+          {/* 최근 상태 */}
+          {trackData.lastEvent && (
+            <div style={{marginBottom:8, padding:'8px 10px', borderRadius:7, background:'rgba(0,180,80,0.07)', border:'1px solid rgba(0,180,80,0.15)'}}>
+              <div style={{fontSize:12, fontWeight:800, color:'#006d30'}}>
+                {STATUS_KO[trackData.lastEvent.status?.code] || trackData.lastEvent.status?.name}
+              </div>
+              <div style={{fontSize:11, color:'rgba(0,0,0,0.5)', marginTop:2}}>
+                {trackData.lastEvent.description}
+                {trackData.lastEvent.location?.name && ` · ${trackData.lastEvent.location.name}`}
+              </div>
+            </div>
+          )}
+          {/* 이벤트 목록 */}
+          {trackData.events?.edges?.map(({ node }, i) => (
+            <div key={i} style={{display:'flex', gap:8, marginBottom:6, fontSize:11}}>
+              <div style={{color:'rgba(0,0,0,0.35)', whiteSpace:'nowrap', flexShrink:0}}>
+                {new Date(node.time).toLocaleString('ko-KR', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'})}
+              </div>
+              <div style={{color:'#111', fontWeight:600}}>{STATUS_KO[node.status?.code] || node.status?.name}</div>
+              {node.location?.name && <div style={{color:'rgba(0,0,0,0.4)'}}>{node.location.name}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {open && !trackData && (
+        <div style={{marginTop:8, fontSize:11, color:'rgba(0,0,0,0.4)'}}>
+          배송 정보를 불러올 수 없습니다. API 키를 확인해주세요.
+        </div>
+      )}
     </div>
   );
 }

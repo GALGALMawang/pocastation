@@ -33,9 +33,12 @@ const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY;
 export default function SettlementModal({ auction, onClose, onComplete }) {
   const { user, profile } = useContext(AuthContext);
 
-  const [method,        setMethod]        = useState(null);  // 'toss' | 'direct'
+  const [step,          setStep]          = useState('address'); // 'address' | 'method'
+  const [address,       setAddress]       = useState('');        // 배송지
+  const [method,        setMethod]        = useState(null);      // 'toss' | 'direct'
   const [loading,       setLoading]       = useState(false);
-  const [directContact, setDirectContact] = useState(null);  // 직거래 연락처
+  const [directContact, setDirectContact] = useState(null);      // 직거래 연락처
+  const [settlementId,  setSettlementId]  = useState(null);      // 생성된 settlement ID
 
   const paymentWidgetRef  = useRef(null);
   const paymentMethodsRef = useRef(null);
@@ -45,7 +48,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
 
   // ── Toss 결제 위젯 초기화 ────────────────────────────────
   useEffect(() => {
-    if (method !== 'toss' || !TOSS_CLIENT_KEY) return;
+    if (step !== 'method' || method !== 'toss' || !TOSS_CLIENT_KEY) return;
 
     (async () => {
       const widget = await loadPaymentWidget(TOSS_CLIENT_KEY, user.id);
@@ -57,27 +60,33 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
       );
       await widget.renderAgreement('#toss-agreement', { variantKey: 'AGREEMENT' });
     })();
-  }, [method]);
+  }, [step, method]);
+
+  // ── settlements 생성 공통 함수 ───────────────────────────
+  const createSettlement = async (method) => {
+    const { data, error } = await supabase
+      .from('settlements')
+      .insert({
+        auction_id:       auction.id,
+        buyer_id:         user.id,
+        seller_id:        auction.seller_id,
+        method,
+        amount,
+        status:           'pending',
+        shipping_address: address,
+      })
+      .select().single();
+    if (error) throw error;
+    setSettlementId(data.id);
+    return data;
+  };
 
   // ── Toss 결제 요청 ────────────────────────────────────────
   const handleTossPay = async () => {
     if (!paymentWidgetRef.current) return;
     setLoading(true);
     try {
-      // settlements 레코드 먼저 생성 (orderId 참조용)
-      const { data: settlement, error } = await supabase
-        .from('settlements')
-        .insert({
-          auction_id: auction.id,
-          buyer_id:   user.id,
-          seller_id:  auction.seller_id,
-          method:     'toss',
-          amount,
-          status:     'pending',
-        })
-        .select().single();
-      if (error) throw error;
-
+      const settlement = await createSettlement('toss');
       await paymentWidgetRef.current.requestPayment({
         orderId:       `settlement_${settlement.id}`,
         orderName:     item,
@@ -96,14 +105,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
   const handleDirect = async () => {
     setLoading(true);
     try {
-      await supabase.from('settlements').insert({
-        auction_id: auction.id,
-        buyer_id:   user.id,
-        seller_id:  auction.seller_id,
-        method:     'direct',
-        amount,
-        status:     'pending',
-      });
+      await createSettlement('direct');
 
       // 낙찰자는 RLS에 의해 seller_contact 조회 허용
       const { data } = await supabase
@@ -171,6 +173,51 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
             style={{width:'100%', padding:13, borderRadius:10, border:'none', background:'#111', color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer'}}
           >
             확인
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 주소 입력 화면 ────────────────────────────────────────
+  if (step === 'address') {
+    return (
+      <div style={overlayStyle} onClick={onClose}>
+        <div style={boxStyle} onClick={e => e.stopPropagation()}>
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:11, color:'#7c3aed', fontWeight:800, letterSpacing:2, fontFamily:'monospace', marginBottom:4}}>낙찰 완료</div>
+            <div style={{fontSize:17, fontWeight:900, color:'#111'}}>{item}</div>
+            <div style={{fontSize:22, fontWeight:900, color:'#111', fontFamily:'monospace', marginTop:4}}>₩{amount?.toLocaleString()}</div>
+          </div>
+
+          <div style={{fontSize:13, fontWeight:700, color:'rgba(0,0,0,0.6)', marginBottom:10}}>배송지를 입력하세요</div>
+          <textarea
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            placeholder={'서울시 강남구 테헤란로 123\n○○아파트 101동 202호\n(우편번호: 06234)'}
+            rows={4}
+            style={{
+              width:'100%', padding:'12px 14px', borderRadius:10, fontSize:13,
+              border:'1.5px solid rgba(0,0,0,0.12)', outline:'none', resize:'none',
+              boxSizing:'border-box', lineHeight:1.6, color:'#111',
+            }}
+          />
+          <div style={{fontSize:11, color:'rgba(0,0,0,0.35)', marginTop:6, marginBottom:20}}>
+            정확한 주소를 입력해야 판매자가 발송할 수 있어요.
+          </div>
+
+          <button
+            disabled={!address.trim()}
+            onClick={() => setStep('method')}
+            style={{
+              width:'100%', padding:13, borderRadius:10, border:'none',
+              background: address.trim() ? '#111' : 'rgba(0,0,0,0.1)',
+              color: address.trim() ? '#fff' : 'rgba(0,0,0,0.3)',
+              fontSize:14, fontWeight:800,
+              cursor: address.trim() ? 'pointer' : 'default',
+            }}
+          >
+            다음 — 결제 방법 선택
           </button>
         </div>
       </div>
