@@ -17,6 +17,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { BID_INCREMENT } from '../lib/constants';
 
 // 남은 시간 문자열 계산
 function getTimeLeft(endsAt) {
@@ -33,7 +34,7 @@ function getTimeLeft(endsAt) {
 
 function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOpenSettlement }) {
   const [auction,   setAuction]  = useState(initialAuction);
-  const [bidAmount, setBidAmount]= useState((initialAuction.current_price || 0) + 500);
+  const [bidAmount, setBidAmount]= useState((initialAuction.current_price || 0) + BID_INCREMENT);
   const [bids,      setBids]     = useState([]);
   const [bidMsg,    setBidMsg]   = useState(null); // { type: 'ok' | 'err', text }
   const [bidding,   setBidding]  = useState(false);
@@ -64,7 +65,7 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
         table: 'auctions', filter: `id=eq.${auction.id}`,
       }, (payload) => {
         setAuction(payload.new);
-        setBidAmount((payload.new.current_price || 0) + 500);
+        setBidAmount((payload.new.current_price || 0) + BID_INCREMENT);
       })
       // 신규 입찰
       .on('postgres_changes', {

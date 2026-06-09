@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from '../App';
 import { supabase } from '../lib/supabase';
 import { sha256File, pHashFile, hammingDistance, generateVerificationWord } from '../lib/imageHash';
+import { PHASH_SIMILARITY_THRESHOLD, MAX_AUCTION_HOURS } from '../lib/constants';
 
 const FIELD_STYLE = {
   width: '100%', padding: '9px 12px', borderRadius: 8,
@@ -23,6 +24,8 @@ export default function RegisterForm() {
   const [submitting, setSubmitting]   = useState(false);
   const [success, setSuccess]         = useState(false);
   const [verificationWord]            = useState(() => generateVerificationWord());
+  const [hashes, setHashes]           = useState(null); // { sha, phash } — handleFile에서 1회 계산 후 재사용
+  const [verifySig, setVerifySig]     = useState(null); // analyze-image가 발급한 HMAC 서명
 
   const handleFile = async (f) => {
     if (!f || !f.type.startsWith('image/')) return;
@@ -30,6 +33,8 @@ export default function RegisterForm() {
     setPreview(URL.createObjectURL(f));
     setHashStatus('checking');
     setVerifyStatus('checking');
+    setHashes(null);     // 이전 업로드 결과 무효화
+    setVerifySig(null);
 
     // 중복 이미지 검사 + 손글씨 인증 코드 검증을 병렬 실행
     const [hashResult, verifyResult] = await Promise.allSettled([
@@ -46,10 +51,11 @@ export default function RegisterForm() {
 
   const checkImageHash = async (f) => {
     const [sha, phash] = await Promise.all([sha256File(f), pHashFile(f)]);
+    setHashes({ sha, phash }); // handleSubmit에서 재계산하지 않도록 보관
     const { data: dupSha } = await supabase.rpc('check_img_sha256', { hash: sha });
     if (dupSha) return 'dup_sha';
     const { data: phashes } = await supabase.rpc('get_all_phashes');
-    if (phashes?.some(row => hammingDistance(row.img_phash, phash) <= 10)) return 'dup_phash';
+    if (phashes?.some(row => hammingDistance(row.img_phash, phash) <= PHASH_SIMILARITY_THRESHOLD)) return 'dup_phash';
     return 'ok';
   };
 
@@ -60,15 +66,22 @@ export default function RegisterForm() {
       reader.readAsDataURL(f);
     });
 
+    // analyze-image는 로그인 유저만 호출 가능 — 세션 토큰을 전달
+    const { data: { session } } = await supabase.auth.getSession();
+
     const res = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-image`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token ?? ''}`,
+        },
         body: JSON.stringify({ imageBase64: base64, mimeType: f.type, verificationWord }),
       }
     );
     const json = await res.json();
+    setVerifySig(json.signature ?? null); // DB 트리거가 검증할 HMAC 서명
     return json.matched ? 'ok' : 'fail';
   };
 
@@ -77,7 +90,14 @@ export default function RegisterForm() {
     if (!file || hashStatus !== 'ok' || !form.group || !form.member || !form.price || !form.contact) return;
     setSubmitting(true);
     try {
-      const [sha, phash] = await Promise.all([sha256File(file), pHashFile(file)]);
+      // handleFile에서 계산해둔 해시 재사용 (없으면 계산)
+      const { sha, phash } = hashes
+        ?? Object.fromEntries(
+             await Promise.all([
+               sha256File(file).then(v => ['sha', v]),
+               pHashFile(file).then(v => ['phash', v]),
+             ])
+           );
       const ext = file.name.split('.').pop();
       const path = `auctions/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: uploadErr } = await supabase.storage.from('auction-images').upload(path, file);
@@ -101,6 +121,7 @@ export default function RegisterForm() {
         buy_now_price:    form.buyNow ? parseInt(form.buyNow) : null,
         verification_word:  verificationWord,
         verify_matched:     verifyStatus === 'ok',
+        verify_sig:         verifySig,
         img_sha256:       sha,
         img_phash:        phash,
         seller_contact:   form.contact,
@@ -118,6 +139,7 @@ export default function RegisterForm() {
     if (preview) URL.revokeObjectURL(preview);
     setSuccess(false); setFile(null); setPreview(null);
     setHashStatus(null); setVerifyStatus(null); setForm(INITIAL_FORM);
+    setHashes(null); setVerifySig(null);
   };
 
   const buyNowInvalid = form.buyNow && form.price && parseInt(form.buyNow) <= parseInt(form.price);
@@ -211,16 +233,12 @@ export default function RegisterForm() {
             </div>
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>구분</label>
-              <div style={{ display: 'flex', gap: 6, paddingTop: 2 }}>
+              <div className="tgl" style={{ paddingTop: 2 }}>
                 {['남돌', '여돌'].map(g => (
                   <button key={g} type="button"
                     onClick={() => setForm(p => ({ ...p, gender: g }))}
-                    style={{
-                      padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1.5px solid',
-                      background: form.gender === g ? '#111' : '#fff',
-                      color: form.gender === g ? '#fff' : 'rgba(0,0,0,0.5)',
-                      borderColor: form.gender === g ? '#111' : 'rgba(0,0,0,0.12)',
-                    }}>{g}</button>
+                    className={`tgl-btn${form.gender === g ? ' on' : ''}`}
+                  >{g}</button>
                 ))}
               </div>
             </div>
@@ -259,30 +277,24 @@ export default function RegisterForm() {
             </div>
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>경매 시간</label>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <div className="tgl">
                 {[['1','1h'],['3','3h'],['6','6h'],['12','12h'],['24','1일'],['48','2일'],['72','3일'],['custom','직접']].map(([v, l]) => (
                   <button key={v} type="button"
                     onClick={() => setForm(p => ({ ...p, duration: v === 'custom' ? '' : v, durationMode: v }))}
-                    style={{
-                      padding: '5px 10px', borderRadius: 7, fontSize: 12, fontWeight: 700,
-                      cursor: 'pointer', border: '1.5px solid',
-                      background: (form.durationMode || '24') === v ? '#111' : '#fff',
-                      color:      (form.durationMode || '24') === v ? '#fff' : 'rgba(0,0,0,0.5)',
-                      borderColor:(form.durationMode || '24') === v ? '#111' : 'rgba(0,0,0,0.12)',
-                    }}
+                    className={`tgl-btn${(form.durationMode || '24') === v ? ' on' : ''}`}
                   >{l}</button>
                 ))}
               </div>
               {form.durationMode === 'custom' && (
                 <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <input
-                    type="number" min="1" max="168"
+                    type="number" min="1" max={MAX_AUCTION_HOURS}
                     value={form.duration}
                     onChange={e => setForm(p => ({ ...p, duration: e.target.value }))}
                     placeholder="시간 직접 입력"
                     style={{ ...FIELD_STYLE, width: 130 }}
                   />
-                  <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)' }}>시간 (최대 168h)</span>
+                  <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)' }}>시간 (최대 {MAX_AUCTION_HOURS}h)</span>
                 </div>
               )}
             </div>

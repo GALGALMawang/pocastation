@@ -204,7 +204,7 @@ function Home() {
                 )}
               </div>
 
-              <div style={{display:'flex', gap:'6px', flexWrap:'wrap'}}>
+              <div className="seg">
                 {[
                   ['latest',     '최신순'],
                   ['popular',    '인기순'],
@@ -215,13 +215,7 @@ function Home() {
                   <button
                     key={val}
                     onClick={() => setSortBy(val)}
-                    style={{
-                      padding:'5px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:600,
-                      cursor:'pointer', border:'1px solid', transition:'all .15s',
-                      background:   sortBy === val ? 'var(--pr)' : 'transparent',
-                      borderColor:  sortBy === val ? 'var(--pr)' : 'var(--bd)',
-                      color:        sortBy === val ? '#fff'      : 'var(--t2)',
-                    }}
+                    className={`seg-btn${sortBy === val ? ' on' : ''}`}
                   >
                     {label}
                   </button>

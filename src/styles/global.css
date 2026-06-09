@@ -301,6 +301,17 @@ input,select{font:inherit;color:inherit}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.err{background:var(--ac)}
 .toast.ok{background:var(--ok)}
+/* ══ SEGMENTED TOGGLE (재사용) ══ */
+/* 보라색 알약형 — 정렬/필터 버튼 (Home 정렬 등) */
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg-btn{padding:5px 12px;border-radius:var(--rf);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--bd);color:var(--t2);background:transparent;transition:all .15s}
+.seg-btn:hover{border-color:var(--pr);color:var(--pr)}
+.seg-btn.on{background:var(--pr);border-color:var(--pr);color:#fff}
+/* 다크 사각형 — 폼 내 선택 토글 (성별/경매시간 등) */
+.tgl{display:flex;gap:6px;flex-wrap:wrap}
+.tgl-btn{padding:6px 12px;border-radius:var(--r1);font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid rgba(0,0,0,.12);color:rgba(0,0,0,.5);background:#fff;transition:all .15s}
+.tgl-btn.on{background:#111;border-color:#111;color:#fff}
+
 @media(max-width:900px){
   .hero-in{flex-direction:column}
   .h-card{display:none}
