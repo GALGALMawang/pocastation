@@ -10,7 +10,7 @@ const FIELD_STYLE = {
   fontSize: 13, background: '#fff', color: '#111', boxSizing: 'border-box',
 };
 
-const INITIAL_FORM = { group: '', gender: '여돌', member: '', cardName: '', album: '', category: '포토카드', grade: 'A', price: '', buyNow: '', duration: '24', durationMode: '24', contact: '' };
+const INITIAL_FORM = { group: '', gender: '여돌', member: '', cardName: '', album: '', category: '포토카드', grade: 'A', price: '', buyNow: '', duration: '24', durationMode: '24', contact: '', shippingType: 'included', shippingFee: '' };
 
 export default function RegisterForm() {
   const { user, profile } = useContext(AuthContext);
@@ -119,6 +119,8 @@ export default function RegisterForm() {
         current_price:    parseInt(form.price),
         duration_hours:   parseInt(form.duration),
         buy_now_price:    form.buyNow ? parseInt(form.buyNow) : null,
+        shipping_type:    form.shippingType,
+        shipping_fee:     form.shippingType === 'convenience' ? (parseInt(form.shippingFee) || 0) : 0,
         verification_word:  verificationWord,
         verify_matched:     verifyStatus === 'ok',
         verify_sig:         verifySig,
@@ -326,6 +328,31 @@ export default function RegisterForm() {
           <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>직거래 연락처 *</label>
             <input value={form.contact} onChange={e => setForm(p => ({ ...p, contact: e.target.value }))} placeholder="카카오ID 또는 전화번호" style={FIELD_STYLE} />
+          </div>
+
+          {/* 배송 방식 */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', display: 'block', marginBottom: 5 }}>배송 방식</label>
+            <div className="tgl">
+              {[['included', '일반 (배송비 포함)'], ['convenience', '편의점 택배']].map(([v, l]) => (
+                <button key={v} type="button"
+                  onClick={() => setForm(p => ({ ...p, shippingType: v }))}
+                  className={`tgl-btn${form.shippingType === v ? ' on' : ''}`}
+                >{l}</button>
+              ))}
+            </div>
+            {form.shippingType === 'convenience' && (
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <input
+                  type="number" min="0"
+                  value={form.shippingFee}
+                  onChange={e => setForm(p => ({ ...p, shippingFee: e.target.value }))}
+                  placeholder="배송비 (예: 3000)"
+                  style={{ ...FIELD_STYLE, width: 160 }}
+                />
+                <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)' }}>원 — 낙찰가에 합산되어 결제됩니다</span>
+              </div>
+            )}
           </div>
 
           <button

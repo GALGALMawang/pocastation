@@ -22,7 +22,7 @@
  *
  * 환경변수 (Supabase Dashboard → Edge Functions → Secrets):
  *   GEMINI_API_KEY
- *   VERIFY_SECRET   - DB의 app.verify_secret 과 동일한 값 (migration_security_fixes.sql 참고)
+ *   VERIFY_SECRET   - DB app_secrets 테이블의 verify_secret 과 동일한 값 (migration_security_fixes.sql 참고)
  *   SUPABASE_URL, SUPABASE_ANON_KEY  - 런타임 기본 제공
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';

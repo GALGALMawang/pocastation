@@ -35,6 +35,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
 
   const [step,          setStep]          = useState('address'); // 'address' | 'method'
   const [address,       setAddress]       = useState('');        // 배송지
+  const [buyerContact,  setBuyerContact]  = useState('');        // 구매자 연락처 (판매자에게 공유)
   const [method,        setMethod]        = useState(null);      // 'toss' | 'direct'
   const [loading,       setLoading]       = useState(false);
   const [directContact, setDirectContact] = useState(null);      // 직거래 연락처
@@ -43,8 +44,17 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
   const paymentWidgetRef  = useRef(null);
   const paymentMethodsRef = useRef(null);
 
-  const amount = auction.current_price ?? auction.start_price;
-  const item   = `${auction.group_name} ${auction.member} 포토카드`;
+  // 편의점택배면 배송비 별도 합산, 일반이면 포함(0)
+  const shippingFee = auction.shipping_type === 'convenience' ? (auction.shipping_fee || 0) : 0;
+  const itemPrice   = auction.current_price ?? auction.start_price;
+  const amount      = itemPrice + shippingFee;
+  const item        = `${auction.group_name} ${auction.member} 포토카드`;
+
+  // 프로필에 저장된 주소/연락처 프리필 (비어 있을 때만)
+  useEffect(() => {
+    if (profile?.address) setAddress(a => a || profile.address);
+    if (profile?.phone)   setBuyerContact(c => c || profile.phone);
+  }, [profile]);
 
   // ── Toss 결제 위젯 초기화 ────────────────────────────────
   useEffect(() => {
@@ -74,6 +84,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
         amount,
         status:           'pending',
         shipping_address: address,
+        buyer_contact:    buyerContact,
       })
       .select().single();
     if (error) throw error;
@@ -188,6 +199,11 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
             <div style={{fontSize:11, color:'#7c3aed', fontWeight:800, letterSpacing:2, fontFamily:'monospace', marginBottom:4}}>낙찰 완료</div>
             <div style={{fontSize:17, fontWeight:900, color:'#111'}}>{item}</div>
             <div style={{fontSize:22, fontWeight:900, color:'#111', fontFamily:'monospace', marginTop:4}}>₩{amount?.toLocaleString()}</div>
+            {shippingFee > 0 && (
+              <div style={{fontSize:12, color:'rgba(0,0,0,0.45)', marginTop:4}}>
+                낙찰가 ₩{itemPrice?.toLocaleString()} + 편의점택배 ₩{shippingFee.toLocaleString()}
+              </div>
+            )}
           </div>
 
           <div style={{fontSize:13, fontWeight:700, color:'rgba(0,0,0,0.6)', marginBottom:10}}>배송지를 입력하세요</div>
@@ -202,19 +218,34 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
               boxSizing:'border-box', lineHeight:1.6, color:'#111',
             }}
           />
-          <div style={{fontSize:11, color:'rgba(0,0,0,0.35)', marginTop:6, marginBottom:20}}>
+          <div style={{fontSize:11, color:'rgba(0,0,0,0.35)', marginTop:6, marginBottom:14}}>
             정확한 주소를 입력해야 판매자가 발송할 수 있어요.
           </div>
 
+          <div style={{fontSize:13, fontWeight:700, color:'rgba(0,0,0,0.6)', marginBottom:10}}>연락처</div>
+          <input
+            value={buyerContact}
+            onChange={e => setBuyerContact(e.target.value)}
+            placeholder="010-0000-0000 또는 카카오ID"
+            style={{
+              width:'100%', padding:'12px 14px', borderRadius:10, fontSize:13,
+              border:'1.5px solid rgba(0,0,0,0.12)', outline:'none',
+              boxSizing:'border-box', color:'#111',
+            }}
+          />
+          <div style={{fontSize:11, color:'rgba(0,0,0,0.35)', marginTop:6, marginBottom:20}}>
+            배송 문의를 위해 판매자에게 공유됩니다.
+          </div>
+
           <button
-            disabled={!address.trim()}
+            disabled={!address.trim() || !buyerContact.trim()}
             onClick={() => setStep('method')}
             style={{
               width:'100%', padding:13, borderRadius:10, border:'none',
-              background: address.trim() ? '#111' : 'rgba(0,0,0,0.1)',
-              color: address.trim() ? '#fff' : 'rgba(0,0,0,0.3)',
+              background: address.trim() && buyerContact.trim() ? '#111' : 'rgba(0,0,0,0.1)',
+              color: address.trim() && buyerContact.trim() ? '#fff' : 'rgba(0,0,0,0.3)',
               fontSize:14, fontWeight:800,
-              cursor: address.trim() ? 'pointer' : 'default',
+              cursor: address.trim() && buyerContact.trim() ? 'pointer' : 'default',
             }}
           >
             다음 — 결제 방법 선택

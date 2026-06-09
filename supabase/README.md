@@ -24,7 +24,8 @@
 | 14 | `migration_shipping.sql` | 배송 정보 |
 | 15 | `migration_buy_now.sql` | 즉시구매(`buy_now`) + buy_now_price 컬럼 |
 | 16 | `migration_verify_matched.sql` | 손글씨 인증 결과 컬럼(verification_word, verify_matched) |
-| 17 | `migration_security_fixes.sql` | **보안 강화 (반드시 마지막)** — 아래 참고 |
+| 17 | `migration_security_fixes.sql` | **보안 강화** — 아래 참고 |
+| 18 | `migration_features_v2.sql` | 배송방식(shipping_type/fee), 구매자 연락처, 프로필 프사/주소 |
 
 ## 함수 최종 정의 위치 (중복 주의)
 
@@ -42,8 +43,8 @@
 DB와 Edge Function이 같은 키를 가져야 한다.
 
 1. 랜덤 키 생성: `openssl rand -hex 32`
-2. 파일 안 `ALTER DATABASE postgres SET app.verify_secret = '<SECRET>';` 의
-   `<SECRET>` 를 위 값으로 바꿔 실행
+2. 파일 안 `app_secrets` INSERT 의 `<SECRET>` 를 위 값으로 바꿔 실행
+   (Supabase는 `ALTER DATABASE SET` 권한이 없어 비밀키를 `app_secrets` 테이블에 저장)
 3. Supabase Dashboard → Edge Functions → Secrets 에 **`VERIFY_SECRET`** 으로
    동일한 값 등록
 4. `analyze-image` 함수 재배포

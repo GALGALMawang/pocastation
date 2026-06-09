@@ -8,13 +8,20 @@
 -- HMAC 서명 검증에 pgcrypto 필요
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- verify_matched 위조 방지용 비밀키.
--- analyze-image Edge Function의 VERIFY_SECRET 시크릿과 반드시 동일한 값으로 설정한다.
---   1) 임의의 긴 랜덤 문자열 생성 (예: openssl rand -hex 32)
---   2) 아래 <SECRET> 자리에 넣어 실행
---   3) Supabase Dashboard → Edge Functions → Secrets 에 VERIFY_SECRET 으로 동일 값 등록
--- ※ 키가 미설정(빈 문자열)이면 트리거가 모든 verify_matched 를 false 로 강제하므로 안전하다.
-ALTER DATABASE postgres SET app.verify_secret = '<SECRET>';
+-- verify_matched 위조 방지용 비밀키를 보관하는 테이블.
+-- (Supabase SQL Editor는 ALTER DATABASE SET 권한이 없어 GUC 대신 테이블 사용)
+-- RLS 활성화 + 정책 없음 → anon/authenticated 는 접근 불가.
+-- 트리거(SECURITY DEFINER, 소유자 postgres)만 읽을 수 있다.
+CREATE TABLE IF NOT EXISTS public.app_secrets (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+ALTER TABLE public.app_secrets ENABLE ROW LEVEL SECURITY;
+
+-- 비밀키 등록. Supabase → Edge Functions → Secrets 의 VERIFY_SECRET 과 동일한 값이어야 한다.
+INSERT INTO public.app_secrets (key, value)
+VALUES ('verify_secret', '<SECRET>')
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 
 -- ── 1. place_bid: 본인 인증 검증 추가 ────────────────────────
@@ -175,19 +182,27 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 수정: analyze-image Edge Function이 발급한 HMAC 서명(verify_sig)이
 --       (verification_word, verify_matched) 와 일치할 때만 verify_matched 유지.
 --       서명이 없거나 불일치하면 강제로 false 로 떨어뜨린다.
+-- verify_matched/verification_word 가 이전 마이그레이션에서 추가되지 않았을 수 있으므로
+-- 여기서 함께 보장한다(IF NOT EXISTS — 이미 있으면 무시).
 ALTER TABLE public.auctions
-  ADD COLUMN IF NOT EXISTS verify_sig TEXT;
+  ADD COLUMN IF NOT EXISTS verification_word TEXT,
+  ADD COLUMN IF NOT EXISTS verify_matched    BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS verify_sig        TEXT;
 
+-- SECURITY DEFINER: app_secrets(RLS 잠금)를 소유자 권한으로 읽기 위함.
 -- search_path 고정: Supabase는 pgcrypto(hmac)를 extensions 스키마에,
 -- 셀프호스트는 public 에 설치하므로 둘 다 포함시켜 함수 해석 실패를 막는다.
 CREATE OR REPLACE FUNCTION public.enforce_verify_matched()
 RETURNS TRIGGER
+SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  v_secret   TEXT := current_setting('app.verify_secret', true);
+  v_secret   TEXT;
   v_expected TEXT;
 BEGIN
+  SELECT value INTO v_secret FROM public.app_secrets WHERE key = 'verify_secret';
+
   -- 비밀키 미설정 시 안전하게 false 처리
   IF v_secret IS NULL OR v_secret = '' OR v_secret = '<SECRET>' THEN
     NEW.verify_matched := false;

@@ -108,11 +108,26 @@ function Home() {
     setActiveModal(user ? 'create' : 'auth');
   };
 
-  // 경매 상세 모달 열기
+  // 경매 상세 모달 열기 (URL에 ?auction=<id> 반영 → 공유 가능)
   const openAuction = (auction) => {
     setSelectedAuction(auction);
     setActiveModal('auction');
+    window.history.replaceState(null, '', `?auction=${auction.id}`);
   };
+
+  // 경매 모달 닫기 (URL 파라미터 제거)
+  const closeAuction = () => {
+    setActiveModal(null);
+    window.history.replaceState(null, '', window.location.pathname);
+  };
+
+  // 공유 링크(?auction=<id>)로 진입 시 해당 경매 모달 자동 오픈
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('auction');
+    if (!id) return;
+    supabase.from('auctions').select('*').eq('id', id).maybeSingle()
+      .then(({ data }) => { if (data) openAuction(data); });
+  }, []);
 
   // 낙찰 후 결제 모달 열기
   const openSettlement = (auction) => {
@@ -244,7 +259,7 @@ function Home() {
         <AuctionModal
           auction={selectedAuction}
           user={user}
-          onClose={() => setActiveModal(null)}
+          onClose={closeAuction}
           onOpenAuth={() => setActiveModal('auth')}
           onOpenSettlement={openSettlement}
         />

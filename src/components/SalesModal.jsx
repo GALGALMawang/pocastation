@@ -26,7 +26,7 @@ export default function SalesModal({ user, onClose }) {
     // 내가 판매자인 낙찰 경매 + settlement 정보
     const { data } = await supabase
       .from('auctions')
-      .select('id, group_name, member, album, img_url, current_price, status, winner_id, settlements(id, buyer_id, shipping_address, carrier, tracking_number, shipped_at, status)')
+      .select('id, group_name, member, album, img_url, current_price, status, winner_id, settlements(id, buyer_id, shipping_address, buyer_contact, carrier, tracking_number, shipped_at, status)')
       .eq('seller_id', user.id)
       .eq('status', 'ended')
       .not('winner_id', 'is', null)
@@ -149,13 +149,19 @@ function SaleItem({ auction, onRefresh }) {
         )}
       </div>
 
-      {/* 구매자 배송지 */}
+      {/* 구매자 배송지 + 연락처 */}
       {settlement?.shipping_address ? (
         <div style={{padding:'10px 12px', borderRadius:8, background:'rgba(124,58,237,0.04)', border:'1px solid rgba(124,58,237,0.12)', marginBottom:12}}>
           <div style={{fontSize:10, fontWeight:800, color:'#7c3aed', marginBottom:4}}>구매자 배송지</div>
           <div style={{fontSize:12, color:'#111', lineHeight:1.6, whiteSpace:'pre-line'}}>
             {settlement.shipping_address}
           </div>
+          {settlement.buyer_contact && (
+            <div style={{marginTop:8, paddingTop:8, borderTop:'1px solid rgba(124,58,237,0.12)'}}>
+              <span style={{fontSize:10, fontWeight:800, color:'#7c3aed'}}>연락처 </span>
+              <span style={{fontSize:12, fontWeight:700, color:'#111'}}>{settlement.buyer_contact}</span>
+            </div>
+          )}
         </div>
       ) : (
         <div style={{padding:'10px 12px', borderRadius:8, background:'rgba(0,0,0,0.03)', marginBottom:12}}>

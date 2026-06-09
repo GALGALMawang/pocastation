@@ -96,10 +96,12 @@ function Header({ user, profile, credit, onOpenModal, activeView, onNavClick, se
           {user ? (
             <div className="user-wrap">
               <div className="user-chip" onClick={() => setMenuOpen(!menuOpen)}>
-                <div className="user-av" style={{background:'#5B3FE8'}}>
-                  {user.email?.[0].toUpperCase()}
+                <div className="user-av" style={{background:'#5B3FE8', overflow:'hidden'}}>
+                  {profile?.avatar_url
+                    ? <img src={profile.avatar_url} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                    : (profile?.nickname?.[0] || user.email?.[0])?.toUpperCase()}
                 </div>
-                <span className="user-nm">{user.email?.split('@')[0]}</span>
+                <span className="user-nm">{profile?.nickname || user.email?.split('@')[0]}</span>
               </div>
 
               {menuOpen && (

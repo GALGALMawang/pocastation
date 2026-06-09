@@ -43,6 +43,23 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
 
   const isEnded  = auction.status === 'ended';
   const isWinner = isEnded && user && auction.winner_id === user.id;
+  const [copied, setCopied] = useState(false);
+
+  // 편의점택배면 배송비 별도, 일반이면 포함
+  const shippingFee = auction.shipping_type === 'convenience' ? (auction.shipping_fee || 0) : 0;
+
+  // 경매 링크 복사
+  const handleShare = async () => {
+    const url = `${window.location.origin}/?auction=${auction.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // 클립보드 권한 없을 때 fallback
+      window.prompt('아래 링크를 복사하세요', url);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   // 1초마다 카운트다운 갱신
   useEffect(() => {
@@ -148,7 +165,17 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
           {/* 헤더 */}
           <div className="mod-hd">
             <div className="mod-ttl">{auction.group_name} · {auction.member}</div>
-            <button className="mod-cl" onClick={onClose}>×</button>
+            <div style={{display:'flex', alignItems:'center', gap:4, marginLeft:'auto'}}>
+              <button
+                className="mod-cl"
+                onClick={handleShare}
+                title="경매 링크 복사"
+                style={{width:'auto', padding:'0 10px', fontSize:12, fontWeight:700, gap:4}}
+              >
+                {copied ? '✓ 복사됨' : '🔗 공유'}
+              </button>
+              <button className="mod-cl" onClick={onClose}>×</button>
+            </div>
           </div>
 
           <div className="mod-body">
@@ -181,6 +208,15 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
 
                 {/* 현재가 */}
                 <div className="mbig">₩ {(auction.current_price || 0).toLocaleString()}</div>
+
+                {/* 배송 방식 */}
+                <div style={{fontSize:12, color:'var(--t2)', marginBottom:6, display:'flex', alignItems:'center', gap:5}}>
+                  <span>🚚</span>
+                  {auction.shipping_type === 'convenience'
+                    ? <span>편의점 택배 · 배송비 <strong style={{color:'var(--t1)'}}>₩{shippingFee.toLocaleString()}</strong> 별도</span>
+                    : <span>일반 배송 · 배송비 포함</span>
+                  }
+                </div>
 
                 {/* 남은 시간 */}
                 {!isEnded && timeLeft && (
