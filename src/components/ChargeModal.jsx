@@ -13,8 +13,8 @@
  */
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { useIsMobile } from '../lib/hooks';
 import { formatKRW } from '../lib/utils';
+import ModalSheet from './ModalSheet';
 
 const PRESET_AMOUNTS = [10000, 30000, 50000, 100000, 300000];
 
@@ -55,22 +55,6 @@ export default function ChargeModal({ onClose }) {
     setLoading(false);
   };
 
-  const isMobile = useIsMobile();
-  const overlayStyle = {
-    position:'fixed', inset:0, zIndex:600,
-    background:'rgba(0,0,0,0.5)',
-    display:'flex',
-    alignItems: isMobile ? 'flex-end' : 'center',
-    justifyContent:'center',
-  };
-  const boxStyle = {
-    background:'#fff',
-    width:'100%',
-    maxWidth: isMobile ? '100%' : 420,
-    borderRadius: isMobile ? '20px 20px 0 0' : 20,
-    padding:24,
-  };
-
   // 가상계좌 발급 완료 화면
   if (account) {
     const due = account.dueDate
@@ -78,8 +62,7 @@ export default function ChargeModal({ onClose }) {
       : '24시간 이내';
 
     return (
-      <div style={overlayStyle} onClick={onClose}>
-        <div style={boxStyle} onClick={e => e.stopPropagation()}>
+      <ModalSheet onClose={onClose} maxWidth={420} bodyStyle={{ padding: 24 }}>
           <div style={{textAlign:'center', marginBottom:20}}>
             <div style={{fontSize:28, marginBottom:8}}>🏦</div>
             <div style={{fontSize:17, fontWeight:900, color:'#111'}}>입금 계좌 안내</div>
@@ -114,15 +97,13 @@ export default function ChargeModal({ onClose }) {
           >
             확인
           </button>
-        </div>
-      </div>
+      </ModalSheet>
     );
   }
 
   // 금액 선택 화면
   return (
-    <div style={overlayStyle} onClick={onClose}>
-      <div style={boxStyle} onClick={e => e.stopPropagation()}>
+    <ModalSheet onClose={onClose} maxWidth={420} bodyStyle={{ padding: 24 }}>
         <div style={{marginBottom:20}}>
           <div style={{fontSize:17, fontWeight:900, color:'#111', marginBottom:4}}>크레딧 충전</div>
           <div style={{fontSize:12, color:'rgba(0,0,0,0.4)'}}>계좌이체로 입금하면 즉시 충전됩니다</div>
@@ -174,7 +155,6 @@ export default function ChargeModal({ onClose }) {
         >
           {loading ? '처리 중...' : `${formatKRW(finalAmount)} 계좌 발급받기`}
         </button>
-      </div>
-    </div>
+    </ModalSheet>
   );
 }

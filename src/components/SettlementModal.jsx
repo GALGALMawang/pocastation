@@ -27,8 +27,8 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import { loadPaymentWidget } from '@tosspayments/payment-widget-sdk';
 import { AuthContext } from '../App';
 import { supabase } from '../lib/supabase';
-import { useIsMobile } from '../lib/hooks';
 import { formatKRW } from '../lib/utils';
+import ModalSheet from './ModalSheet';
 
 const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY;
 
@@ -135,29 +135,12 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
     setLoading(false);
   };
 
-  const isMobile = useIsMobile();
-  const overlayStyle = {
-    position:'fixed', inset:0, zIndex:600,
-    background:'rgba(0,0,0,0.5)',
-    display:'flex',
-    alignItems: isMobile ? 'flex-end' : 'center',
-    justifyContent:'center',
-  };
-  const boxStyle = {
-    background:'#fff',
-    width:'100%',
-    maxWidth: isMobile ? '100%' : 480,
-    borderRadius: isMobile ? '20px 20px 0 0' : 20,
-    padding:24,
-    maxHeight:'90vh',
-    overflowY:'auto',
-  };
+  const sheetBody = { padding: 24, maxHeight: '90vh', overflowY: 'auto' };
 
   // 직거래 연락처 화면
   if (directContact) {
     return (
-      <div style={overlayStyle} onClick={onClose}>
-        <div style={boxStyle} onClick={e => e.stopPropagation()}>
+      <ModalSheet onClose={onClose} maxWidth={480} bodyStyle={sheetBody}>
           <div style={{textAlign:'center', marginBottom:20}}>
             <div style={{fontSize:28, marginBottom:8}}>🤝</div>
             <div style={{fontSize:17, fontWeight:900, color:'#111'}}>판매자 연락처</div>
@@ -187,16 +170,14 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
           >
             확인
           </button>
-        </div>
-      </div>
+      </ModalSheet>
     );
   }
 
   // 주소 입력 화면
   if (step === 'address') {
     return (
-      <div style={overlayStyle} onClick={onClose}>
-        <div style={boxStyle} onClick={e => e.stopPropagation()}>
+      <ModalSheet onClose={onClose} maxWidth={480} bodyStyle={sheetBody}>
           <div style={{marginBottom:20}}>
             <div style={{fontSize:11, color:'#7c3aed', fontWeight:800, letterSpacing:2, fontFamily:'monospace', marginBottom:4}}>낙찰 완료</div>
             <div style={{fontSize:17, fontWeight:900, color:'#111'}}>{item}</div>
@@ -252,15 +233,13 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
           >
             다음 — 결제 방법 선택
           </button>
-        </div>
-      </div>
+      </ModalSheet>
     );
   }
 
   // 결제 방법 선택 화면
   return (
-    <div style={overlayStyle} onClick={onClose}>
-      <div style={boxStyle} onClick={e => e.stopPropagation()}>
+    <ModalSheet onClose={onClose} maxWidth={480} bodyStyle={sheetBody}>
 
         {/* 낙찰 정보 */}
         <div style={{marginBottom:20}}>
@@ -346,7 +325,6 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
             </button>
           </div>
         )}
-      </div>
-    </div>
+    </ModalSheet>
   );
 }

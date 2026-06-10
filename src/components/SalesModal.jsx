@@ -11,8 +11,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { CARRIERS } from '../lib/delivery';
-import { useIsMobile } from '../lib/hooks';
 import { formatKRW } from '../lib/utils';
+import ModalSheet from './ModalSheet';
 
 export default function SalesModal({ user, onClose }) {
   const [sales,   setSales]   = useState([]);
@@ -37,29 +37,8 @@ export default function SalesModal({ user, onClose }) {
     setLoading(false);
   };
 
-  const isMobile = useIsMobile();
-
   return (
-    <div
-      style={{
-        position:'fixed', inset:0, zIndex:600,
-        background:'rgba(0,0,0,0.5)',
-        display:'flex',
-        alignItems: isMobile ? 'flex-end' : 'center',
-        justifyContent:'center',
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          background:'#fff', width:'100%',
-          maxWidth: isMobile ? '100%' : 520,
-          borderRadius: isMobile ? '20px 20px 0 0' : 20,
-          maxHeight:'85vh', overflow:'hidden',
-          display:'flex', flexDirection:'column',
-        }}
-        onClick={e => e.stopPropagation()}
-      >
+    <ModalSheet onClose={onClose} maxWidth={520} bodyStyle={{ maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {/* 헤더 */}
         <div style={{padding:'20px 20px 16px', borderBottom:'1px solid rgba(0,0,0,0.08)', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
           <div style={{fontSize:'16px', fontWeight:900, color:'#111'}}>판매 내역</div>
@@ -80,8 +59,7 @@ export default function SalesModal({ user, onClose }) {
             ))
           )}
         </div>
-      </div>
-    </div>
+    </ModalSheet>
   );
 }
 
