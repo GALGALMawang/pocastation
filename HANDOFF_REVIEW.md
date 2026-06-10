@@ -16,6 +16,22 @@
 
 ---
 
+## 📦 신규 인수자가 마무리해야 할 일 (배포/운영)
+
+코드는 정리됐지만, 아래는 **인수자의 계정/대시보드에서** 직접 해야 합니다.
+
+1. **tracker.delivery 자격증명 재발급 + 등록**
+   - tracker.delivery 대시보드에서 Client Secret **재발급**(기존 것은 과거 노출됨).
+   - Supabase → Edge Functions → Secrets 에 `TRACKER_CLIENT_ID`, `TRACKER_CLIENT_SECRET` 등록.
+   - `track-delivery` 함수 배포: `supabase functions deploy track-delivery`
+   - ⚠️ 이걸 하기 전까지는 배송조회가 "불러올 수 없음"으로 표시됨(크래시 아님).
+2. **toss-webhook 재배포** — 크레딧 위조 검증 코드가 들어갔으나 배포해야 라이브 반영:
+   `supabase functions deploy toss-webhook`
+3. `.env.local` / Vercel 환경변수에서 미사용된 `VITE_TRACKER_CLIENT_ID/SECRET` 제거.
+4. 모든 secret(Supabase service_role, Toss, tracker)은 인수자 기준으로 재발급 권장.
+
+---
+
 ## 🔴 보안 — 핸드오프 전 반드시 처리
 
 - [ ] **1. tracker.delivery Client Secret이 클라이언트 번들에 노출 (심각)**
@@ -71,4 +87,10 @@
 ---
 
 ## 처리 진행 메모
-- (여기에 처리 내역을 날짜와 함께 기록)
+
+**2026-06-10 자동 재점검 (서브에이전트):**
+- ✅ 수정 4건 실제 반영 검증됨 — tracker secret 서버 이전(JWT 인증 포함), toss-webhook Toss-API 검증(금액 일치까지), 박스드로잉 주석 0건, getTimeLeft 단일화(죽은 코드 제거 확인), init_fix.js 부재. 신규 결함 없음.
+- 판정: **코드 핸드오프 준비 완료.** 남은 건 운영 액션 + 선택적 리팩터링.
+- ⚠️ 운영 액션(코드 아님): `.env.local`에 노출됐던 `VITE_TRACKER_CLIENT_SECRET`이 잔존 → tracker.delivery에서 재발급 필요. 미사용된 `VITE_TRACKER_*` 두 줄은 `.env.local`/`.env.example`에서 삭제 권장.
+- 재분류: `🃏` 이모지는 JSX 렌더(UI 플레이스홀더) 전용이라 바이브코딩 흔적 아님 → 정리 불필요.
+- 잔여 선택 항목: 모달 보일러플레이트 추출, formatKRW 유틸화, alert/confirm 통일, index.html Toss v1 script 제거.
