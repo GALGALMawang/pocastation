@@ -56,7 +56,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
     if (profile?.phone)   setBuyerContact(c => c || profile.phone);
   }, [profile]);
 
-  // ── Toss 결제 위젯 초기화 ────────────────────────────────
+  // Toss 결제 위젯 초기화
   useEffect(() => {
     if (step !== 'method' || method !== 'toss' || !TOSS_CLIENT_KEY) return;
 
@@ -72,7 +72,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
     })();
   }, [step, method]);
 
-  // ── settlements 생성 공통 함수 ───────────────────────────
+  // settlements 생성 공통 함수
   const createSettlement = async (method) => {
     const { data, error } = await supabase
       .from('settlements')
@@ -92,7 +92,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
     return data;
   };
 
-  // ── Toss 결제 요청 ────────────────────────────────────────
+  // Toss 결제 요청
   const handleTossPay = async () => {
     if (!paymentWidgetRef.current) return;
     setLoading(true);
@@ -112,7 +112,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
     }
   };
 
-  // ── 직거래 처리 ───────────────────────────────────────────
+  // 직거래 처리
   const handleDirect = async () => {
     setLoading(true);
     try {
@@ -151,7 +151,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
     overflowY:'auto',
   };
 
-  // ── 직거래 연락처 화면 ────────────────────────────────────
+  // 직거래 연락처 화면
   if (directContact) {
     return (
       <div style={overlayStyle} onClick={onClose}>
@@ -190,7 +190,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
     );
   }
 
-  // ── 주소 입력 화면 ────────────────────────────────────────
+  // 주소 입력 화면
   if (step === 'address') {
     return (
       <div style={overlayStyle} onClick={onClose}>
@@ -255,7 +255,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
     );
   }
 
-  // ── 결제 방법 선택 화면 ───────────────────────────────────
+  // 결제 방법 선택 화면
   return (
     <div style={overlayStyle} onClick={onClose}>
       <div style={boxStyle} onClick={e => e.stopPropagation()}>

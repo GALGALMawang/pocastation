@@ -18,19 +18,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BID_INCREMENT } from '../lib/constants';
-
-// 남은 시간 문자열 계산
-function getTimeLeft(endsAt) {
-  if (!endsAt) return null;
-  const diff = new Date(endsAt) - new Date();
-  if (diff <= 0) return '종료';
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  if (h > 0) return `${h}시간 ${m}분 ${s}초`;
-  if (m > 0) return `${m}분 ${s}초`;
-  return `${s}초`;
-}
+import { getTimeLeft } from '../lib/utils';
 
 function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOpenSettlement }) {
   const [auction,   setAuction]  = useState(initialAuction);
@@ -39,7 +27,7 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
   const [bidMsg,    setBidMsg]   = useState(null); // { type: 'ok' | 'err', text }
   const [bidding,   setBidding]  = useState(false);
   const [buyingNow, setBuyingNow]= useState(false);
-  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(initialAuction.ends_at));
+  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(initialAuction.ends_at, { withSeconds: true }));
 
   const isEnded  = auction.status === 'ended';
   const isWinner = isEnded && user && auction.winner_id === user.id;
@@ -64,13 +52,11 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
   // 1초마다 카운트다운 갱신
   useEffect(() => {
     if (isEnded || !auction.ends_at) return;
-    const timer = setInterval(() => setTimeLeft(getTimeLeft(auction.ends_at)), 1000);
+    const timer = setInterval(() => setTimeLeft(getTimeLeft(auction.ends_at, { withSeconds: true })), 1000);
     return () => clearInterval(timer);
   }, [isEnded, auction.ends_at]);
 
-  // ──────────────────────────────────────────────────────────
   // 초기 로드 + 실시간 구독
-  // ──────────────────────────────────────────────────────────
   useEffect(() => {
     fetchBids();
     incrementViewCount();
@@ -110,9 +96,7 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
     try { await supabase.rpc('increment_view_count', { p_auction_id: auction.id }); } catch {}
   };
 
-  // ──────────────────────────────────────────────────────────
   // 즉시 구매
-  // ──────────────────────────────────────────────────────────
   const handleBuyNow = async () => {
     if (!user) { onOpenAuth(); return; }
     if (!window.confirm(`₩${auction.buy_now_price?.toLocaleString()}에 즉시 구매하시겠어요?`)) return;
@@ -131,9 +115,7 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
     }
   };
 
-  // ──────────────────────────────────────────────────────────
   // 입찰
-  // ──────────────────────────────────────────────────────────
   const handleBid = async () => {
     if (!user) { onOpenAuth(); return; }
     setBidding(true);
@@ -154,9 +136,7 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
     }
   };
 
-  // ──────────────────────────────────────────────────────────
   // 렌더
-  // ──────────────────────────────────────────────────────────
   return (
     <div className="mod-wrap open">
       <div className="mod-ov">

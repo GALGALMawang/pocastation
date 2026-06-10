@@ -69,7 +69,7 @@ export default function ChargeModal({ onClose }) {
     padding:24,
   };
 
-  // ── 가상계좌 발급 완료 화면 ────────────────────────────────
+  // 가상계좌 발급 완료 화면
   if (account) {
     const due = account.dueDate
       ? new Date(account.dueDate).toLocaleString('ko-KR')
@@ -117,7 +117,7 @@ export default function ChargeModal({ onClose }) {
     );
   }
 
-  // ── 금액 선택 화면 ─────────────────────────────────────────
+  // 금액 선택 화면
   return (
     <div style={overlayStyle} onClick={onClose}>
       <div style={boxStyle} onClick={e => e.stopPropagation()}>

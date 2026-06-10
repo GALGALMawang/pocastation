@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ── 인증: 로그인 유저만 허용 ──────────────────────────────
+    // 인증: 로그인 유저만 허용
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return json({ matched: false, detected: null, message: '로그인이 필요합니다.', signature: null }, 401);

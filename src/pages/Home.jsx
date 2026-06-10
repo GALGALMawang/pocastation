@@ -35,28 +35,26 @@ import SalesModal    from '../components/SalesModal';
 import { AuthContext } from '../App';
 
 function Home() {
-  // ── 인증 상태 ──────────────────────────────────────────────
+  // 인증 상태
   const [user,    setUser]    = useState(null);
   const [profile, setProfile] = useState(null);
   const [credit,  setCredit]  = useState(0);
 
-  // ── 경매 목록 ──────────────────────────────────────────────
+  // 경매 목록
   const [auctions, setAuctions] = useState([]);
   const [loading,  setLoading]  = useState(true);
 
-  // ── 모달 제어 ──────────────────────────────────────────────
+  // 모달 제어
   const [activeModal,      setActiveModal]      = useState(null);
   const [selectedAuction,  setSelectedAuction]  = useState(null); // AuctionModal용
   const [settlementAuction,setSettlementAuction]= useState(null); // SettlementModal용
 
-  // ── 필터·정렬 ──────────────────────────────────────────────
+  // 필터·정렬
   const [activeView, setActiveView] = useState('live');
   const [sortBy,     setSortBy]     = useState('latest');
   const [search,     setSearch]     = useState('');
 
-  // ──────────────────────────────────────────────────────────
   // 초기 로드: 세션 확인 + 경매 목록
-  // ──────────────────────────────────────────────────────────
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) { setUser(session.user); fetchUserExtra(session.user.id); }
@@ -92,9 +90,7 @@ function Home() {
     setLoading(false);
   };
 
-  // ──────────────────────────────────────────────────────────
   // 핸들러
-  // ──────────────────────────────────────────────────────────
 
   // 네비 링크 클릭 시 뷰 전환 + 검색 초기화 + 경매 섹션으로 스크롤
   const handleNavClick = (view) => {
@@ -135,9 +131,7 @@ function Home() {
     setActiveModal('settlement');
   };
 
-  // ──────────────────────────────────────────────────────────
   // 필터링 & 정렬
-  // ──────────────────────────────────────────────────────────
   const filteredAuctions = auctions.filter(a => {
     // 키워드 검색 (그룹명·멤버·앨범)
     if (search.trim()) {
@@ -168,9 +162,7 @@ function Home() {
     ? [...new Set(auctions.filter(a => a.status !== 'ended').map(a => a.group_name).filter(Boolean))]
     : [];
 
-  // ──────────────────────────────────────────────────────────
   // 렌더
-  // ──────────────────────────────────────────────────────────
   return (
     <AuthContext.Provider value={{ user, profile, credit }}>
       <Header
@@ -249,7 +241,7 @@ function Home() {
 
       <Footer />
 
-      {/* ── 모달 ────────────────────────────────────────────── */}
+      {/* 모달 */}
 
       {activeModal === 'auth' && (
         <AuthModal onClose={() => setActiveModal(null)} />

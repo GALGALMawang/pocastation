@@ -10,6 +10,7 @@
  *   onClick - 카드 클릭 시 호출 (AuctionModal 오픈)
  */
 import React, { useState, useEffect } from 'react';
+import { getTimeLeft } from '../lib/utils';
 
 const STATUS_LABEL = {
   live:    '🔴 진행 중',
@@ -17,19 +18,6 @@ const STATUS_LABEL = {
   upcoming:'🕐 시작 예정',
   ended:   '✅ 종료',
 };
-
-// 남은 시간 문자열 계산
-function getTimeLeft(endsAt) {
-  if (!endsAt) return null;
-  const diff = new Date(endsAt) - new Date();
-  if (diff <= 0) return '종료';
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  if (h > 0) return `${h}시간 ${m}분`;
-  if (m > 0) return `${m}분 ${s}초`;
-  return `${s}초`;
-}
 
 function AuctionCard({ auction, onClick }) {
   const isEnded = auction.status === 'ended';

@@ -174,7 +174,7 @@ export default function BidsModal({ user, onClose, onOpenSettlement }) {
   );
 }
 
-// ── 배송 현황 컴포넌트 ──────────────────────────────────────
+// 배송 현황 컴포넌트
 function TrackingStatus({ settlement }) {
   const [trackData, setTrackData] = useState(null);
   const [loading,   setLoading]   = useState(false);

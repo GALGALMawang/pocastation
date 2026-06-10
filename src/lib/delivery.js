@@ -1,13 +1,11 @@
 /**
- * delivery.js — tracker.delivery API 래퍼
+ * delivery.js — 배송 조회 클라이언트 래퍼
  *
- * OAuth 2.0 Client Credentials 방식으로 access token을 발급받아
- * 한국 주요 택배사 배송 현황을 조회한다.
- *
- * 환경변수 (.env.local):
- *   VITE_TRACKER_CLIENT_ID     - tracker.delivery Client ID
- *   VITE_TRACKER_CLIENT_SECRET - tracker.delivery Client Secret
+ * 실제 tracker.delivery API 호출(OAuth 토큰 발급 + GraphQL 조회)은
+ * track-delivery Edge Function이 서버 측에서 처리한다. Client Secret 을
+ * 브라우저 번들에 노출하지 않기 위함이다.
  */
+import { supabase } from './supabase';
 
 export const CARRIERS = [
   { id: 'kr.cjlogistics', name: 'CJ대한통운' },
@@ -30,86 +28,26 @@ export const STATUS_KO = {
   EXCEPTION:            '예외 처리',
 };
 
-const TOKEN_URL = 'https://auth.tracker.delivery/oauth2/token';
-const GQL_URL   = 'https://apis.tracker.delivery/graphql';
-
-// access token 메모리 캐시 (탭 새로고침 전까지 재사용)
-let _cachedToken    = null;
-let _tokenExpiresAt = 0;
-
-async function getAccessToken() {
-  // 만료 30초 전에 재발급
-  if (_cachedToken && Date.now() < _tokenExpiresAt - 30_000) {
-    return _cachedToken;
-  }
-
-  const clientId     = import.meta.env.VITE_TRACKER_CLIENT_ID;
-  const clientSecret = import.meta.env.VITE_TRACKER_CLIENT_SECRET;
-  if (!clientId || !clientSecret) return null;
-
-  const res = await fetch(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type:    'client_credentials',
-      client_id:     clientId,
-      client_secret: clientSecret,
-    }),
-  });
-
-  const json = await res.json();
-  if (!json.access_token) return null;
-
-  _cachedToken    = json.access_token;
-  _tokenExpiresAt = Date.now() + (json.expires_in ?? 3600) * 1000;
-  return _cachedToken;
-}
-
-const TRACK_QUERY = `
-  query Track($carrierId: ID!, $trackId: ID!) {
-    track(carrierId: $carrierId, trackId: $trackId) {
-      lastEvent {
-        time
-        status { code name }
-        description
-        location { name }
-      }
-      events(last: 10) {
-        edges {
-          node {
-            time
-            status { code name }
-            description
-            location { name }
-          }
-        }
-      }
-    }
-  }
-`;
-
 /**
- * 배송 현황 조회
+ * 배송 현황 조회 (track-delivery Edge Function 경유)
  * @param {string} carrierId - e.g. 'kr.cjlogistics'
  * @param {string} trackId   - 운송장 번호
  * @returns {{ lastEvent, events } | null}
  */
 export async function fetchTracking(carrierId, trackId) {
-  const token = await getAccessToken();
-  if (!token) return null;
+  const { data: { session } } = await supabase.auth.getSession();
 
-  const res = await fetch(GQL_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${token}`,
+  const res = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-delivery`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token ?? ''}`,
+      },
+      body: JSON.stringify({ carrierId, trackId }),
     },
-    body: JSON.stringify({
-      query:     TRACK_QUERY,
-      variables: { carrierId, trackId },
-    }),
-  });
-
+  );
   const json = await res.json();
-  return json?.data?.track ?? null;
+  return json?.track ?? null;
 }

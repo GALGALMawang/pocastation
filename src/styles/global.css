@@ -183,7 +183,7 @@ input,select{font:inherit;color:inherit}
 .soc-ic{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;transition:all var(--t)}
 .soc-ic:hover{background:var(--pr)}
 
-/* ══ AUTH MODAL ══ */
+/* AUTH MODAL */
 .auth-ov{display:none;position:fixed;inset:0;z-index:500;background:rgba(17,17,24,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
 .auth-ov.open{display:flex}
 .auth-box{background:var(--sf);border-radius:var(--r5);width:100%;max-width:380px;padding:32px 28px 24px;box-shadow:var(--sh-m);position:relative;animation:mod-in .22s var(--ease) both}
@@ -216,7 +216,7 @@ input,select{font:inherit;color:inherit}
 .auth-terms{font-size:11px;color:var(--t3);text-align:center;margin-top:18px;line-height:1.65}
 .auth-terms a{color:var(--pr);font-weight:600}
 
-/* ══ NEW FEATURES CSS ══ */
+/* NEW FEATURES CSS */
 .user-cr{font-size:11px;font-weight:800;color:var(--pr);margin-right:10px;font-family:var(--fe);background:var(--pr-d);padding:3px 10px;border-radius:var(--rf);display:none}
 .user-cr.show{display:inline-flex}
 .cr-btn{background:var(--pr);color:#fff;padding:6px 12px;border-radius:var(--r2);font-size:11px;font-weight:800;cursor:pointer}
@@ -242,7 +242,7 @@ input,select{font:inherit;color:inherit}
 .v-acc-vl{font-weight:700;color:var(--t1)}
 .loading-box{display:flex;flex-direction:column;align-items:center;padding:40px 0;gap:12px;color:var(--t3);font-size:13px}
 
-/* ══ AUCTION MODAL ══ */
+/* AUCTION MODAL */
 .mod-wrap{display:none;position:fixed;inset:0;z-index:500;overflow-y:auto}
 .mod-wrap.open{display:block}
 .mod-ov{background:rgba(17,17,24,.55);backdrop-filter:blur(4px);min-height:100%;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px 60px}
@@ -301,7 +301,7 @@ input,select{font:inherit;color:inherit}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.err{background:var(--ac)}
 .toast.ok{background:var(--ok)}
-/* ══ SEGMENTED TOGGLE (재사용) ══ */
+/* SEGMENTED TOGGLE (재사용) */
 /* 보라색 알약형 — 정렬/필터 버튼 (Home 정렬 등) */
 .seg{display:flex;gap:6px;flex-wrap:wrap}
 .seg-btn{padding:5px 12px;border-radius:var(--rf);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--bd);color:var(--t2);background:transparent;transition:all .15s}

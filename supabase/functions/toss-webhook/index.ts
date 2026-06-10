@@ -24,6 +24,22 @@ Deno.serve(async (req) => {
     return new Response('ok', { status: 200 });
   }
 
+  // 위조 웹훅 방지: 웹훅 본문을 신뢰하지 않고 Toss 결제 조회 API로 실제 상태를 재확인한다.
+  // (paymentKey 로 조회 → status=DONE, orderId 일치, 금액 일치를 직접 검증)
+  const lookup = await fetch(
+    `https://api.tosspayments.com/v1/payments/${payment.paymentKey}`,
+    { headers: { 'Authorization': `Basic ${btoa(TOSS_SECRET_KEY + ':')}` } },
+  );
+  if (!lookup.ok) {
+    console.error('Toss 결제 조회 실패:', payment.orderId);
+    return new Response('verification failed', { status: 400 });
+  }
+  const verified = await lookup.json();
+  if (verified.status !== 'DONE' || verified.orderId !== payment.orderId) {
+    console.error('웹훅-결제 상태 불일치:', payment.orderId);
+    return new Response('mismatch', { status: 400 });
+  }
+
   const sb = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -40,6 +56,12 @@ Deno.serve(async (req) => {
   if (!tx) {
     console.error('거래 내역 없음:', payment.orderId);
     return new Response('not found', { status: 404 });
+  }
+
+  // 실제 결제 금액과 충전 예정 금액이 일치해야 지급한다.
+  if (verified.totalAmount !== tx.amount) {
+    console.error('결제 금액 불일치:', payment.orderId, verified.totalAmount, tx.amount);
+    return new Response('amount mismatch', { status: 400 });
   }
 
   // 크레딧 지급

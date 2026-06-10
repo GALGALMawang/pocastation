@@ -83,7 +83,7 @@ export default function SalesModal({ user, onClose }) {
   );
 }
 
-// ── 개별 판매 아이템 ────────────────────────────────────────
+// 개별 판매 아이템
 function SaleItem({ auction, onRefresh }) {
   const settlement = auction.settlements?.[0];
 
