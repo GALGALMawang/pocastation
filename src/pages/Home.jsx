@@ -99,9 +99,10 @@ function Home() {
     document.getElementById('auctions')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // 판매 등록 모달 열기 — 비로그인 시 로그인 모달로 전환
-  const openCreate = () => {
-    setActiveModal(user ? 'create' : 'auth');
+  // 로그인이 필요한 모달 — 비로그인 시 로그인 모달로 전환
+  const AUTH_REQUIRED = ['create', 'bids', 'sales', 'profile', 'charge'];
+  const openModal = (key) => {
+    setActiveModal(!user && AUTH_REQUIRED.includes(key) ? 'auth' : key);
   };
 
   // 경매 상세 모달 열기 (URL에 ?auction=<id> 반영 → 공유 가능)
@@ -167,7 +168,7 @@ function Home() {
     <AuthContext.Provider value={{ user, profile, credit }}>
       <Header
         user={user} profile={profile} credit={credit}
-        onOpenModal={(key) => key === 'create' ? openCreate() : setActiveModal(key)}
+        onOpenModal={openModal}
         activeView={activeView} onNavClick={handleNavClick}
         search={search} onSearch={setSearch}
       />
