@@ -29,6 +29,9 @@
    `supabase functions deploy toss-webhook`
 3. `.env.local` / Vercel 환경변수에서 미사용된 `VITE_TRACKER_CLIENT_ID/SECRET` 제거.
 4. 모든 secret(Supabase service_role, Toss, tracker)은 인수자 기준으로 재발급 권장.
+5. **카카오 알림톡** — 코드는 준비됨, 외부 키만 필요(`supabase/README.md`의 "카카오 알림톡 설정" 참고):
+   `migration_kakao_cron_fix.sql` 실행(service_role_key 입력) + 솔라피/카카오 Edge Secret 6개 +
+   `supabase functions deploy kakao-alimtalk` + 카카오 채널/템플릿 심사 승인.
 
 ---
 

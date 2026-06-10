@@ -26,6 +26,7 @@
 | 16 | `migration_verify_matched.sql` | 손글씨 인증 결과 컬럼(verification_word, verify_matched) |
 | 17 | `migration_security_fixes.sql` | **보안 강화** — 아래 참고 |
 | 18 | `migration_features_v2.sql` | 배송방식(shipping_type/fee), 구매자 연락처, 프로필 프사/주소 |
+| 19 | `migration_kakao_cron_fix.sql` | 카카오 알림톡 cron을 app_secrets 기반으로 수정 (아래 참고) |
 
 ## 함수 최종 정의 위치 (중복 주의)
 
@@ -51,6 +52,25 @@ DB와 Edge Function이 같은 키를 가져야 한다.
 
 > 키가 미설정이거나 `<SECRET>` 그대로면, 트리거가 모든 `verify_matched` 를
 > `false` 로 강제하므로 보안상 안전하게 동작한다(인증 ✓ 표시만 안 될 뿐).
+
+## 카카오 알림톡 설정 (외부 키만 넣으면 작동)
+
+코드/마이그레이션은 준비됨. 아래 외부 키만 채우면 동작한다.
+
+1. `migration_kakao_cron_fix.sql` 실행 — `<SERVICE_ROLE_KEY>` 를 Supabase →
+   Settings → API → **service_role** 키로 교체(인증용). `supabase_url` 은 본인
+   프로젝트 URL로(인수 시 교체).
+2. Supabase → Edge Functions → Secrets 에 등록(솔라피/카카오):
+   `SOLAPI_API_KEY`, `SOLAPI_API_SECRET`, `KAKAO_SENDER_KEY`(발신 프로필 키),
+   `KAKAO_PF_ID`(카카오 채널 ID), `KAKAO_TEMPLATE_WINNER`, `KAKAO_TEMPLATE_SELLER`,
+   `SITE_URL`.
+3. `supabase functions deploy kakao-alimtalk`
+4. 사전 준비(외부): 솔라피 계정, 카카오 비즈니스 채널, 알림톡 **템플릿 등록 + 카카오 심사 승인**.
+
+> 동작 흐름: pg_cron(1분) → `app_secrets`의 url/key 로 kakao-alimtalk 호출 →
+> 종료·미통지 경매의 낙찰자/판매자 `phone` 으로 솔라피 알림톡 발송 →
+> `kakao_notified_at` 기록. 진단: `select status, return_message from cron.job_run_details
+> where jobname='kakao-alimtalk-job' order by start_time desc limit 5;`
 
 ## 주의
 
