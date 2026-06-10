@@ -9,6 +9,7 @@
  *   onOpenAuction - 피처드 카드 클릭 시 호출 (auction 객체 전달)
  */
 import React from 'react';
+import { formatKRW } from '../lib/utils';
 
 function Hero({ auctions, onOpenAuction }) {
   // live 또는 ending 상태 중 첫 번째를 피처드로 사용
@@ -57,7 +58,7 @@ function Hero({ auctions, onOpenAuction }) {
               <div className="h-card-ft">
                 <div className="h-card-nm">{featured.group_name} · {featured.member}</div>
                 <div className="h-card-sb">{featured.album}</div>
-                <div className="h-card-pr">₩ {(featured.current_price || featured.start_price || 0).toLocaleString()}</div>
+                <div className="h-card-pr">{formatKRW(featured.current_price || featured.start_price)}</div>
               </div>
             </div>
           )}

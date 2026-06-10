@@ -10,7 +10,7 @@
  *   onClick - 카드 클릭 시 호출 (AuctionModal 오픈)
  */
 import React, { useState, useEffect } from 'react';
-import { getTimeLeft } from '../lib/utils';
+import { getTimeLeft, formatKRW } from '../lib/utils';
 
 const STATUS_LABEL = {
   live:    '🔴 진행 중',
@@ -76,7 +76,7 @@ function AuctionCard({ auction, onClick }) {
         <div className="cd-alb">{auction.album} · {auction.category}</div>
         <div className="cd-rl" />
         <div className="pr-row">
-          <div className="pr-cur">₩ {(auction.current_price || 0).toLocaleString()}</div>
+          <div className="pr-cur">{formatKRW(auction.current_price)}</div>
           <div className="pr-bds">{auction.bid_count || 0}회 입찰</div>
         </div>
         <button className="bid-btn df">

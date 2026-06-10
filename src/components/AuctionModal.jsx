@@ -18,7 +18,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BID_INCREMENT } from '../lib/constants';
-import { getTimeLeft } from '../lib/utils';
+import { getTimeLeft, formatKRW } from '../lib/utils';
 
 function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOpenSettlement }) {
   const [auction,   setAuction]  = useState(initialAuction);
@@ -99,7 +99,7 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
   // 즉시 구매
   const handleBuyNow = async () => {
     if (!user) { onOpenAuth(); return; }
-    if (!window.confirm(`₩${auction.buy_now_price?.toLocaleString()}에 즉시 구매하시겠어요?`)) return;
+    if (!window.confirm(`${formatKRW(auction.buy_now_price)}에 즉시 구매하시겠어요?`)) return;
     setBuyingNow(true);
     setBidMsg(null);
     const { data, error } = await supabase.rpc('buy_now', {
@@ -187,13 +187,13 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
                 </div>
 
                 {/* 현재가 */}
-                <div className="mbig">₩ {(auction.current_price || 0).toLocaleString()}</div>
+                <div className="mbig">{formatKRW(auction.current_price)}</div>
 
                 {/* 배송 방식 */}
                 <div style={{fontSize:12, color:'var(--t2)', marginBottom:6, display:'flex', alignItems:'center', gap:5}}>
                   <span>🚚</span>
                   {auction.shipping_type === 'convenience'
-                    ? <span>편의점 택배 · 배송비 <strong style={{color:'var(--t1)'}}>₩{shippingFee.toLocaleString()}</strong> 별도</span>
+                    ? <span>편의점 택배 · 배송비 <strong style={{color:'var(--t1)'}}>{formatKRW(shippingFee)}</strong> 별도</span>
                     : <span>일반 배송 · 배송비 포함</span>
                   }
                 </div>
@@ -247,7 +247,7 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
                   {bids.map(b => (
                     <div key={b.id} className="blog-row">
                       <span>{b.bidder_name || '익명'}</span>
-                      <span className="blog-amt">₩ {b.amount.toLocaleString()}</span>
+                      <span className="blog-amt">{formatKRW(b.amount)}</span>
                     </div>
                   ))}
                   {bids.length === 0 && (
@@ -285,7 +285,7 @@ function AuctionModal({ auction: initialAuction, user, onClose, onOpenAuth, onOp
                           transition:'all 0.15s',
                         }}
                       >
-                        {buyingNow ? '처리 중...' : `⚡ 즉시 구매 ₩${auction.buy_now_price.toLocaleString()}`}
+                        {buyingNow ? '처리 중...' : `⚡ 즉시 구매 ${formatKRW(auction.buy_now_price)}`}
                       </button>
                     )}
                   </div>

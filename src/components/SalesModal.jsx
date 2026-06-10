@@ -11,6 +11,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { CARRIERS } from '../lib/delivery';
+import { useIsMobile } from '../lib/hooks';
+import { formatKRW } from '../lib/utils';
 
 export default function SalesModal({ user, onClose }) {
   const [sales,   setSales]   = useState([]);
@@ -35,7 +37,7 @@ export default function SalesModal({ user, onClose }) {
     setLoading(false);
   };
 
-  const isMobile = window.innerWidth < 768;
+  const isMobile = useIsMobile();
 
   return (
     <div
@@ -132,7 +134,7 @@ function SaleItem({ auction, onRefresh }) {
           </div>
           {auction.album && <div style={{fontSize:11, color:'rgba(0,0,0,0.4)', marginBottom:4}}>{auction.album}</div>}
           <div style={{fontSize:13, fontWeight:700, fontFamily:'monospace', color:'#111'}}>
-            ₩{(auction.current_price || 0).toLocaleString()}
+            {formatKRW(auction.current_price)}
           </div>
         </div>
 

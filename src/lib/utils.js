@@ -19,3 +19,10 @@ export function getTimeLeft(endsAt, { withSeconds = false } = {}) {
   if (m > 0) return `${m}분 ${s}초`;
   return `${s}초`;
 }
+
+/**
+ * 원화 금액 포맷. 예: 12000 → "₩12,000".
+ */
+export function formatKRW(n) {
+  return `₩${(n || 0).toLocaleString('ko-KR')}`;
+}

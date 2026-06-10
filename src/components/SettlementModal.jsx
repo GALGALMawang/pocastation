@@ -27,6 +27,8 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import { loadPaymentWidget } from '@tosspayments/payment-widget-sdk';
 import { AuthContext } from '../App';
 import { supabase } from '../lib/supabase';
+import { useIsMobile } from '../lib/hooks';
+import { formatKRW } from '../lib/utils';
 
 const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY;
 
@@ -133,7 +135,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
     setLoading(false);
   };
 
-  const isMobile = window.innerWidth < 768;
+  const isMobile = useIsMobile();
   const overlayStyle = {
     position:'fixed', inset:0, zIndex:600,
     background:'rgba(0,0,0,0.5)',
@@ -198,10 +200,10 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
           <div style={{marginBottom:20}}>
             <div style={{fontSize:11, color:'#7c3aed', fontWeight:800, letterSpacing:2, fontFamily:'monospace', marginBottom:4}}>낙찰 완료</div>
             <div style={{fontSize:17, fontWeight:900, color:'#111'}}>{item}</div>
-            <div style={{fontSize:22, fontWeight:900, color:'#111', fontFamily:'monospace', marginTop:4}}>₩{amount?.toLocaleString()}</div>
+            <div style={{fontSize:22, fontWeight:900, color:'#111', fontFamily:'monospace', marginTop:4}}>{formatKRW(amount)}</div>
             {shippingFee > 0 && (
               <div style={{fontSize:12, color:'rgba(0,0,0,0.45)', marginTop:4}}>
-                낙찰가 ₩{itemPrice?.toLocaleString()} + 편의점택배 ₩{shippingFee.toLocaleString()}
+                낙찰가 {formatKRW(itemPrice)} + 편의점택배 {formatKRW(shippingFee)}
               </div>
             )}
           </div>
@@ -265,7 +267,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
           <div style={{fontSize:11, color:'#7c3aed', fontWeight:800, letterSpacing:2, fontFamily:'monospace', marginBottom:4}}>낙찰 완료</div>
           <div style={{fontSize:17, fontWeight:900, color:'#111'}}>{item}</div>
           <div style={{fontSize:24, fontWeight:900, color:'#111', fontFamily:'monospace', marginTop:4}}>
-            ₩{amount?.toLocaleString()}
+            {formatKRW(amount)}
           </div>
         </div>
 
@@ -340,7 +342,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
                 opacity: loading ? 0.6 : 1,
               }}
             >
-              {loading ? '처리 중...' : `₩${amount?.toLocaleString()} 결제하기`}
+              {loading ? '처리 중...' : `${formatKRW(amount)} 결제하기`}
             </button>
           </div>
         )}

@@ -13,6 +13,7 @@
  */
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { formatKRW } from '../lib/utils';
 
 function Header({ user, profile, credit, onOpenModal, activeView, onNavClick, search, onSearch }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -72,7 +73,7 @@ function Header({ user, profile, credit, onOpenModal, activeView, onNavClick, se
         <div className="hdr-r">
           {/* 크레딧 잔액 (로그인 시만 표시) */}
           {user && (
-            <div className="user-cr show">₩ {(credit || 0).toLocaleString()}</div>
+            <div className="user-cr show">{formatKRW(credit)}</div>
           )}
 
           {/* 알림 벨 — 입찰 내역 모달 */}
@@ -111,7 +112,7 @@ function Header({ user, profile, credit, onOpenModal, activeView, onNavClick, se
                     <div style={{fontSize:'11px', color:'var(--t3)', marginBottom:'4px', fontWeight:700}}>내 크레딧</div>
                     <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
                       <div style={{fontFamily:'var(--fe)', fontSize:'16px', fontWeight:800, color:'var(--t1)'}}>
-                        ₩ {(credit || 0).toLocaleString()}
+                        {formatKRW(credit)}
                       </div>
                       <button className="cr-btn" onClick={() => { setMenuOpen(false); onOpenModal('charge'); }}>
                         충전

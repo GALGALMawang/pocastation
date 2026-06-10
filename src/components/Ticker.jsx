@@ -10,6 +10,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { formatKRW } from '../lib/utils';
 
 function Ticker() {
   const [bids, setBids] = useState([]);
@@ -50,7 +51,7 @@ function Ticker() {
               {[...bids, ...bids].map((bid, i) => (
                 <span key={`${bid.id}-${i}`} className="tk-it">
                   {bid.auctions?.group_name} {bid.auctions?.member} —
-                  <span className="tk-pr"> ₩{bid.amount.toLocaleString()}</span> 입찰
+                  <span className="tk-pr"> {formatKRW(bid.amount)}</span> 입찰
                   <span className="tk-dt"></span>
                 </span>
               ))}

@@ -17,6 +17,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { formatKRW } from '../lib/utils';
 
 // 상태별 라벨
 const STATUS_LABEL = {
@@ -143,7 +144,7 @@ function Admin() {
                   </td>
 
                   <td style={{padding:'12px 16px', fontFamily:'var(--fe)', fontWeight:600}}>
-                    ₩ {(a.start_price || 0).toLocaleString()}
+                    {formatKRW(a.start_price)}
                   </td>
 
                   {/* 상태 배지 */}

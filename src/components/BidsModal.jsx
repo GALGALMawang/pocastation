@@ -16,6 +16,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { fetchTracking, STATUS_KO, CARRIERS } from '../lib/delivery';
+import { useIsMobile } from '../lib/hooks';
+import { formatKRW } from '../lib/utils';
 
 export default function BidsModal({ user, onClose, onOpenSettlement }) {
   const [bids,    setBids]    = useState([]);
@@ -39,7 +41,7 @@ export default function BidsModal({ user, onClose, onOpenSettlement }) {
     setLoading(false);
   };
 
-  const isMobile = window.innerWidth < 768;
+  const isMobile = useIsMobile();
 
   return (
     <div
@@ -140,7 +142,7 @@ export default function BidsModal({ user, onClose, onOpenSettlement }) {
                       <div style={{fontSize:'12px', color:'rgba(0,0,0,0.5)'}}>
                         내 입찰가:{' '}
                         <span style={{fontWeight:700, color:'#111', fontFamily:'monospace'}}>
-                          ₩{bid.amount.toLocaleString()}
+                          {formatKRW(bid.amount)}
                         </span>
                       </div>
                     </div>

@@ -13,6 +13,8 @@
  */
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useIsMobile } from '../lib/hooks';
+import { formatKRW } from '../lib/utils';
 
 const PRESET_AMOUNTS = [10000, 30000, 50000, 100000, 300000];
 
@@ -53,7 +55,7 @@ export default function ChargeModal({ onClose }) {
     setLoading(false);
   };
 
-  const isMobile = window.innerWidth < 768;
+  const isMobile = useIsMobile();
   const overlayStyle = {
     position:'fixed', inset:0, zIndex:600,
     background:'rgba(0,0,0,0.5)',
@@ -90,7 +92,7 @@ export default function ChargeModal({ onClose }) {
             {[
               ['은행',    account.bankName],
               ['계좌번호', account.accountNumber],
-              ['입금액',  `₩${account.amount?.toLocaleString()}`],
+              ['입금액',  `${formatKRW(account.amount)}`],
               ['입금 기한', due],
             ].map(([label, value]) => (
               <div key={label} style={{display:'flex', justifyContent:'space-between', marginBottom:12}}>
@@ -140,7 +142,7 @@ export default function ChargeModal({ onClose }) {
                 fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'monospace',
               }}
             >
-              ₩{a.toLocaleString()}
+              {formatKRW(a)}
             </button>
           ))}
         </div>
@@ -170,7 +172,7 @@ export default function ChargeModal({ onClose }) {
             cursor: finalAmount >= 1000 ? 'pointer' : 'default',
           }}
         >
-          {loading ? '처리 중...' : `₩${finalAmount?.toLocaleString() ?? 0} 계좌 발급받기`}
+          {loading ? '처리 중...' : `${formatKRW(finalAmount)} 계좌 발급받기`}
         </button>
       </div>
     </div>
