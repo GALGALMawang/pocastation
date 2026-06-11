@@ -85,7 +85,8 @@
 
 **약점:**
 - [ ] `lib/utils.js:1-13` 주석은 정확하나 함수가 죽은 코드라 오해 유발.
-- [ ] `index.html:7` Toss v1 전역 `<script>`가 실제로는 npm SDK(`SettlementModal.jsx:27`) 사용과 중복 — **미사용 확인 후 제거**.
+- [x] `index.html` Toss v1 전역 `<script>` 제거 — npm SDK(`@tosspayments/payment-widget-sdk`)가
+  스크립트를 자체 주입함을 확인(`createElement('script')` + js.tosspayments.com)하여 중복 태그 삭제.
 - [ ] 일부 자명한 코드 재진술 주석(`Admin.jsx:21,29`) — 경미.
 
 ---
