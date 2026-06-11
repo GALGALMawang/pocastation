@@ -12,7 +12,10 @@
 > - 🟠 `init_fix.js` 삭제
 > - 🟠 박스드로잉 장식주석 전부 제거 (라벨 텍스트는 유지)
 > - 🟡 `getTimeLeft` 3중 중복 → `lib/utils.js` 단일 함수로 통합
-> - 미적용(문서 유지): 모달 보일러플레이트 추출, `formatKRW` 유틸화, `alert/confirm` 통일, UI placeholder 이모지(기능성이라 보존), `index.html` Toss 스크립트(결제 리스크로 보류)
+> - **추가 폴리시 완료(2026-06-11):** `ModalSheet` 공통화, `formatKRW`/`useIsMobile` 유틸·훅,
+>   `alert()`→토스트, favicon 추가, 비로그인 모달 로그인 게이트, 중복 Toss 스크립트 제거. (모두 빌드·실브라우저 검증)
+> - 의도적 유지: `confirm()` 2곳(yes/no 차단형), UI placeholder 이모지(렌더 영역이라 흔적 아님).
+> - 남은 건 **외부 키 작업뿐**(아래 "신규 인수자" 참고).
 
 ---
 
@@ -98,4 +101,5 @@
 - 판정: **코드 핸드오프 준비 완료.** 남은 건 운영 액션 + 선택적 리팩터링.
 - ⚠️ 운영 액션(코드 아님): `.env.local`에 노출됐던 `VITE_TRACKER_CLIENT_SECRET`이 잔존 → tracker.delivery에서 재발급 필요. 미사용된 `VITE_TRACKER_*` 두 줄은 `.env.local`/`.env.example`에서 삭제 권장.
 - 재분류: `🃏` 이모지는 JSX 렌더(UI 플레이스홀더) 전용이라 바이브코딩 흔적 아님 → 정리 불필요.
-- 잔여 선택 항목: 모달 보일러플레이트 추출, formatKRW 유틸화, alert/confirm 통일, index.html Toss v1 script 제거.
+**2026-06-11 추가 폴리시 (전부 완료·검증):** ModalSheet 공통화, formatKRW/useIsMobile, alert→토스트,
+favicon, 비로그인 모달 로그인 게이트, 중복 Toss 스크립트 제거. → **코드 정리 잔여 0.** 남은 건 외부 키 작업뿐.
