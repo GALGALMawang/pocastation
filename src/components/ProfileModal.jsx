@@ -15,6 +15,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { toast } from '../lib/toast';
 
 function ProfileModal({ user, onClose, fetchExtra }) {
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -55,7 +56,7 @@ function ProfileModal({ user, onClose, fetchExtra }) {
         .from('auction-images').getPublicUrl(path);
       setAvatarUrl(publicUrl);
     } catch (e) {
-      alert('사진 업로드 실패: ' + e.message);
+      toast('사진 업로드 실패: ' + e.message, 'err');
     } finally {
       setUploading(false);
     }
@@ -75,9 +76,9 @@ function ProfileModal({ user, onClose, fetchExtra }) {
       .eq('id', user.id);
     setLoading(false);
     if (error) {
-      alert(error.message);
+      toast(error.message, 'err');
     } else {
-      alert('설정이 저장되었습니다.');
+      toast('설정이 저장되었습니다.', 'ok');
       fetchExtra();
       onClose();
     }

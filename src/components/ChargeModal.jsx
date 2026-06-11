@@ -15,6 +15,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { formatKRW } from '../lib/utils';
 import ModalSheet from './ModalSheet';
+import { toast } from '../lib/toast';
 
 const PRESET_AMOUNTS = [10000, 30000, 50000, 100000, 300000];
 
@@ -29,7 +30,7 @@ export default function ChargeModal({ onClose }) {
 
   const requestCharge = async () => {
     if (!finalAmount || finalAmount < 1000) {
-      alert('최소 1,000원부터 충전 가능합니다');
+      toast('최소 1,000원부터 충전 가능합니다', 'err');
       return;
     }
     setLoading(true);
@@ -50,7 +51,7 @@ export default function ChargeModal({ onClose }) {
       if (!res.ok) throw new Error(json.error);
       setAccount(json);
     } catch (e) {
-      alert('오류: ' + e.message);
+      toast('오류: ' + e.message, 'err');
     }
     setLoading(false);
   };

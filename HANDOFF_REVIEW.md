@@ -70,7 +70,8 @@
   `lib/utils.js:4` `formatTimeLeft`(어디서도 import 안 됨, 죽은 코드), `AuctionCard.jsx:22` `getTimeLeft`, `AuctionModal.jsx:23` `getTimeLeft`. **출력이 다름** — 카드는 `"N시간 M분"`, 모달은 `"N시간 M분 S초"`. → `lib/utils.js` 단일 함수로 통합 후 두 컴포넌트가 import. 미사용 `formatTimeLeft`/`isEndingSoon`(:15) 정리.
 - [ ] **모달 오버레이 보일러플레이트 중복 (6개 모달 + Home).** `position:fixed; inset:0` + `window.innerWidth<768` + `onClick/stopPropagation` 패턴 반복. → `<ModalShell>` 공통 컴포넌트 + `useIsMobile` 훅 추출(현재 리사이즈 미반응).
 - [ ] **통화 포맷 `₩{x.toLocaleString()}` 20+곳 산재.** → `formatKRW(n)` 유틸화(중요도 낮음).
-- [ ] **`alert()`/`confirm()` 혼용** (`Admin.jsx` 6회 등). → 토스트 등으로 통일(선택).
+- [x] **`alert()` → 토스트 통일** — `lib/toast.js`로 14곳 교체(성공/오류 색상). `confirm()` 2곳은
+  yes/no 차단형이라 네이티브 유지(즉시구매·경매거절 — 의도된 확인 다이얼로그).
 
 ✅ 양호: `lib/delivery.js`(CARRIERS/STATUS_KO 분리), `lib/constants.js` 잘 모듈화됨.
 

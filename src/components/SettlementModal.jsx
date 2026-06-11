@@ -29,6 +29,7 @@ import { AuthContext } from '../App';
 import { supabase } from '../lib/supabase';
 import { formatKRW } from '../lib/utils';
 import ModalSheet from './ModalSheet';
+import { toast } from '../lib/toast';
 
 const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY;
 
@@ -109,7 +110,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
         failUrl:       `${window.location.origin}?payment=fail`,
       });
     } catch (e) {
-      alert('결제 오류: ' + e.message);
+      toast('결제 오류: ' + e.message, 'err');
       setLoading(false);
     }
   };
@@ -130,7 +131,7 @@ export default function SettlementModal({ auction, onClose, onComplete }) {
       setDirectContact(data);
       onComplete?.(); // 부모 컴포넌트 경매 목록 갱신
     } catch (e) {
-      alert('오류: ' + e.message);
+      toast('오류: ' + e.message, 'err');
     }
     setLoading(false);
   };

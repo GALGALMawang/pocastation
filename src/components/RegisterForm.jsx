@@ -3,6 +3,7 @@ import { AuthContext } from '../App';
 import { supabase } from '../lib/supabase';
 import { sha256File, pHashFile, hammingDistance, generateVerificationWord } from '../lib/imageHash';
 import { PHASH_SIMILARITY_THRESHOLD, MAX_AUCTION_HOURS } from '../lib/constants';
+import { toast } from '../lib/toast';
 
 const FIELD_STYLE = {
   width: '100%', padding: '9px 12px', borderRadius: 8,
@@ -131,7 +132,7 @@ export default function RegisterForm() {
       if (insertErr) throw insertErr;
       setSuccess(true);
     } catch (e) {
-      alert('등록 실패: ' + e.message);
+      toast('등록 실패: ' + e.message, 'err');
     } finally {
       setSubmitting(false);
     }

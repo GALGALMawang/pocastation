@@ -12,6 +12,7 @@
  */
 import React from 'react';
 import { supabase } from '../lib/supabase';
+import { toast } from '../lib/toast';
 
 function AuthModal({ onClose }) {
   const loginWith = async (provider) => {
@@ -19,7 +20,7 @@ function AuthModal({ onClose }) {
       provider,
       options: { redirectTo: window.location.origin },
     });
-    if (error) alert(error.message);
+    if (error) toast(error.message, 'err');
   };
 
   return (

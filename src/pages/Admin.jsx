@@ -18,6 +18,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { formatKRW } from '../lib/utils';
+import { toast } from '../lib/toast';
 
 // 상태별 라벨
 const STATUS_LABEL = {
@@ -56,8 +57,8 @@ function Admin() {
     const endsAt = new Date(Date.now() + (durationHours || 24) * 3600 * 1000).toISOString();
     const { error } = await supabase
       .from('auctions').update({ status: 'live', ends_at: endsAt }).eq('id', id);
-    if (error) alert('승인 실패: ' + error.message);
-    else { alert('승인되었습니다. 경매 시작!'); fetchAuctions(); }
+    if (error) toast('승인 실패: ' + error.message, 'err');
+    else { toast('승인되었습니다. 경매 시작!', 'ok'); fetchAuctions(); }
   };
 
   // 강제 종료: 최고 입찰자를 winner_id로 설정한 뒤 상태를 ended로 변경
@@ -70,8 +71,8 @@ function Admin() {
     if (topBid?.bidder_id) update.winner_id = topBid.bidder_id;
 
     const { error } = await supabase.from('auctions').update(update).eq('id', id);
-    if (error) alert('종료 실패: ' + error.message);
-    else { alert('경매가 종료되었습니다.'); fetchAuctions(); }
+    if (error) toast('종료 실패: ' + error.message, 'err');
+    else { toast('경매가 종료되었습니다.', 'ok'); fetchAuctions(); }
   };
 
   // 거절
@@ -79,7 +80,7 @@ function Admin() {
     if (!confirm('이 경매를 거절하시겠습니까?')) return;
     const { error } = await supabase
       .from('auctions').update({ status: 'rejected' }).eq('id', id);
-    if (error) alert('실패: ' + error.message);
+    if (error) toast('실패: ' + error.message, 'err');
     else fetchAuctions();
   };
 
